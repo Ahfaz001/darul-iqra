@@ -17,11 +17,14 @@ import StudentAttendance from "./pages/StudentAttendance";
 import AdminPanel from "./pages/AdminPanel";
 import ExamManagement from "./pages/admin/ExamManagement";
 import ExamResults from "./pages/admin/ExamResults";
+import CreateExamWithTranslation from "./pages/admin/CreateExamWithTranslation";
 import AttendanceManagement from "./pages/admin/AttendanceManagement";
 import UserManagement from "./pages/admin/UserManagement";
 import HadithManagement from "./pages/admin/HadithManagement";
 import ContentManagement from "./pages/admin/ContentManagement";
 import Reports from "./pages/admin/Reports";
+import StudentExams from "./pages/StudentExams";
+import TakeExam from "./pages/TakeExam";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -64,6 +67,22 @@ const App = () => (
                 } 
               />
               <Route 
+                path="/exams" 
+                element={
+                  <ProtectedRoute allowedRoles={['student']}>
+                    <StudentExams />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/exams/:examId/take" 
+                element={
+                  <ProtectedRoute allowedRoles={['student']}>
+                    <TakeExam />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
                 path="/attendance" 
                 element={
                   <ProtectedRoute allowedRoles={['student']}>
@@ -92,6 +111,14 @@ const App = () => (
                 element={
                   <ProtectedRoute allowedRoles={['admin', 'teacher']}>
                     <ExamResults />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/exams/create" 
+                element={
+                  <ProtectedRoute allowedRoles={['admin', 'teacher']}>
+                    <CreateExamWithTranslation />
                   </ProtectedRoute>
                 } 
               />
