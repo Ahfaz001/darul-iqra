@@ -185,13 +185,14 @@ const ExamManagement: React.FC = () => {
                 </div>
               </div>
               
+              <Button 
+                className="bg-primary hover:bg-primary/90"
+                onClick={() => navigate('/admin/exams/create')}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Create Exam with Translation
+              </Button>
               <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-                <DialogTrigger asChild>
-                  <Button className="bg-primary hover:bg-primary/90">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Exam
-                  </Button>
-                </DialogTrigger>
                 <DialogContent className="sm:max-w-[500px]">
                   <DialogHeader>
                     <DialogTitle>Create New Exam</DialogTitle>

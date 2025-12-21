@@ -44,6 +44,91 @@ export type Database = {
         }
         Relationships: []
       }
+      exam_assignments: {
+        Row: {
+          assigned_at: string
+          end_time: string | null
+          exam_id: string
+          id: string
+          start_time: string | null
+          status: string
+          student_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          end_time?: string | null
+          exam_id: string
+          id?: string
+          start_time?: string | null
+          status?: string
+          student_id: string
+        }
+        Update: {
+          assigned_at?: string
+          end_time?: string | null
+          exam_id?: string
+          id?: string
+          start_time?: string | null
+          status?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_assignments_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: false
+            referencedRelation: "exams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exam_questions: {
+        Row: {
+          created_at: string
+          exam_id: string
+          id: string
+          marks: number
+          question_number: number
+          question_text_en: string | null
+          question_text_roman: string | null
+          question_text_ur: string
+          question_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          exam_id: string
+          id?: string
+          marks?: number
+          question_number: number
+          question_text_en?: string | null
+          question_text_roman?: string | null
+          question_text_ur: string
+          question_type?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          exam_id?: string
+          id?: string
+          marks?: number
+          question_number?: number
+          question_text_en?: string | null
+          question_text_roman?: string | null
+          question_text_ur?: string
+          question_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_questions_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: false
+            referencedRelation: "exams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exam_results: {
         Row: {
           created_at: string
@@ -85,13 +170,58 @@ export type Database = {
           },
         ]
       }
+      exam_submissions: {
+        Row: {
+          answer_text: string | null
+          exam_id: string
+          id: string
+          question_id: string
+          student_id: string
+          submitted_at: string
+        }
+        Insert: {
+          answer_text?: string | null
+          exam_id: string
+          id?: string
+          question_id: string
+          student_id: string
+          submitted_at?: string
+        }
+        Update: {
+          answer_text?: string | null
+          exam_id?: string
+          id?: string
+          question_id?: string
+          student_id?: string
+          submitted_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_submissions_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: false
+            referencedRelation: "exams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exam_submissions_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "exam_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exams: {
         Row: {
           created_at: string
           created_by: string
           description: string | null
+          duration_minutes: number | null
           exam_date: string
           id: string
+          is_translated: boolean | null
+          original_content: string | null
           subject: string
           title: string
           total_marks: number
@@ -101,8 +231,11 @@ export type Database = {
           created_at?: string
           created_by: string
           description?: string | null
+          duration_minutes?: number | null
           exam_date: string
           id?: string
+          is_translated?: boolean | null
+          original_content?: string | null
           subject: string
           title: string
           total_marks?: number
@@ -112,8 +245,11 @@ export type Database = {
           created_at?: string
           created_by?: string
           description?: string | null
+          duration_minutes?: number | null
           exam_date?: string
           id?: string
+          is_translated?: boolean | null
+          original_content?: string | null
           subject?: string
           title?: string
           total_marks?: number
