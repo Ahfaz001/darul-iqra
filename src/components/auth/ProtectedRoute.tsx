@@ -33,12 +33,16 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to={isAdminArea ? '/admin-login' : '/auth'} state={{ from: location }} replace />;
   }
 
-  if (allowedRoles && role && !allowedRoles.includes(role)) {
-    // Redirect to appropriate dashboard based on role
-    const dashboardPath = role === 'admin' || role === 'teacher' 
-      ? '/admin' 
-      : '/dashboard';
-    return <Navigate to={dashboardPath} replace />;
+  if (allowedRoles) {
+    // Least-privilege default: if role isn't loaded/found, treat as student.
+    const effectiveRole: AppRole = role ?? 'student';
+
+    if (!allowedRoles.includes(effectiveRole)) {
+      const dashboardPath = effectiveRole === 'admin' || effectiveRole === 'teacher'
+        ? '/admin'
+        : '/dashboard';
+      return <Navigate to={dashboardPath} replace />;
+    }
   }
 
   return <>{children}</>;
