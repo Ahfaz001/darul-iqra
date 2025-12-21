@@ -251,7 +251,8 @@ const CreateExamWithTranslation: React.FC = () => {
 
       // 4. Send email notifications (fire and forget)
       try {
-        await supabase.functions.invoke('send-exam-notification', {
+        console.log('Sending exam notification to students:', selectedStudents);
+        const { data: notifyData, error: notifyError } = await supabase.functions.invoke('send-exam-notification', {
           body: {
             student_ids: selectedStudents,
             exam_title: translationResult.exam_title_ur || subject,
@@ -260,7 +261,12 @@ const CreateExamWithTranslation: React.FC = () => {
             duration_minutes: parseInt(durationMinutes) || 60
           }
         });
-        console.log('Email notifications sent');
+        
+        if (notifyError) {
+          console.error('Notification function error:', notifyError);
+        } else {
+          console.log('Email notifications response:', notifyData);
+        }
       } catch (notifyError) {
         console.error('Failed to send notifications:', notifyError);
         // Don't fail the whole operation if notifications fail

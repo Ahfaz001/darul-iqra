@@ -9,6 +9,13 @@ const corsHeaders = {
 };
 
 async function sendEmail(to: string, subject: string, html: string) {
+  console.log("Attempting to send email to:", to);
+  console.log("RESEND_API_KEY present:", !!RESEND_API_KEY);
+  
+  if (!RESEND_API_KEY) {
+    throw new Error("RESEND_API_KEY is not configured");
+  }
+  
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
@@ -23,12 +30,15 @@ async function sendEmail(to: string, subject: string, html: string) {
     }),
   });
   
+  const responseText = await response.text();
+  console.log("Resend API response status:", response.status);
+  console.log("Resend API response:", responseText);
+  
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Resend API error: ${error}`);
+    throw new Error(`Resend API error: ${responseText}`);
   }
   
-  return response.json();
+  return JSON.parse(responseText);
 }
 
 interface NotificationRequest {
