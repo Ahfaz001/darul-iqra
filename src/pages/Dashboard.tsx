@@ -72,7 +72,7 @@ const Dashboard: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>Student Dashboard | Dar-ul-Ulum Al-Qur'an Wa Sunnah</title>
+        <title>Student Dashboard | Idarah Tarjumat-ul-Qur'an Wa Sunnah</title>
         <meta name="description" content="Access your student dashboard to view exams, attendance, and Islamic learning resources." />
       </Helmet>
 
@@ -88,8 +88,8 @@ const Dashboard: React.FC = () => {
                   className="w-10 h-10 rounded-full"
                 />
                 <div>
-                  <h1 className="font-display font-bold text-primary text-lg">Student Portal</h1>
-                  <p className="text-xs text-muted-foreground">Dar-ul-Ulum Al-Qur'an Wa Sunnah</p>
+                <h1 className="font-display font-bold text-primary text-lg">Student Portal</h1>
+                <p className="text-xs text-muted-foreground">Idarah Tarjumat-ul-Qur'an Wa Sunnah</p>
                 </div>
               </div>
               
