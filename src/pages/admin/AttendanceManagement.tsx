@@ -9,11 +9,12 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import madrasaLogo from '@/assets/madrasa-logo.jpg';
-import { ArrowLeft, Calendar as CalendarIcon, Check, X, Clock, AlertCircle, Save } from 'lucide-react';
+import { ArrowLeft, Calendar as CalendarIcon, Check, X, Clock, AlertCircle, Save, Download, FileSpreadsheet } from 'lucide-react';
 import { Database } from '@/integrations/supabase/types';
 
 type AttendanceStatus = Database['public']['Enums']['attendance_status'];
@@ -29,6 +30,7 @@ interface AttendanceRecord {
   student_id: string;
   status: AttendanceStatus;
   notes?: string;
+  created_at?: string;
 }
 
 const AttendanceManagement: React.FC = () => {
@@ -39,6 +41,9 @@ const AttendanceManagement: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [reportStartDate, setReportStartDate] = useState<Date>(new Date());
+  const [reportEndDate, setReportEndDate] = useState<Date>(new Date());
+  const [downloadingReport, setDownloadingReport] = useState(false);
 
   useEffect(() => {
     fetchStudents();
@@ -97,7 +102,8 @@ const AttendanceManagement: React.FC = () => {
           id: record.id,
           student_id: record.student_id,
           status: record.status as AttendanceStatus,
-          notes: record.notes || undefined
+          notes: record.notes || undefined,
+          created_at: record.created_at
         });
       });
       
@@ -114,6 +120,66 @@ const AttendanceManagement: React.FC = () => {
       setAttendance(attendanceMap);
     } catch (error: any) {
       console.error('Error fetching attendance:', error);
+    }
+  };
+
+  const downloadReport = async () => {
+    setDownloadingReport(true);
+    try {
+      const startStr = format(reportStartDate, 'yyyy-MM-dd');
+      const endStr = format(reportEndDate, 'yyyy-MM-dd');
+      
+      // Fetch all attendance records in date range
+      const { data: attendanceData, error: attendanceError } = await supabase
+        .from('attendance')
+        .select('*')
+        .gte('date', startStr)
+        .lte('date', endStr)
+        .order('date', { ascending: true });
+
+      if (attendanceError) throw attendanceError;
+
+      // Create student name map
+      const studentMap = new Map<string, string>();
+      students.forEach(s => studentMap.set(s.user_id, s.full_name));
+
+      // Create CSV content
+      const headers = ['Date', 'Time Saved', 'Student Name', 'Status', 'Notes'];
+      const rows = attendanceData?.map(record => [
+        format(new Date(record.date), 'dd/MM/yyyy'),
+        format(new Date(record.created_at), 'hh:mm a'),
+        studentMap.get(record.student_id) || 'Unknown',
+        record.status.charAt(0).toUpperCase() + record.status.slice(1),
+        record.notes || '-'
+      ]) || [];
+
+      const csvContent = [
+        `Attendance Report - ${format(reportStartDate, 'dd/MM/yyyy')} to ${format(reportEndDate, 'dd/MM/yyyy')}`,
+        '',
+        headers.join(','),
+        ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+      ].join('\n');
+
+      // Download file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `Attendance_Report_${startStr}_to_${endStr}.csv`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+
+      toast({
+        title: "Report Downloaded",
+        description: `Attendance report from ${format(reportStartDate, 'dd MMM yyyy')} to ${format(reportEndDate, 'dd MMM yyyy')}`
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to download report",
+        variant: "destructive"
+      });
+    } finally {
+      setDownloadingReport(false);
     }
   };
 
@@ -238,6 +304,73 @@ const AttendanceManagement: React.FC = () => {
                   </PopoverContent>
                 </Popover>
                 
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="gap-2">
+                      <Download className="h-4 w-4" />
+                      Download Report
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        <FileSpreadsheet className="h-5 w-5" />
+                        Download Attendance Report
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Start Date</label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" className="w-full justify-start gap-2">
+                              <CalendarIcon className="h-4 w-4" />
+                              {format(reportStartDate, 'PPP')}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={reportStartDate}
+                              onSelect={(date) => date && setReportStartDate(date)}
+                              initialFocus
+                              className={cn("p-3 pointer-events-auto")}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">End Date</label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" className="w-full justify-start gap-2">
+                              <CalendarIcon className="h-4 w-4" />
+                              {format(reportEndDate, 'PPP')}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={reportEndDate}
+                              onSelect={(date) => date && setReportEndDate(date)}
+                              initialFocus
+                              className={cn("p-3 pointer-events-auto")}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                      <Button 
+                        onClick={downloadReport} 
+                        disabled={downloadingReport}
+                        className="w-full"
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        {downloadingReport ? 'Downloading...' : 'Download CSV Report'}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+                
                 <Button 
                   onClick={saveAttendance} 
                   disabled={saving || students.length === 0}
@@ -282,6 +415,7 @@ const AttendanceManagement: React.FC = () => {
                         <TableHead>Student Name</TableHead>
                         <TableHead>Email</TableHead>
                         <TableHead className="text-center">Status</TableHead>
+                        <TableHead className="text-center">Last Saved</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -334,6 +468,16 @@ const AttendanceManagement: React.FC = () => {
                                   </SelectContent>
                                 </Select>
                               </div>
+                            </TableCell>
+                            <TableCell className="text-center text-sm text-muted-foreground">
+                              {record?.created_at ? (
+                                <div className="flex flex-col items-center">
+                                  <span>{format(new Date(record.created_at), 'dd/MM/yyyy')}</span>
+                                  <span className="text-xs">{format(new Date(record.created_at), 'hh:mm a')}</span>
+                                </div>
+                              ) : (
+                                <span className="text-xs italic">Not saved</span>
+                              )}
                             </TableCell>
                           </TableRow>
                         );
