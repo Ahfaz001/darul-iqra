@@ -121,6 +121,48 @@ export type Database = {
         }
         Relationships: []
       }
+      hadith_books: {
+        Row: {
+          author: string | null
+          created_at: string
+          description: string | null
+          file_path: string
+          file_size: number | null
+          file_url: string
+          id: string
+          language: string
+          title: string
+          updated_at: string
+          uploaded_by: string
+        }
+        Insert: {
+          author?: string | null
+          created_at?: string
+          description?: string | null
+          file_path: string
+          file_size?: number | null
+          file_url: string
+          id?: string
+          language?: string
+          title: string
+          updated_at?: string
+          uploaded_by: string
+        }
+        Update: {
+          author?: string | null
+          created_at?: string
+          description?: string | null
+          file_path?: string
+          file_size?: number | null
+          file_url?: string
+          id?: string
+          language?: string
+          title?: string
+          updated_at?: string
+          uploaded_by?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

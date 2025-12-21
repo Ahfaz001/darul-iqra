@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import StudentProfile from "./pages/StudentProfile";
+import StudentHadith from "./pages/StudentHadith";
 import AdminPanel from "./pages/AdminPanel";
 import ExamManagement from "./pages/admin/ExamManagement";
 import ExamResults from "./pages/admin/ExamResults";
@@ -46,6 +47,14 @@ const App = () => (
                 element={
                   <ProtectedRoute allowedRoles={['student']}>
                     <StudentProfile />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/hadith" 
+                element={
+                  <ProtectedRoute allowedRoles={['student']}>
+                    <StudentHadith />
                   </ProtectedRoute>
                 } 
               />
