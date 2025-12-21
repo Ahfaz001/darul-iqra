@@ -12,6 +12,11 @@ import Dashboard from "./pages/Dashboard";
 import AdminPanel from "./pages/AdminPanel";
 import ExamManagement from "./pages/admin/ExamManagement";
 import ExamResults from "./pages/admin/ExamResults";
+import AttendanceManagement from "./pages/admin/AttendanceManagement";
+import UserManagement from "./pages/admin/UserManagement";
+import HadithManagement from "./pages/admin/HadithManagement";
+import ContentManagement from "./pages/admin/ContentManagement";
+import Reports from "./pages/admin/Reports";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -56,6 +61,46 @@ const App = () => (
                 element={
                   <ProtectedRoute allowedRoles={['admin', 'teacher']}>
                     <ExamResults />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/attendance" 
+                element={
+                  <ProtectedRoute allowedRoles={['admin', 'teacher']}>
+                    <AttendanceManagement />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/users" 
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <UserManagement />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/hadith" 
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <HadithManagement />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/content" 
+                element={
+                  <ProtectedRoute allowedRoles={['admin', 'teacher']}>
+                    <ContentManagement />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/reports" 
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <Reports />
                   </ProtectedRoute>
                 } 
               />
