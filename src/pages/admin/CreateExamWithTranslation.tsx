@@ -249,9 +249,26 @@ const CreateExamWithTranslation: React.FC = () => {
 
       if (assignError) throw assignError;
 
+      // 4. Send email notifications (fire and forget)
+      try {
+        await supabase.functions.invoke('send-exam-notification', {
+          body: {
+            student_ids: selectedStudents,
+            exam_title: translationResult.exam_title_ur || subject,
+            exam_subject: subject.trim(),
+            exam_date: format(examDate, 'PPP'),
+            duration_minutes: parseInt(durationMinutes) || 60
+          }
+        });
+        console.log('Email notifications sent');
+      } catch (notifyError) {
+        console.error('Failed to send notifications:', notifyError);
+        // Don't fail the whole operation if notifications fail
+      }
+
       toast({
         title: "Success!",
-        description: `Exam created and assigned to ${selectedStudents.length} student(s)`
+        description: `Exam created and assigned to ${selectedStudents.length} student(s). Email notifications sent.`
       });
 
       navigate('/admin/exams');
