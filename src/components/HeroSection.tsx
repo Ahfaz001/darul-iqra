@@ -1,8 +1,11 @@
-import { ArrowRight, BookOpen, Users, GraduationCap } from "lucide-react";
+import { ArrowRight, BookOpen, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/contexts/LanguageContext";
 import madrasaLogo from "@/assets/madrasa-logo.jpg";
 
 const HeroSection = () => {
+  const { t, isRTL } = useLanguage();
+
   return (
     <section id="home" className="relative min-h-screen flex items-center overflow-hidden">
       {/* Background with pattern */}
@@ -14,79 +17,77 @@ const HeroSection = () => {
       <div className="absolute bottom-20 left-10 w-96 h-96 bg-gold/5 rounded-full blur-3xl"></div>
 
       <div className="container mx-auto px-4 pt-24 pb-16 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className={`grid lg:grid-cols-2 gap-12 items-center ${isRTL ? 'lg:grid-flow-col-dense' : ''}`}>
           {/* Content Side */}
-          <div className="text-center lg:text-left space-y-8">
+          <div className={`text-center lg:text-left space-y-8 ${isRTL ? 'lg:text-right lg:order-2' : ''}`}>
             {/* Arabic Bismillah */}
             <div className="animate-fade-up">
               <span className="font-arabic text-3xl text-secondary/90 block mb-4">
-                بِسْمِ اللَّهِ الرَّحْمَـٰنِ الرَّحِيمِ
+                {t('bismillah')}
               </span>
             </div>
 
             {/* Main Heading */}
             <div className="space-y-4 animate-fade-up delay-100">
               <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-primary-foreground leading-tight">
-                Idarah Tarjumat-ul-Qur'an
-                <span className="block text-secondary">Wa Sunnah</span>
+                {t('instituteName')}
+                <span className="block text-secondary">{t('waSunnah')}</span>
               </h1>
               <p className="text-lg md:text-xl text-primary-foreground/80 font-urdu">
-                ادارة ترجمة القرآن والسنة
+                {t('instituteUrdu')}
               </p>
               <p className="text-base text-secondary font-arabic">
-                اطيعوا الله واطيعوا الرسول
+                {t('obeySunnah')}
               </p>
               <p className="text-primary-foreground/70">
-                KALYAN • كليان • Estd. 2008
+                {t('location')}
               </p>
             </div>
 
             {/* Description */}
-            <p className="text-primary-foreground/70 text-lg max-w-xl mx-auto lg:mx-0 animate-fade-up delay-200">
-              Nurturing minds with authentic Islamic education since 2008. 
-              We provide comprehensive Quranic studies, Hadith sciences, 
-              and Arabic language programs for students of all ages.
+            <p className={`text-primary-foreground/70 text-lg max-w-xl mx-auto lg:mx-0 animate-fade-up delay-200 ${isRTL ? 'font-urdu lg:mr-0' : ''}`}>
+              {t('heroDescription')}
             </p>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-fade-up delay-300">
+            <div className={`flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-fade-up delay-300 ${isRTL ? 'lg:justify-end' : ''}`}>
               <Button 
                 size="lg" 
                 className="bg-secondary text-secondary-foreground hover:bg-secondary/90 shadow-glow gap-2 text-base px-8"
               >
                 <GraduationCap className="w-5 h-5" />
-                Enroll Now
-                <ArrowRight className="w-4 h-4" />
+                {t('enrollNow')}
+                <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
               </Button>
-            <Button 
+              <Button 
                 size="lg" 
                 variant="outline" 
                 className="border-primary-foreground/50 text-primary-foreground bg-primary-foreground/5 hover:bg-primary-foreground/20 gap-2 text-base px-8"
               >
                 <BookOpen className="w-5 h-5" />
-                Learn More
+                {t('learnMore')}
               </Button>
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-6 pt-8 animate-fade-up delay-400">
-              <div className="text-center lg:text-left">
+            <div className={`grid grid-cols-3 gap-6 pt-8 animate-fade-up delay-400 ${isRTL ? 'lg:text-right' : ''}`}>
+              <div className={`text-center ${isRTL ? 'lg:text-right' : 'lg:text-left'}`}>
                 <div className="font-display text-3xl md:text-4xl font-bold text-secondary">17+</div>
-                <div className="text-primary-foreground/60 text-sm">Years Legacy</div>
+                <div className={`text-primary-foreground/60 text-sm ${isRTL ? 'font-urdu' : ''}`}>{t('yearsLegacy')}</div>
               </div>
-              <div className="text-center lg:text-left">
+              <div className={`text-center ${isRTL ? 'lg:text-right' : 'lg:text-left'}`}>
                 <div className="font-display text-3xl md:text-4xl font-bold text-secondary">500+</div>
-                <div className="text-primary-foreground/60 text-sm">Students</div>
+                <div className={`text-primary-foreground/60 text-sm ${isRTL ? 'font-urdu' : ''}`}>{t('students')}</div>
               </div>
-              <div className="text-center lg:text-left">
+              <div className={`text-center ${isRTL ? 'lg:text-right' : 'lg:text-left'}`}>
                 <div className="font-display text-3xl md:text-4xl font-bold text-secondary">20+</div>
-                <div className="text-primary-foreground/60 text-sm">Scholars</div>
+                <div className={`text-primary-foreground/60 text-sm ${isRTL ? 'font-urdu' : ''}`}>{t('scholars')}</div>
               </div>
             </div>
           </div>
 
           {/* Logo Side */}
-          <div className="flex justify-center lg:justify-end animate-fade-up delay-200">
+          <div className={`flex justify-center lg:justify-end animate-fade-up delay-200 ${isRTL ? 'lg:justify-start lg:order-1' : ''}`}>
             <div className="relative">
               {/* Glow effect behind logo */}
               <div className="absolute inset-0 bg-secondary/20 rounded-full blur-3xl scale-75"></div>
@@ -113,7 +114,7 @@ const HeroSection = () => {
         <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
           <path 
             d="M0 120L60 105C120 90 240 60 360 45C480 30 600 30 720 37.5C840 45 960 60 1080 67.5C1200 75 1320 75 1380 75L1440 75V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z" 
-            fill="hsl(45, 30%, 97%)"
+            fill="hsl(40, 35%, 97%)"
           />
         </svg>
       </div>
