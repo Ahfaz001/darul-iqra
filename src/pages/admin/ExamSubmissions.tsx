@@ -338,42 +338,48 @@ const ExamSubmissions: React.FC = () => {
 
     setSendingStudent(student.student_id);
     try {
-      // Send email notification
+      // Try to send email notification (optional - won't block if fails)
       if (student.student_email) {
-        console.log('Sending result notification email...');
-        const { data: notifyData, error: notifyError } = await supabase.functions.invoke('send-result-notification', {
-          body: {
-            student_id: student.student_id,
-            student_email: student.student_email,
-            student_name: student.student_name,
-            exam_title: exam.title,
-            subject: exam.subject,
-            marks_obtained: student.marks_obtained || 0,
-            total_marks: exam.total_marks,
-            grade: student.grade || '',
-            feedback: student.feedback || undefined
-          }
-        });
-
-        if (notifyError) {
-          console.error('Email notification error:', notifyError);
-          toast({
-            title: "Email Failed",
-            description: "Could not send email notification",
-            variant: "destructive"
+        try {
+          console.log('Sending result notification email...');
+          const { data: notifyData, error: notifyError } = await supabase.functions.invoke('send-result-notification', {
+            body: {
+              student_id: student.student_id,
+              student_email: student.student_email,
+              student_name: student.student_name,
+              exam_title: exam.title,
+              subject: exam.subject,
+              marks_obtained: student.marks_obtained || 0,
+              total_marks: exam.total_marks,
+              grade: student.grade || '',
+              feedback: student.feedback || undefined
+            }
           });
-        } else {
-          console.log('Email notification sent:', notifyData);
+
+          if (notifyError) {
+            console.error('Email notification error:', notifyError);
+            toast({
+              title: "Result Saved",
+              description: "Email nahi gaya - Student apne portal pe result dekh sakta hai",
+            });
+          } else {
+            console.log('Email notification sent:', notifyData);
+            toast({
+              title: "Success",
+              description: "Result sent to student via email"
+            });
+          }
+        } catch (emailError) {
+          console.error('Email error:', emailError);
           toast({
-            title: "Success",
-            description: "Result sent to student via email"
+            title: "Result Saved",
+            description: "Email nahi gaya - Student apne portal pe result dekh sakta hai",
           });
         }
       } else {
         toast({
-          title: "No Email",
-          description: "Student has no email address",
-          variant: "destructive"
+          title: "Result Saved",
+          description: "Student ko email nahi hai - Portal pe dekh sakta hai"
         });
       }
     } catch (error: any) {
