@@ -292,7 +292,7 @@ const ExamSubmissions: React.FC = () => {
       const grade = calculateGrade(totalMarks, exam.total_marks);
       const feedback = feedbacks[student.student_id] || '';
       
-      // Save to exam_results
+      // Save to exam_results (NOT published yet - student won't see)
       const { error } = await supabase
         .from('exam_results')
         .upsert({
@@ -300,7 +300,8 @@ const ExamSubmissions: React.FC = () => {
           student_id: student.student_id,
           marks_obtained: totalMarks,
           grade: grade,
-          feedback: feedback.trim() || null
+          feedback: feedback.trim() || null,
+          is_published: false
         }, {
           onConflict: 'exam_id,student_id'
         });
@@ -338,6 +339,15 @@ const ExamSubmissions: React.FC = () => {
 
     setSendingStudent(student.student_id);
     try {
+      // First, publish the result so student can see it
+      const { error: publishError } = await supabase
+        .from('exam_results')
+        .update({ is_published: true })
+        .eq('exam_id', examId)
+        .eq('student_id', student.student_id);
+
+      if (publishError) throw publishError;
+
       // Try to send email notification (optional - won't block if fails)
       if (student.student_email) {
         try {
@@ -358,30 +368,20 @@ const ExamSubmissions: React.FC = () => {
 
           if (notifyError) {
             console.error('Email notification error:', notifyError);
-            toast({
-              title: "Result Saved",
-              description: "Email nahi gaya - Student apne portal pe result dekh sakta hai",
-            });
           } else {
             console.log('Email notification sent:', notifyData);
-            toast({
-              title: "Success",
-              description: "Result sent to student via email"
-            });
           }
         } catch (emailError) {
           console.error('Email error:', emailError);
-          toast({
-            title: "Result Saved",
-            description: "Email nahi gaya - Student apne portal pe result dekh sakta hai",
-          });
         }
-      } else {
-        toast({
-          title: "Result Saved",
-          description: "Student ko email nahi hai - Portal pe dekh sakta hai"
-        });
       }
+
+      toast({
+        title: "Success",
+        description: "Result published - Student ab apne portal pe dekh sakta hai"
+      });
+
+      fetchExamData();
     } catch (error: any) {
       toast({
         title: "Error",

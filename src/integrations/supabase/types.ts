@@ -136,6 +136,7 @@ export type Database = {
           feedback: string | null
           grade: string | null
           id: string
+          is_published: boolean | null
           marks_obtained: number
           student_id: string
           updated_at: string
@@ -146,6 +147,7 @@ export type Database = {
           feedback?: string | null
           grade?: string | null
           id?: string
+          is_published?: boolean | null
           marks_obtained: number
           student_id: string
           updated_at?: string
@@ -156,6 +158,7 @@ export type Database = {
           feedback?: string | null
           grade?: string | null
           id?: string
+          is_published?: boolean | null
           marks_obtained?: number
           student_id?: string
           updated_at?: string
