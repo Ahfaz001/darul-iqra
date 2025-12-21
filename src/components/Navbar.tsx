@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Menu, X, Globe, User, BookOpen } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Menu, X, Globe, User, BookOpen, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -8,11 +8,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/contexts/AuthContext";
 import madrasaLogo from "@/assets/madrasa-logo.jpg";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState("English");
+  const { user, role, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const navLinks = [
     { name: "Home", href: "#home" },
@@ -27,6 +30,18 @@ const Navbar = () => {
     { code: "ur", name: "اردو" },
     { code: "roman", name: "Roman Urdu" },
   ];
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
+
+  const getDashboardPath = () => {
+    if (role === 'admin' || role === 'teacher') {
+      return '/admin';
+    }
+    return '/dashboard';
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-b border-border shadow-soft">
@@ -85,17 +100,47 @@ const Navbar = () => {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Login Button */}
-            <Button variant="outline" size="sm" className="gap-2 border-primary/30 hover:bg-primary hover:text-primary-foreground">
-              <User className="w-4 h-4" />
-              Login
-            </Button>
-
-            {/* Portal Button */}
-            <Button size="sm" className="gap-2 bg-primary hover:bg-primary/90 shadow-soft">
-              <BookOpen className="w-4 h-4" />
-              Student Portal
-            </Button>
+            {user ? (
+              <>
+                <Button 
+                  size="sm" 
+                  className="gap-2 bg-primary hover:bg-primary/90 shadow-soft"
+                  onClick={() => navigate(getDashboardPath())}
+                >
+                  <BookOpen className="w-4 h-4" />
+                  {role === 'admin' || role === 'teacher' ? 'Dashboard' : 'Student Portal'}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="gap-2 border-primary/30 hover:bg-destructive hover:text-destructive-foreground hover:border-destructive"
+                  onClick={handleSignOut}
+                >
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="gap-2 border-primary/30 hover:bg-primary hover:text-primary-foreground"
+                  onClick={() => navigate('/auth')}
+                >
+                  <User className="w-4 h-4" />
+                  Login
+                </Button>
+                <Button 
+                  size="sm" 
+                  className="gap-2 bg-primary hover:bg-primary/90 shadow-soft"
+                  onClick={() => navigate('/auth')}
+                >
+                  <BookOpen className="w-4 h-4" />
+                  Student Portal
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -124,14 +169,55 @@ const Navbar = () => {
               ))}
               <div className="border-t border-border my-2"></div>
               <div className="flex flex-col gap-2 px-4">
-                <Button variant="outline" className="w-full justify-center gap-2">
-                  <User className="w-4 h-4" />
-                  Login
-                </Button>
-                <Button className="w-full justify-center gap-2 bg-primary">
-                  <BookOpen className="w-4 h-4" />
-                  Student Portal
-                </Button>
+                {user ? (
+                  <>
+                    <Button 
+                      className="w-full justify-center gap-2 bg-primary"
+                      onClick={() => {
+                        navigate(getDashboardPath());
+                        setIsOpen(false);
+                      }}
+                    >
+                      <BookOpen className="w-4 h-4" />
+                      {role === 'admin' || role === 'teacher' ? 'Dashboard' : 'Student Portal'}
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-center gap-2"
+                      onClick={() => {
+                        handleSignOut();
+                        setIsOpen(false);
+                      }}
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Logout
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-center gap-2"
+                      onClick={() => {
+                        navigate('/auth');
+                        setIsOpen(false);
+                      }}
+                    >
+                      <User className="w-4 h-4" />
+                      Login
+                    </Button>
+                    <Button 
+                      className="w-full justify-center gap-2 bg-primary"
+                      onClick={() => {
+                        navigate('/auth');
+                        setIsOpen(false);
+                      }}
+                    >
+                      <BookOpen className="w-4 h-4" />
+                      Student Portal
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </div>
