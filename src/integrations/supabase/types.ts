@@ -172,25 +172,31 @@ export type Database = {
       }
       exam_submissions: {
         Row: {
+          answer_status: string | null
           answer_text: string | null
           exam_id: string
           id: string
+          marks_awarded: number | null
           question_id: string
           student_id: string
           submitted_at: string
         }
         Insert: {
+          answer_status?: string | null
           answer_text?: string | null
           exam_id: string
           id?: string
+          marks_awarded?: number | null
           question_id: string
           student_id: string
           submitted_at?: string
         }
         Update: {
+          answer_status?: string | null
           answer_text?: string | null
           exam_id?: string
           id?: string
+          marks_awarded?: number | null
           question_id?: string
           student_id?: string
           submitted_at?: string
