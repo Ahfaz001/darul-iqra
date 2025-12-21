@@ -237,9 +237,38 @@ const ExamSubmissions: React.FC = () => {
 
       if (error) throw error;
 
+      // Send email notification to student
+      if (gradingStudent.student_email && exam) {
+        try {
+          console.log('Sending result notification email...');
+          const { data: notifyData, error: notifyError } = await supabase.functions.invoke('send-result-notification', {
+            body: {
+              student_id: gradingStudent.student_id,
+              student_email: gradingStudent.student_email,
+              student_name: gradingStudent.student_name,
+              exam_title: exam.title,
+              subject: exam.subject,
+              marks_obtained: marks,
+              total_marks: exam.total_marks,
+              grade: calculatedGrade,
+              feedback: feedback.trim() || undefined
+            }
+          });
+
+          if (notifyError) {
+            console.error('Email notification error:', notifyError);
+          } else {
+            console.log('Email notification sent:', notifyData);
+          }
+        } catch (emailError) {
+          console.error('Failed to send email notification:', emailError);
+          // Don't fail the whole operation if email fails
+        }
+      }
+
       toast({
         title: "Success",
-        description: "Result saved successfully"
+        description: "Result saved and notification sent"
       });
 
       setIsGradingOpen(false);

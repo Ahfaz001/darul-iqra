@@ -5,3 +5,6 @@ verify_jwt = true
 
 [functions.send-exam-notification]
 verify_jwt = true
+
+[functions.send-result-notification]
+verify_jwt = true
