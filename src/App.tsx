@@ -9,6 +9,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import StudentProfile from "./pages/StudentProfile";
 import AdminPanel from "./pages/AdminPanel";
 import ExamManagement from "./pages/admin/ExamManagement";
 import ExamResults from "./pages/admin/ExamResults";
@@ -37,6 +38,14 @@ const App = () => (
                 element={
                   <ProtectedRoute allowedRoles={['student']}>
                     <Dashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/profile" 
+                element={
+                  <ProtectedRoute allowedRoles={['student']}>
+                    <StudentProfile />
                   </ProtectedRoute>
                 } 
               />
