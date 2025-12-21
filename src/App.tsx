@@ -15,9 +15,11 @@ import Dashboard from "./pages/Dashboard";
 import StudentProfile from "./pages/StudentProfile";
 import StudentHadith from "./pages/StudentHadith";
 import StudentAttendance from "./pages/StudentAttendance";
+import StudentResults from "./pages/StudentResults";
 import AdminPanel from "./pages/AdminPanel";
 import ExamManagement from "./pages/admin/ExamManagement";
 import ExamResults from "./pages/admin/ExamResults";
+import ExamSubmissions from "./pages/admin/ExamSubmissions";
 import CreateExamWithTranslation from "./pages/admin/CreateExamWithTranslation";
 import AttendanceManagement from "./pages/admin/AttendanceManagement";
 import UserManagement from "./pages/admin/UserManagement";
@@ -92,6 +94,14 @@ const App = () => (
                   </ProtectedRoute>
                 } 
               />
+              <Route 
+                path="/results" 
+                element={
+                  <ProtectedRoute allowedRoles={['student']}>
+                    <StudentResults />
+                  </ProtectedRoute>
+                } 
+              />
               <Route
                 path="/admin" 
                 element={
@@ -125,7 +135,15 @@ const App = () => (
                 } 
               />
               <Route 
-                path="/admin/attendance" 
+                path="/admin/exams/:examId/submissions" 
+                element={
+                  <ProtectedRoute allowedRoles={['admin', 'teacher']}>
+                    <ExamSubmissions />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/attendance"
                 element={
                   <ProtectedRoute allowedRoles={['admin', 'teacher']}>
                     <AttendanceManagement />

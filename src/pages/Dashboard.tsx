@@ -47,6 +47,13 @@ const Dashboard: React.FC = () => {
       color: 'bg-primary/10 text-primary'
     },
     { 
+      title: 'My Results', 
+      description: 'View your exam results and grades', 
+      icon: GraduationCap,
+      href: '/results',
+      color: 'bg-gold/20 text-gold-dark'
+    },
+    { 
       title: 'Attendance', 
       description: 'View your attendance records', 
       icon: Calendar,
@@ -58,14 +65,14 @@ const Dashboard: React.FC = () => {
       description: 'Read today\'s Hadith', 
       icon: BookMarked,
       href: '/hadith',
-      color: 'bg-gold/20 text-gold-dark'
+      color: 'bg-rose-100 text-rose-700'
     },
     { 
       title: 'My Profile', 
       description: 'Manage your account settings', 
       icon: User,
       href: '/profile',
-      color: 'bg-rose-100 text-rose-700'
+      color: 'bg-blue-100 text-blue-700'
     },
   ];
 
@@ -161,7 +168,7 @@ const Dashboard: React.FC = () => {
 
           {/* Menu Grid */}
           <h3 className="text-lg font-semibold text-foreground mb-4">Quick Access</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             {menuItems.map((item, index) => (
               <Card 
                 key={index} 
