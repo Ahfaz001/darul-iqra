@@ -5,16 +5,15 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import madrasaLogo from '@/assets/madrasa-logo.jpg';
-import { ArrowLeft, User, FileText, CheckCircle, Clock, Save, Eye } from 'lucide-react';
+import { ArrowLeft, User, FileText, CheckCircle, Clock, Send, Eye, Check, X } from 'lucide-react';
 
 interface Exam {
   id: string;
@@ -22,6 +21,12 @@ interface Exam {
   subject: string;
   exam_date: string;
   total_marks: number;
+}
+
+interface AnswerGrade {
+  question_id: string;
+  status: 'correct' | 'wrong' | 'pending';
+  marks_awarded: number;
 }
 
 interface StudentSubmission {
@@ -38,8 +43,10 @@ interface StudentSubmission {
     marks: number;
   }[];
   has_result: boolean;
+  result_sent: boolean;
   marks_obtained?: number;
   grade?: string;
+  feedback?: string;
 }
 
 interface ExamQuestion {
@@ -59,13 +66,11 @@ const ExamSubmissions: React.FC = () => {
   const [submissions, setSubmissions] = useState<StudentSubmission[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // Grading dialog state
-  const [gradingStudent, setGradingStudent] = useState<StudentSubmission | null>(null);
-  const [isGradingOpen, setIsGradingOpen] = useState(false);
-  const [marksObtained, setMarksObtained] = useState('');
-  const [grade, setGrade] = useState('');
-  const [feedback, setFeedback] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  // Per-student grading state
+  const [answerGrades, setAnswerGrades] = useState<Record<string, Record<string, AnswerGrade>>>({});
+  const [feedbacks, setFeedbacks] = useState<Record<string, string>>({});
+  const [savingStudent, setSavingStudent] = useState<string | null>(null);
+  const [sendingStudent, setSendingStudent] = useState<string | null>(null);
 
   useEffect(() => {
     if (examId) {
@@ -132,7 +137,7 @@ const ExamSubmissions: React.FC = () => {
       // Fetch existing results
       const { data: existingResults, error: resultsError } = await supabase
         .from('exam_results')
-        .select('student_id, marks_obtained, grade')
+        .select('student_id, marks_obtained, grade, feedback')
         .eq('exam_id', examId)
         .in('student_id', studentIds);
 
@@ -163,12 +168,35 @@ const ExamSubmissions: React.FC = () => {
           submitted_at: assignment.end_time,
           answers,
           has_result: !!existingResult,
+          result_sent: !!existingResult,
           marks_obtained: existingResult?.marks_obtained,
-          grade: existingResult?.grade || undefined
+          grade: existingResult?.grade || undefined,
+          feedback: existingResult?.feedback || undefined
         };
       }) || [];
 
       setSubmissions(studentSubmissions);
+      
+      // Initialize answer grades for each student
+      const initialGrades: Record<string, Record<string, AnswerGrade>> = {};
+      const initialFeedbacks: Record<string, string> = {};
+      
+      studentSubmissions.forEach(student => {
+        initialGrades[student.student_id] = {};
+        initialFeedbacks[student.student_id] = student.feedback || '';
+        
+        student.answers.forEach(answer => {
+          initialGrades[student.student_id][answer.question_id] = {
+            question_id: answer.question_id,
+            status: 'pending',
+            marks_awarded: 0
+          };
+        });
+      });
+      
+      setAnswerGrades(initialGrades);
+      setFeedbacks(initialFeedbacks);
+      
     } catch (error: any) {
       console.error('Error fetching exam data:', error);
       toast({
@@ -191,45 +219,62 @@ const ExamSubmissions: React.FC = () => {
     return 'F';
   };
 
-  const openGradingDialog = (student: StudentSubmission) => {
-    setGradingStudent(student);
-    setMarksObtained(student.marks_obtained?.toString() || '');
-    setGrade(student.grade || '');
-    setFeedback('');
-    setIsGradingOpen(true);
+  const handleAnswerGrade = (studentId: string, questionId: string, status: 'correct' | 'wrong') => {
+    const question = questions.find(q => q.id === questionId);
+    const marksAwarded = status === 'correct' ? (question?.marks || 0) : 0;
+    
+    setAnswerGrades(prev => ({
+      ...prev,
+      [studentId]: {
+        ...prev[studentId],
+        [questionId]: {
+          question_id: questionId,
+          status,
+          marks_awarded: marksAwarded
+        }
+      }
+    }));
   };
 
-  const handleSaveResult = async () => {
-    if (!gradingStudent || !marksObtained || !examId) {
+  const getStudentTotalMarks = (studentId: string): number => {
+    const studentGrades = answerGrades[studentId];
+    if (!studentGrades) return 0;
+    
+    return Object.values(studentGrades).reduce((total, grade) => total + grade.marks_awarded, 0);
+  };
+
+  const isAllGraded = (studentId: string): boolean => {
+    const studentGrades = answerGrades[studentId];
+    if (!studentGrades) return false;
+    
+    return Object.values(studentGrades).every(grade => grade.status !== 'pending');
+  };
+
+  const handleSaveResult = async (student: StudentSubmission) => {
+    if (!examId || !exam) return;
+    
+    if (!isAllGraded(student.student_id)) {
       toast({
-        title: "Validation Error",
-        description: "Please enter marks",
+        title: "Incomplete",
+        description: "Please mark all answers as correct or wrong",
         variant: "destructive"
       });
       return;
     }
 
-    const marks = parseInt(marksObtained);
-    if (isNaN(marks) || marks < 0 || (exam && marks > exam.total_marks)) {
-      toast({
-        title: "Validation Error",
-        description: `Marks must be between 0 and ${exam?.total_marks}`,
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setSubmitting(true);
+    setSavingStudent(student.student_id);
     try {
-      const calculatedGrade = grade || (exam ? calculateGrade(marks, exam.total_marks) : '');
+      const totalMarks = getStudentTotalMarks(student.student_id);
+      const grade = calculateGrade(totalMarks, exam.total_marks);
+      const feedback = feedbacks[student.student_id] || '';
       
       const { error } = await supabase
         .from('exam_results')
         .upsert({
           exam_id: examId,
-          student_id: gradingStudent.student_id,
-          marks_obtained: marks,
-          grade: calculatedGrade,
+          student_id: student.student_id,
+          marks_obtained: totalMarks,
+          grade: grade,
           feedback: feedback.trim() || null
         }, {
           onConflict: 'exam_id,student_id'
@@ -237,43 +282,17 @@ const ExamSubmissions: React.FC = () => {
 
       if (error) throw error;
 
-      // Send email notification to student
-      if (gradingStudent.student_email && exam) {
-        try {
-          console.log('Sending result notification email...');
-          const { data: notifyData, error: notifyError } = await supabase.functions.invoke('send-result-notification', {
-            body: {
-              student_id: gradingStudent.student_id,
-              student_email: gradingStudent.student_email,
-              student_name: gradingStudent.student_name,
-              exam_title: exam.title,
-              subject: exam.subject,
-              marks_obtained: marks,
-              total_marks: exam.total_marks,
-              grade: calculatedGrade,
-              feedback: feedback.trim() || undefined
-            }
-          });
-
-          if (notifyError) {
-            console.error('Email notification error:', notifyError);
-          } else {
-            console.log('Email notification sent:', notifyData);
-          }
-        } catch (emailError) {
-          console.error('Failed to send email notification:', emailError);
-          // Don't fail the whole operation if email fails
-        }
-      }
-
       toast({
-        title: "Success",
-        description: "Result saved and notification sent"
+        title: "Saved",
+        description: "Result saved successfully"
       });
 
-      setIsGradingOpen(false);
-      setGradingStudent(null);
-      fetchExamData();
+      // Update local state
+      setSubmissions(prev => prev.map(s => 
+        s.student_id === student.student_id 
+          ? { ...s, has_result: true, marks_obtained: totalMarks, grade, feedback }
+          : s
+      ));
     } catch (error: any) {
       toast({
         title: "Error",
@@ -281,7 +300,98 @@ const ExamSubmissions: React.FC = () => {
         variant: "destructive"
       });
     } finally {
-      setSubmitting(false);
+      setSavingStudent(null);
+    }
+  };
+
+  const handleSendResult = async (student: StudentSubmission) => {
+    if (!examId || !exam) return;
+    
+    // First save the result
+    if (!isAllGraded(student.student_id)) {
+      toast({
+        title: "Incomplete",
+        description: "Please mark all answers first",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setSendingStudent(student.student_id);
+    try {
+      const totalMarks = getStudentTotalMarks(student.student_id);
+      const grade = calculateGrade(totalMarks, exam.total_marks);
+      const feedback = feedbacks[student.student_id] || '';
+      
+      // Save result first
+      const { error: saveError } = await supabase
+        .from('exam_results')
+        .upsert({
+          exam_id: examId,
+          student_id: student.student_id,
+          marks_obtained: totalMarks,
+          grade: grade,
+          feedback: feedback.trim() || null
+        }, {
+          onConflict: 'exam_id,student_id'
+        });
+
+      if (saveError) throw saveError;
+
+      // Send email notification
+      if (student.student_email) {
+        console.log('Sending result notification email...');
+        const { data: notifyData, error: notifyError } = await supabase.functions.invoke('send-result-notification', {
+          body: {
+            student_id: student.student_id,
+            student_email: student.student_email,
+            student_name: student.student_name,
+            exam_title: exam.title,
+            subject: exam.subject,
+            marks_obtained: totalMarks,
+            total_marks: exam.total_marks,
+            grade: grade,
+            feedback: feedback.trim() || undefined
+          }
+        });
+
+        if (notifyError) {
+          console.error('Email notification error:', notifyError);
+          toast({
+            title: "Result Saved",
+            description: "Result saved but email failed to send",
+            variant: "destructive"
+          });
+        } else {
+          console.log('Email notification sent:', notifyData);
+          toast({
+            title: "Success",
+            description: "Result sent to student via email"
+          });
+        }
+      } else {
+        toast({
+          title: "Saved",
+          description: "Result saved (no email - student has no email)"
+        });
+      }
+
+      // Update local state
+      setSubmissions(prev => prev.map(s => 
+        s.student_id === student.student_id 
+          ? { ...s, has_result: true, result_sent: true, marks_obtained: totalMarks, grade, feedback }
+          : s
+      ));
+      
+      fetchExamData();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send result",
+        variant: "destructive"
+      });
+    } finally {
+      setSendingStudent(null);
     }
   };
 
@@ -324,7 +434,7 @@ const ExamSubmissions: React.FC = () => {
                     {exam?.title}
                   </h1>
                   <p className="text-xs text-muted-foreground">
-                    {exam?.subject} • Student Submissions
+                    {exam?.subject} • Total: {exam?.total_marks} marks
                   </p>
                 </div>
               </div>
@@ -353,17 +463,17 @@ const ExamSubmissions: React.FC = () => {
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold">
                   {submissions.length} Student(s) Submitted
                 </h2>
                 <div className="flex gap-2">
                   <Badge variant="outline" className="bg-green-50 text-green-700">
-                    {submissions.filter(s => s.has_result).length} Graded
+                    {submissions.filter(s => s.result_sent).length} Sent
                   </Badge>
                   <Badge variant="outline" className="bg-yellow-50 text-yellow-700">
-                    {submissions.filter(s => !s.has_result).length} Pending
+                    {submissions.filter(s => !s.result_sent).length} Pending
                   </Badge>
                 </div>
               </div>
@@ -382,23 +492,29 @@ const ExamSubmissions: React.FC = () => {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        {student.has_result ? (
+                        {student.result_sent ? (
                           <Badge className="bg-green-100 text-green-700 border-green-200">
                             <CheckCircle className="h-3 w-3 mr-1" />
-                            Graded: {student.marks_obtained}/{exam?.total_marks} ({student.grade})
+                            Sent: {student.marks_obtained}/{exam?.total_marks} ({student.grade})
+                          </Badge>
+                        ) : student.has_result ? (
+                          <Badge className="bg-blue-100 text-blue-700 border-blue-200">
+                            <Check className="h-3 w-3 mr-1" />
+                            Graded: {student.marks_obtained}/{exam?.total_marks}
                           </Badge>
                         ) : (
                           <Badge variant="outline" className="bg-yellow-50 text-yellow-700">
                             <Clock className="h-3 w-3 mr-1" />
-                            Needs Grading
+                            Pending
                           </Badge>
                         )}
-                        <Button 
-                          size="sm"
-                          onClick={() => openGradingDialog(student)}
-                        >
-                          {student.has_result ? 'Edit Grade' : 'Grade Now'}
-                        </Button>
+                        
+                        {/* Current calculated marks */}
+                        {isAllGraded(student.student_id) && !student.result_sent && (
+                          <Badge className="bg-primary/10 text-primary">
+                            Score: {getStudentTotalMarks(student.student_id)}/{exam?.total_marks}
+                          </Badge>
+                        )}
                       </div>
                     </div>
                     {student.submitted_at && (
@@ -408,27 +524,130 @@ const ExamSubmissions: React.FC = () => {
                     )}
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-3 mt-2">
-                      {student.answers.map((answer) => (
-                        <div 
-                          key={answer.question_id} 
-                          className="p-3 bg-muted/30 rounded-lg"
-                        >
-                          <div className="flex items-start justify-between mb-2">
-                            <span className="text-xs font-medium text-primary">
-                              Q{answer.question_number} ({answer.marks} marks)
-                            </span>
-                          </div>
-                          <p className="text-sm text-foreground font-medium mb-2 text-right font-urdu" dir="rtl">
-                            {answer.question_text}
-                          </p>
-                          <div className="bg-white p-2 rounded border border-border/50">
-                            <p className="text-sm text-foreground whitespace-pre-wrap">
-                              {answer.answer_text || <span className="text-muted-foreground italic">No answer provided</span>}
+                    <div className="space-y-4 mt-2">
+                      {student.answers.map((answer) => {
+                        const gradeStatus = answerGrades[student.student_id]?.[answer.question_id]?.status || 'pending';
+                        
+                        return (
+                          <div 
+                            key={answer.question_id} 
+                            className={`p-4 rounded-lg border ${
+                              gradeStatus === 'correct' 
+                                ? 'bg-green-50 border-green-200' 
+                                : gradeStatus === 'wrong' 
+                                  ? 'bg-red-50 border-red-200' 
+                                  : 'bg-muted/30 border-border/50'
+                            }`}
+                          >
+                            <div className="flex items-start justify-between mb-3">
+                              <span className="text-sm font-medium text-primary">
+                                Q{answer.question_number} ({answer.marks} marks)
+                              </span>
+                              
+                              {/* Correct/Wrong Dropdown */}
+                              <Select
+                                value={gradeStatus}
+                                onValueChange={(value: 'correct' | 'wrong') => 
+                                  handleAnswerGrade(student.student_id, answer.question_id, value)
+                                }
+                                disabled={student.result_sent}
+                              >
+                                <SelectTrigger className="w-32 h-8 bg-white">
+                                  <SelectValue placeholder="Select" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-white z-50">
+                                  <SelectItem value="correct" className="cursor-pointer">
+                                    <span className="flex items-center gap-2 text-green-600">
+                                      <Check className="h-4 w-4" /> Correct
+                                    </span>
+                                  </SelectItem>
+                                  <SelectItem value="wrong" className="cursor-pointer">
+                                    <span className="flex items-center gap-2 text-red-600">
+                                      <X className="h-4 w-4" /> Wrong
+                                    </span>
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            
+                            <p className="text-sm text-foreground font-medium mb-2 text-right font-urdu" dir="rtl">
+                              {answer.question_text}
                             </p>
+                            <div className="bg-white p-3 rounded border border-border/50">
+                              <p className="text-sm text-foreground whitespace-pre-wrap">
+                                {answer.answer_text || <span className="text-muted-foreground italic">No answer provided</span>}
+                              </p>
+                            </div>
+                            
+                            {gradeStatus !== 'pending' && (
+                              <div className="mt-2 text-xs font-medium">
+                                {gradeStatus === 'correct' ? (
+                                  <span className="text-green-600">+{answer.marks} marks</span>
+                                ) : (
+                                  <span className="text-red-600">0 marks</span>
+                                )}
+                              </div>
+                            )}
                           </div>
+                        );
+                      })}
+                      
+                      {/* Feedback Section */}
+                      <div className="mt-4 space-y-2">
+                        <Label htmlFor={`feedback-${student.student_id}`}>Feedback (Optional)</Label>
+                        <Textarea
+                          id={`feedback-${student.student_id}`}
+                          value={feedbacks[student.student_id] || ''}
+                          onChange={(e) => setFeedbacks(prev => ({
+                            ...prev,
+                            [student.student_id]: e.target.value
+                          }))}
+                          placeholder="Add feedback for student..."
+                          rows={2}
+                          disabled={student.result_sent}
+                        />
+                      </div>
+                      
+                      {/* Action Buttons */}
+                      <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/50">
+                        <div className="text-sm">
+                          {isAllGraded(student.student_id) && (
+                            <span className="font-semibold">
+                              Total: {getStudentTotalMarks(student.student_id)}/{exam?.total_marks} 
+                              ({calculateGrade(getStudentTotalMarks(student.student_id), exam?.total_marks || 100)})
+                            </span>
+                          )}
                         </div>
-                      ))}
+                        
+                        <div className="flex gap-2">
+                          {!student.result_sent && (
+                            <>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleSaveResult(student)}
+                                disabled={!isAllGraded(student.student_id) || savingStudent === student.student_id}
+                              >
+                                {savingStudent === student.student_id ? 'Saving...' : 'Save'}
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => handleSendResult(student)}
+                                disabled={!isAllGraded(student.student_id) || sendingStudent === student.student_id}
+                              >
+                                <Send className="h-4 w-4 mr-2" />
+                                {sendingStudent === student.student_id ? 'Sending...' : 'Send Result'}
+                              </Button>
+                            </>
+                          )}
+                          {student.result_sent && (
+                            <Badge className="bg-green-100 text-green-700">
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Result Sent
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -436,70 +655,6 @@ const ExamSubmissions: React.FC = () => {
             </div>
           )}
         </main>
-
-        {/* Grading Dialog */}
-        <Dialog open={isGradingOpen} onOpenChange={setIsGradingOpen}>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>Grade Submission</DialogTitle>
-              <DialogDescription>
-                {gradingStudent?.student_name} - Total Marks: {exam?.total_marks}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 mt-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="marks">Marks Obtained *</Label>
-                  <Input
-                    id="marks"
-                    type="number"
-                    value={marksObtained}
-                    onChange={(e) => setMarksObtained(e.target.value)}
-                    placeholder={`0 - ${exam?.total_marks}`}
-                    min="0"
-                    max={exam?.total_marks}
-                    required
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="grade">Grade (Auto-calculated)</Label>
-                  <Input
-                    id="grade"
-                    value={grade || (marksObtained && exam ? calculateGrade(parseInt(marksObtained) || 0, exam.total_marks) : '')}
-                    onChange={(e) => setGrade(e.target.value)}
-                    placeholder="A, B, C..."
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="feedback">Feedback (Optional)</Label>
-                <Textarea
-                  id="feedback"
-                  value={feedback}
-                  onChange={(e) => setFeedback(e.target.value)}
-                  placeholder="Add comments or feedback..."
-                  rows={3}
-                />
-              </div>
-              
-              <div className="flex justify-end gap-3 pt-4">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setIsGradingOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button onClick={handleSaveResult} disabled={submitting}>
-                  <Save className="h-4 w-4 mr-2" />
-                  {submitting ? 'Saving...' : 'Save Result'}
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
     </>
   );
