@@ -34,10 +34,10 @@ const Auth: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>{mode === 'login' ? 'Login' : 'Sign Up'} | Dar-ul-Ulum Al-Qur'an Wa Sunnah</title>
+        <title>{mode === 'login' ? 'Login' : 'Sign Up'} | Idarah Tarjumat-ul-Qur'an Wa Sunnah</title>
         <meta 
           name="description" 
-          content="Access your student portal at Dar-ul-Ulum Al-Qur'an Wa Sunnah Kalyan. Login or create an account to view exams, attendance, and more." 
+          content="Access your student portal at Idarah Tarjumat-ul-Qur'an Wa Sunnah Kalyan. Login or create an account to view exams, attendance, and more." 
         />
       </Helmet>
 
@@ -58,12 +58,15 @@ const Auth: React.FC = () => {
               className="w-32 h-32 rounded-full mb-8 shadow-2xl border-4 border-white/20"
             />
             <h1 className="text-3xl font-display font-bold text-center mb-4">
-              Dar-ul-Ulum Al-Qur'an Wa Sunnah
+              Idarah Tarjumat-ul-Qur'an Wa Sunnah
             </h1>
             <p className="text-xl text-white/80 text-center font-urdu mb-2">
-              دارالعلوم القرآن والسنة کلیان
+              ادارة ترجمة القرآن والسنة
             </p>
-            <p className="text-lg text-gold font-medium">Est. 2008 • Kalyan</p>
+            <p className="text-base text-white/70 text-center font-arabic mb-2">
+              اطيعوا الله واطيعوا الرسول
+            </p>
+            <p className="text-lg text-gold font-medium">KALYAN • كليان • Estd. 2008</p>
             
             <div className="mt-12 max-w-md text-center">
               <p className="text-white/90 text-lg leading-relaxed">
@@ -92,8 +95,9 @@ const Auth: React.FC = () => {
                 className="w-20 h-20 rounded-full shadow-lg mb-4"
               />
               <h1 className="text-xl font-display font-bold text-primary text-center">
-                Dar-ul-Ulum Al-Qur'an Wa Sunnah
+                Idarah Tarjumat-ul-Qur'an Wa Sunnah
               </h1>
+              <p className="text-sm text-muted-foreground">KALYAN • Estd. 2008</p>
             </div>
 
             <div className="bg-white rounded-2xl shadow-xl p-8 border border-border/30">

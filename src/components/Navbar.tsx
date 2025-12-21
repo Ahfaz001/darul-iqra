@@ -52,15 +52,15 @@ const Navbar = () => {
             <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-primary/20 shadow-soft group-hover:border-secondary transition-colors duration-300">
               <img
                 src={madrasaLogo}
-                alt="Dar-ul-Ulum Al-Qur'an Wa Sunnah Kalyan"
+                alt="Idarah Tarjumat-ul-Qur'an Wa Sunnah Kalyan"
                 className="w-full h-full object-cover"
               />
             </div>
             <div className="hidden sm:block">
-              <h1 className="font-display font-semibold text-foreground text-lg leading-tight">
-                Dar-ul-Ulum
+              <h1 className="font-display font-semibold text-foreground text-base leading-tight">
+                Idarah Tarjumat-ul-Qur'an
               </h1>
-              <p className="text-xs text-muted-foreground">Al-Qur'an Wa Sunnah</p>
+              <p className="text-xs text-muted-foreground">Wa Sunnah • Kalyan</p>
             </div>
           </Link>
 

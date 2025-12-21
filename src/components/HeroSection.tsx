@@ -27,11 +27,17 @@ const HeroSection = () => {
             {/* Main Heading */}
             <div className="space-y-4 animate-fade-up delay-100">
               <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-primary-foreground leading-tight">
-                Dar-ul-Ulum
-                <span className="block text-secondary">Al-Qur'an Wa Sunnah</span>
+                Idarah Tarjumat-ul-Qur'an
+                <span className="block text-secondary">Wa Sunnah</span>
               </h1>
               <p className="text-lg md:text-xl text-primary-foreground/80 font-urdu">
-                ادارہ ترجمۃ القرآن والسنۃ - کلیان
+                ادارة ترجمة القرآن والسنة
+              </p>
+              <p className="text-base text-secondary font-arabic">
+                اطيعوا الله واطيعوا الرسول
+              </p>
+              <p className="text-primary-foreground/70">
+                KALYAN • كليان • Estd. 2008
               </p>
             </div>
 
@@ -89,7 +95,7 @@ const HeroSection = () => {
               <div className="relative w-72 h-72 md:w-96 md:h-96 rounded-full overflow-hidden border-4 border-secondary/30 shadow-elevated animate-float">
                 <img
                   src={madrasaLogo}
-                  alt="Dar-ul-Ulum Al-Qur'an Wa Sunnah Kalyan Logo"
+                  alt="Idarah Tarjumat-ul-Qur'an Wa Sunnah Kalyan Logo"
                   className="w-full h-full object-cover"
                 />
               </div>

@@ -93,7 +93,7 @@ const AdminPanel: React.FC = () => {
     <>
       <Helmet>
         <title>{role === 'admin' ? 'Admin Panel' : 'Teacher Dashboard'} | Dar-ul-Ulum</title>
-        <meta name="description" content="Manage students, exams, attendance, and content for Dar-ul-Ulum Al-Qur'an Wa Sunnah." />
+        <meta name="description" content="Manage students, exams, attendance, and content for Idarah Tarjumat-ul-Qur'an Wa Sunnah." />
       </Helmet>
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50">
@@ -111,7 +111,7 @@ const AdminPanel: React.FC = () => {
                   <h1 className="font-display font-bold text-primary text-lg">
                     {role === 'admin' ? 'Admin Panel' : 'Teacher Portal'}
                   </h1>
-                  <p className="text-xs text-muted-foreground">Dar-ul-Ulum Al-Qur'an Wa Sunnah</p>
+                  <p className="text-xs text-muted-foreground">Idarah Tarjumat-ul-Qur'an Wa Sunnah</p>
                 </div>
               </div>
               

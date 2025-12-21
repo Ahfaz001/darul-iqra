@@ -43,8 +43,8 @@ const Footer = () => {
                 />
               </div>
               <div>
-                <h3 className="font-display font-bold text-xl">Dar-ul-Ulum</h3>
-                <p className="text-primary-foreground/70 text-sm">Al-Qur'an Wa Sunnah</p>
+                <h3 className="font-display font-bold text-lg leading-tight">Idarah Tarjumat-ul-Qur'an</h3>
+                <p className="text-primary-foreground/70 text-sm">Wa Sunnah • KALYAN</p>
               </div>
             </div>
             <p className="text-primary-foreground/80 text-sm leading-relaxed">
@@ -155,7 +155,7 @@ const Footer = () => {
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-primary-foreground/60">
             <p>
-              © {new Date().getFullYear()} Dar-ul-Ulum Al-Qur'an Wa Sunnah Kalyan. All rights reserved.
+              © {new Date().getFullYear()} Idarah Tarjumat-ul-Qur'an Wa Sunnah Kalyan. All rights reserved.
             </p>
             <div className="flex items-center gap-2">
               <span className="font-arabic text-lg">بسم الله الرحمن الرحيم</span>
