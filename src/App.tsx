@@ -10,6 +10,8 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import AdminPanel from "./pages/AdminPanel";
+import ExamManagement from "./pages/admin/ExamManagement";
+import ExamResults from "./pages/admin/ExamResults";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +40,22 @@ const App = () => (
                 element={
                   <ProtectedRoute allowedRoles={['admin', 'teacher']}>
                     <AdminPanel />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/exams" 
+                element={
+                  <ProtectedRoute allowedRoles={['admin', 'teacher']}>
+                    <ExamManagement />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/exams/:examId/results" 
+                element={
+                  <ProtectedRoute allowedRoles={['admin', 'teacher']}>
+                    <ExamResults />
                   </ProtectedRoute>
                 } 
               />
