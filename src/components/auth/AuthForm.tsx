@@ -23,7 +23,7 @@ const signupSchema = loginSchema.extend({
 
 interface AuthFormProps {
   mode: 'login' | 'signup';
-  onToggleMode: () => void;
+  onToggleMode?: () => void;
 }
 
 export const AuthForm: React.FC<AuthFormProps> = ({ mode, onToggleMode }) => {
@@ -232,17 +232,19 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onToggleMode }) => {
         )}
       </Button>
 
-      <p className="text-center text-sm text-muted-foreground">
-        {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
-        <button
-          type="button"
-          onClick={onToggleMode}
-          className="text-primary hover:text-primary/80 font-medium transition-colors"
-          disabled={loading}
-        >
-          {mode === 'login' ? 'Sign up' : 'Sign in'}
-        </button>
-      </p>
+      {onToggleMode && (
+        <p className="text-center text-sm text-muted-foreground">
+          {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
+          <button
+            type="button"
+            onClick={onToggleMode}
+            className="text-primary hover:text-primary/80 font-medium transition-colors"
+            disabled={loading}
+          >
+            {mode === 'login' ? 'Sign up' : 'Sign in'}
+          </button>
+        </p>
+      )}
     </form>
   );
 };
