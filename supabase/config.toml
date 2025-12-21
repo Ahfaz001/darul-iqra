@@ -2,3 +2,6 @@ project_id = "plioyqdasznsskgtxglf"
 
 [functions.translate-exam]
 verify_jwt = true
+
+[functions.send-exam-notification]
+verify_jwt = true
