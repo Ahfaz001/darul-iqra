@@ -12,10 +12,10 @@ const AdminLogin: React.FC = () => {
 
   useEffect(() => {
     if (user && !loading) {
-      if (role === 'admin') {
+      if (role === 'admin' || role === 'teacher') {
         navigate('/admin');
       } else {
-        // If logged in but not admin, redirect to dashboard
+        // If logged in but not admin/teacher, redirect to dashboard
         navigate('/dashboard');
       }
     }
