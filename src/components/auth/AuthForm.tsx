@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -63,36 +63,6 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onToggleMode }) => {
     }
   };
 
-  const handleForgotPassword = async () => {
-    const trimmedEmail = email.trim();
-    const parsed = z.string().email().safeParse(trimmedEmail);
-
-    if (!parsed.success) {
-      toast({
-        title: 'Enter your email first',
-        description: 'Please type a valid email address, then click “Forgot password?”.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    try {
-      const redirectTo = `${window.location.origin}/reset-password`;
-      const { error } = await supabase.auth.resetPasswordForEmail(trimmedEmail, { redirectTo });
-      if (error) throw error;
-
-      toast({
-        title: 'Password reset email sent',
-        description: 'Check your inbox (and spam) to set a new password.',
-      });
-    } catch (e: any) {
-      toast({
-        title: 'Could not send reset email',
-        description: e?.message || 'Please try again.',
-        variant: 'destructive',
-      });
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,21 +74,21 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onToggleMode }) => {
     try {
       if (mode === 'login') {
         const { error } = await signIn(email, password);
-        if (error) {
-          if (error.message.includes('Invalid login credentials')) {
-            toast({
-              title: 'Login Failed',
-              description: 'Invalid email or password. Please try again, or use “Forgot password?”.',
-              variant: 'destructive',
-            });
+          if (error) {
+            if (error.message.includes('Invalid login credentials')) {
+              toast({
+                title: 'Login Failed',
+                description: 'Invalid email or password. Please try again.',
+                variant: 'destructive',
+              });
+            } else {
+              toast({
+                title: 'Login Failed',
+                description: error.message,
+                variant: 'destructive',
+              });
+            }
           } else {
-            toast({
-              title: 'Login Failed',
-              description: error.message,
-              variant: 'destructive',
-            });
-          }
-        } else {
           toast({
             title: 'Welcome back!',
             description: 'You have been logged in successfully.',
@@ -249,18 +219,6 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onToggleMode }) => {
         </div>
       )}
 
-      {mode === 'login' && (
-        <div className="flex justify-end">
-          <button
-            type="button"
-            onClick={handleForgotPassword}
-            className="text-sm text-primary hover:text-primary/80 font-medium transition-colors"
-            disabled={loading}
-          >
-            Forgot password?
-          </button>
-        </div>
-      )}
 
       <Button
         type="submit"

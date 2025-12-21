@@ -9,6 +9,11 @@ import { Shield } from 'lucide-react';
 const AdminLogin: React.FC = () => {
   const { user, role, loading } = useAuth();
   const navigate = useNavigate();
+  const [mode, setMode] = useState<'login' | 'signup'>('login');
+
+  const toggleMode = () => {
+    setMode((m) => (m === 'login' ? 'signup' : 'login'));
+  };
 
   useEffect(() => {
     if (user && !loading) {
@@ -101,14 +106,16 @@ const AdminLogin: React.FC = () => {
             <div className="bg-white rounded-2xl shadow-xl p-8 border border-slate-200">
               <div className="text-center mb-8">
                 <h2 className="text-2xl font-display font-bold text-slate-800">
-                  Administrator Login
+                  {mode === 'login' ? 'Administrator Login' : 'Create Account'}
                 </h2>
                 <p className="text-muted-foreground mt-2">
-                  Sign in with your admin credentials
+                  {mode === 'login'
+                    ? 'Sign in with your admin credentials'
+                    : 'Create an account first; admin access will be enabled after approval.'}
                 </p>
               </div>
 
-              <AuthForm mode="login" />
+              <AuthForm mode={mode} onToggleMode={toggleMode} />
             </div>
 
             <p className="text-center text-sm text-muted-foreground mt-6">
