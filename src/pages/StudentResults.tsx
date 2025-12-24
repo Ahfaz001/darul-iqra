@@ -10,9 +10,8 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import madrasaLogo from '@/assets/madrasa-logo.jpg';
+import StudentHeader from '@/components/StudentHeader';
 import { 
-  ArrowLeft, 
   Trophy, 
   FileText,
   Award,
@@ -193,37 +192,13 @@ const StudentResults: React.FC = () => {
         <meta name="description" content="View your exam results and grades" />
       </Helmet>
 
-      <div className="min-h-screen bg-gradient-to-br from-cream via-white to-emerald-50">
-        {/* Header */}
-        <header className="bg-white border-b border-border/50 sticky top-0 z-50">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center gap-3">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => navigate('/dashboard')}
-                className="mr-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <img 
-                src={madrasaLogo} 
-                alt="Madrasa Logo" 
-                className="w-10 h-10 rounded-full"
-              />
-              <div>
-                <h1 className="font-display font-bold text-primary text-lg">
-                  {language === 'ur' ? 'میرے نتائج' : language === 'roman' ? 'Mere Nataij' : 'My Results'}
-                </h1>
-                <p className="text-xs text-muted-foreground">
-                  {language === 'ur' ? 'امتحانی نتائج اور گریڈز' : 
-                   language === 'roman' ? 'Imtehaani Nataij aur Grades' : 
-                   'Exam results and grades'}
-                </p>
-              </div>
-            </div>
-          </div>
-        </header>
+      <div className="min-h-screen bg-gradient-to-br from-cream via-white to-emerald-50 dark:from-background dark:via-background dark:to-background">
+        <StudentHeader 
+          title="My Results"
+          titleKey="myResults"
+          subtitle="Exam results and grades"
+          subtitleKey="viewResults"
+        />
 
         {/* Main Content */}
         <main className="container mx-auto px-4 py-8">
