@@ -22,8 +22,8 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 
-// Use CDN for PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
+// Use CDN for PDF.js worker (classic worker for best compatibility)
+pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
 interface PDFViewerProps {
   fileUrl: string;
@@ -101,8 +101,23 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = 'auto'; };
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
   }, []);
+
+  // Reset viewer state when opening a different PDF
+  useEffect(() => {
+    setLoading(true);
+    setNumPages(0);
+    setCurrentPage(1);
+    setShowThumbnails(false);
+    setShowSearch(false);
+    setSearchQuery('');
+    setSearchResults([]);
+    setCurrentSearchIndex(0);
+    setPageTexts(new Map());
+  }, [fileUrl]);
 
   // Extract text from all pages for search
   const extractAllPageTexts = useCallback(async () => {
