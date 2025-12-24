@@ -71,7 +71,7 @@ const Navbar = () => {
         <div className={`flex items-center justify-between h-20 ${isRTL ? 'flex-row-reverse' : ''}`}>
           {/* Logo */}
           <Link to="/" className={`flex items-center gap-3 group ${isRTL ? 'flex-row-reverse' : ''}`}>
-            <div className="relative w-11 h-11 overflow-hidden border-2 border-amber-500 shadow-lg rounded-lg">
+            <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-amber-500 shadow-lg">
               <img
                 src={madrasaLogo}
                 alt="Idarah Tarjumat-ul-Qur'an Wa Sunnah Kalyan"
