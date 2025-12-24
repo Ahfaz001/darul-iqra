@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { validatePositiveInteger } from '@/lib/validation';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
@@ -209,7 +210,7 @@ const CreateExamWithTranslation: React.FC = () => {
           subject: subject.trim(),
           exam_date: format(examDate, 'yyyy-MM-dd'),
           total_marks: translationResult.total_marks || 100,
-          duration_minutes: parseInt(durationMinutes) || 60,
+          duration_minutes: validatePositiveInteger(durationMinutes, 60, 600),
           original_content: examContent,
           is_translated: true,
           created_by: user?.id
@@ -258,7 +259,7 @@ const CreateExamWithTranslation: React.FC = () => {
             exam_title: translationResult.exam_title_ur || subject,
             exam_subject: subject.trim(),
             exam_date: format(examDate, 'PPP'),
-            duration_minutes: parseInt(durationMinutes) || 60
+            duration_minutes: validatePositiveInteger(durationMinutes, 60, 600)
           }
         });
         

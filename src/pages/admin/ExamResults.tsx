@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { safeParseInt } from '@/lib/validation';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
@@ -156,7 +157,7 @@ const ExamResults: React.FC = () => {
       return;
     }
 
-    const marks = parseInt(marksObtained);
+    const marks = safeParseInt(marksObtained, -1);
     if (isNaN(marks) || marks < 0 || (exam && marks > exam.total_marks)) {
       toast({
         title: "Validation Error",
@@ -310,7 +311,7 @@ const ExamResults: React.FC = () => {
                         <Label htmlFor="grade">Grade (Auto-calculated)</Label>
                         <Input
                           id="grade"
-                          value={grade || (marksObtained && exam ? calculateGrade(parseInt(marksObtained) || 0, exam.total_marks) : '')}
+                          value={grade || (marksObtained && exam ? calculateGrade(safeParseInt(marksObtained, 0), exam.total_marks) : '')}
                           onChange={(e) => setGrade(e.target.value)}
                           placeholder="A, B, C..."
                         />
