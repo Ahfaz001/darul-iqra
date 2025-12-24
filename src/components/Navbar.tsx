@@ -79,10 +79,10 @@ const Navbar = () => {
               />
             </div>
             <div className="hidden sm:block">
-              <h1 className={`font-display font-semibold text-base leading-tight ${scrolled ? 'text-foreground' : 'text-white'}`}>
+              <h1 className={`font-display font-semibold text-base leading-tight ${scrolled ? 'text-foreground' : 'text-slate-800 dark:text-white'}`}>
                 Idarah Tarjumat-ul-Qur'an
               </h1>
-              <p className={`text-xs flex items-center gap-1 ${scrolled ? 'text-muted-foreground' : 'text-white/70'}`}>
+              <p className={`text-xs flex items-center gap-1 ${scrolled ? 'text-muted-foreground' : 'text-slate-600 dark:text-white/70'}`}>
                 <Sparkles className="w-3 h-3 text-secondary" />
                 Wa Sunnah • Kalyan
               </p>
@@ -96,7 +96,7 @@ const Navbar = () => {
                 key={link.name}
                 href={link.href}
                 className={`font-medium transition-all duration-300 relative group ${
-                  scrolled ? 'text-foreground/80 hover:text-primary' : 'text-white/90 hover:text-white'
+                  scrolled ? 'text-foreground/80 hover:text-primary' : 'text-slate-800 dark:text-white/90 hover:text-teal-600 dark:hover:text-white'
                 } ${isRTL ? 'font-urdu' : ''}`}
               >
                 {link.name}
@@ -116,7 +116,7 @@ const Navbar = () => {
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className={`gap-2 ${scrolled ? 'text-foreground/80 hover:text-primary' : 'text-white/90 hover:text-white hover:bg-white/10'}`}
+                  className={`gap-2 ${scrolled ? 'text-foreground/80 hover:text-primary' : 'text-slate-800 dark:text-white/90 hover:text-teal-600 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/10'}`}
                 >
                   <Globe className="w-4 h-4" />
                   <span className="text-sm font-medium">{currentLangLabel}</span>
@@ -150,7 +150,7 @@ const Navbar = () => {
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  className={`gap-2 ${scrolled ? 'border-border hover:bg-destructive hover:text-destructive-foreground hover:border-destructive' : 'border-white/30 text-white hover:bg-white/10'}`}
+                  className={`gap-2 ${scrolled ? 'border-border hover:bg-destructive hover:text-destructive-foreground hover:border-destructive' : 'border-slate-600 dark:border-white/30 text-slate-800 dark:text-white hover:bg-slate-200/50 dark:hover:bg-white/10'}`}
                   onClick={handleSignOut}
                 >
                   <LogOut className="w-4 h-4" />
@@ -161,7 +161,7 @@ const Navbar = () => {
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  className={`gap-2 ${scrolled ? 'border-border hover:bg-primary hover:text-primary-foreground' : 'border-white/30 text-white hover:bg-white/10'}`}
+                  className={`gap-2 ${scrolled ? 'border-border hover:bg-primary hover:text-primary-foreground' : 'border-slate-600 dark:border-white/30 text-slate-800 dark:text-white hover:bg-slate-200/50 dark:hover:bg-white/10'}`}
                   onClick={() => navigate('/auth')}
                 >
                   <User className="w-4 h-4" />
@@ -184,13 +184,13 @@ const Navbar = () => {
             <ThemeToggle />
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className={`p-2 rounded-lg transition-colors ${scrolled ? 'hover:bg-muted' : 'hover:bg-white/10'}`}
+              className={`p-2 rounded-lg transition-colors ${scrolled ? 'hover:bg-muted' : 'hover:bg-slate-200/50 dark:hover:bg-white/10'}`}
               aria-label="Toggle menu"
             >
               {isOpen ? (
-                <X className={`w-6 h-6 ${scrolled ? 'text-foreground' : 'text-white'}`} />
+                <X className={`w-6 h-6 ${scrolled ? 'text-foreground' : 'text-slate-800 dark:text-white'}`} />
               ) : (
-                <Menu className={`w-6 h-6 ${scrolled ? 'text-foreground' : 'text-white'}`} />
+                <Menu className={`w-6 h-6 ${scrolled ? 'text-foreground' : 'text-slate-800 dark:text-white'}`} />
               )}
             </button>
           </div>
