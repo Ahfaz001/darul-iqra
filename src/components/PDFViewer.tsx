@@ -22,7 +22,8 @@ import {
   Copy,
   Check,
   ScanText,
-  AlertCircle
+  AlertCircle,
+  RotateCcw
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
@@ -45,10 +46,14 @@ interface SearchResult {
 const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
   const [numPages, setNumPages] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [scale, setScale] = useState<number>(1.2);
+  const [scale, setScale] = useState<number>(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showThumbnails, setShowThumbnails] = useState(false);
+  
+  // Responsive state
+  const [containerWidth, setContainerWidth] = useState<number>(0);
+  const [fitToWidth, setFitToWidth] = useState(true);
   
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -74,6 +79,29 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const pdfDocRef = useRef<any>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Calculate container width for responsive scaling
+  useEffect(() => {
+    const updateContainerWidth = () => {
+      if (containerRef.current) {
+        const width = containerRef.current.clientWidth;
+        setContainerWidth(width);
+      }
+    };
+
+    updateContainerWidth();
+    window.addEventListener('resize', updateContainerWidth);
+    
+    // Also update on orientation change for mobile
+    window.addEventListener('orientationchange', () => {
+      setTimeout(updateContainerWidth, 100);
+    });
+
+    return () => {
+      window.removeEventListener('resize', updateContainerWidth);
+      window.removeEventListener('orientationchange', updateContainerWidth);
+    };
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -159,7 +187,7 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
       setIsScannedPDF(isScanned);
       
       if (isScanned) {
-        toast.info('Scanned PDF detected. Use "OCR Scan" button to enable search.', {
+        toast.info('Scanned PDF detected. Use "OCR" button to enable search.', {
           duration: 5000
         });
       }
@@ -294,11 +322,17 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
   }, [numPages]);
 
   const handleZoomIn = () => {
+    setFitToWidth(false);
     setScale(prev => Math.min(prev + 0.25, 4));
   };
 
   const handleZoomOut = () => {
+    setFitToWidth(false);
     setScale(prev => Math.max(prev - 0.25, 0.5));
+  };
+
+  const handleFitToWidth = () => {
+    setFitToWidth(true);
   };
 
   const toggleFullscreen = () => {
@@ -425,32 +459,39 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
     }
   };
 
+  // Calculate responsive page width
+  const getPageWidth = () => {
+    if (!fitToWidth) return undefined;
+    
+    // Account for padding and thumbnails
+    const sidebarWidth = showThumbnails ? 112 : 0; // w-28 = 112px
+    const padding = 16; // 8px on each side
+    const availableWidth = containerWidth - sidebarWidth - padding;
+    
+    // Return width that fits the container, with min/max limits
+    return Math.max(280, Math.min(availableWidth, 1200));
+  };
+
+  const pageWidth = getPageWidth();
+
   return (
-    <div className={`fixed inset-0 z-50 bg-black/95 flex flex-col`}>
-      {/* Header */}
-      <div className="flex items-center justify-between px-2 sm:px-4 py-2 bg-gradient-to-r from-teal-900 to-teal-800 text-white">
-        <div className="flex items-center gap-2">
+    <div className="fixed inset-0 z-50 bg-black/95 flex flex-col safe-area-inset">
+      {/* Header - Mobile optimized */}
+      <div className="flex items-center justify-between px-2 sm:px-4 py-2 bg-gradient-to-r from-teal-900 to-teal-800 text-white shrink-0">
+        <div className="flex items-center gap-1 sm:gap-2 min-w-0 flex-1">
           <Button
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="text-white hover:bg-white/20 h-8 w-8"
+            className="text-white hover:bg-white/20 h-9 w-9 shrink-0"
           >
-            <X className="h-4 w-4" />
+            <X className="h-5 w-5" />
           </Button>
-          <BookOpen className="h-5 w-5 hidden sm:block" />
-          <h2 className="text-sm sm:text-lg font-semibold truncate max-w-[120px] sm:max-w-[300px]">{title}</h2>
-          
-          {/* Scanned PDF indicator */}
-          {isScannedPDF && (
-            <span className="hidden sm:flex items-center gap-1 px-2 py-0.5 bg-orange-500/20 text-orange-300 rounded text-xs">
-              <AlertCircle className="h-3 w-3" />
-              Scanned PDF
-            </span>
-          )}
+          <BookOpen className="h-4 w-4 shrink-0 hidden xs:block" />
+          <h2 className="text-sm sm:text-base font-semibold truncate">{title}</h2>
         </div>
         
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
           {/* OCR Button - only show for scanned PDFs */}
           {isScannedPDF && (
             <Button
@@ -458,23 +499,20 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
               size="sm"
               onClick={runOCROnAllPages}
               disabled={ocrInProgress || ocrLoaded}
-              className="text-white hover:bg-white/20 h-8 text-xs gap-1"
+              className="text-white hover:bg-white/20 h-9 px-2 text-xs gap-1"
               title="Scan all pages with OCR for search"
             >
               {ocrInProgress ? (
                 <>
-                  <Loader2 className="h-3 w-3 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                   <span className="hidden sm:inline">{ocrProgress}%</span>
                 </>
               ) : ocrLoaded ? (
-                <>
-                  <Check className="h-3 w-3 text-green-400" />
-                  <span className="hidden sm:inline">OCR Done</span>
-                </>
+                <Check className="h-4 w-4 text-green-400" />
               ) : (
                 <>
-                  <ScanText className="h-3 w-3" />
-                  <span className="hidden sm:inline">OCR Scan</span>
+                  <ScanText className="h-4 w-4" />
+                  <span className="hidden sm:inline">OCR</span>
                 </>
               )}
             </Button>
@@ -484,9 +522,9 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={handleCopySelectedText}
-            className="text-white hover:bg-white/20 h-8 w-8"
-            title="Copy selected text"
+            onClick={handleCopyPageText}
+            className="text-white hover:bg-white/20 h-9 w-9"
+            title="Copy page text"
           >
             {copied ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4" />}
           </Button>
@@ -496,131 +534,100 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
             variant="ghost"
             size="icon"
             onClick={() => setShowSearch(!showSearch)}
-            className={`text-white hover:bg-white/20 h-8 w-8 ${showSearch ? 'bg-white/20' : ''}`}
+            className={`text-white hover:bg-white/20 h-9 w-9 ${showSearch ? 'bg-white/20' : ''}`}
           >
             <Search className="h-4 w-4" />
           </Button>
           
-          {/* Thumbnails Toggle */}
+          {/* Thumbnails Toggle - hidden on very small screens */}
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setShowThumbnails(!showThumbnails)}
-            className={`text-white hover:bg-white/20 h-8 w-8 ${showThumbnails ? 'bg-white/20' : ''}`}
+            className={`text-white hover:bg-white/20 h-9 w-9 hidden sm:flex ${showThumbnails ? 'bg-white/20' : ''}`}
           >
             <List className="h-4 w-4" />
           </Button>
 
-          {/* Zoom Controls */}
-          <div className="hidden sm:flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleZoomOut}
-              className="text-white hover:bg-white/20 h-8 w-8"
-              disabled={scale <= 0.5}
-            >
-              <ZoomOut className="h-4 w-4" />
-            </Button>
-            <span className="text-xs min-w-[40px] text-center">{Math.round(scale * 100)}%</span>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleZoomIn}
-              className="text-white hover:bg-white/20 h-8 w-8"
-              disabled={scale >= 4}
-            >
-              <ZoomIn className="h-4 w-4" />
-            </Button>
-          </div>
-
+          {/* Fullscreen */}
           <Button
             variant="ghost"
             size="icon"
             onClick={toggleFullscreen}
-            className="text-white hover:bg-white/20 h-8 w-8"
+            className="text-white hover:bg-white/20 h-9 w-9"
           >
             {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
           </Button>
         </div>
       </div>
 
-      {/* Search Bar */}
+      {/* Search Bar - Mobile optimized */}
       {showSearch && (
-        <div className="bg-teal-800/90 px-4 py-2 flex flex-col gap-2">
+        <div className="bg-teal-800/90 px-2 sm:px-4 py-2 flex flex-col gap-2 shrink-0">
           <div className="flex items-center gap-2">
-            <Search className="h-4 w-4 text-white/70" />
             <Input
               ref={searchInputRef}
               type="text"
-              placeholder="Search in book... (کتاب میں تلاش کریں)"
+              placeholder="Search... (تلاش کریں)"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleSearch();
               }}
-              className="flex-1 h-8 bg-white/10 border-white/20 text-white placeholder:text-white/50 text-sm"
+              className="flex-1 h-10 bg-white/10 border-white/20 text-white placeholder:text-white/50 text-sm"
               dir="auto"
             />
             <Button
               size="sm"
               onClick={handleSearch}
               disabled={isSearching || loadingAllText}
-              className="bg-white/20 hover:bg-white/30 h-8"
+              className="bg-white/20 hover:bg-white/30 h-10 px-3"
             >
               {isSearching || loadingAllText ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                'Search'
+                <Search className="h-4 w-4" />
               )}
             </Button>
-            {searchResults.length > 0 && (
-              <div className="flex items-center gap-1 text-white text-sm">
-                <span>{currentSearchIndex + 1}/{searchResults.length}</span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={goToPrevSearchResult}
-                  className="text-white hover:bg-white/20 h-6 w-6"
-                >
-                  <ArrowUp className="h-3 w-3" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={goToNextSearchResult}
-                  className="text-white hover:bg-white/20 h-6 w-6"
-                >
-                  <ArrowDown className="h-3 w-3" />
-                </Button>
-              </div>
-            )}
-            {searchQuery && searchResults.length === 0 && !isSearching && (
-              <span className="text-white/70 text-sm">No results</span>
-            )}
           </div>
           
-          {/* Loading/OCR indicator */}
-          {loadingAllText && (
-            <div className="flex items-center gap-2 text-white/70 text-xs">
-              <Loader2 className="h-3 w-3 animate-spin" />
-              <span>Loading book text...</span>
+          {searchResults.length > 0 && (
+            <div className="flex items-center justify-between">
+              <span className="text-white text-xs">{currentSearchIndex + 1}/{searchResults.length} results</span>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={goToPrevSearchResult}
+                  className="text-white hover:bg-white/20 h-8 w-8 p-0"
+                >
+                  <ArrowUp className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={goToNextSearchResult}
+                  className="text-white hover:bg-white/20 h-8 w-8 p-0"
+                >
+                  <ArrowDown className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           )}
           
           {/* OCR required warning */}
           {isScannedPDF && !ocrLoaded && ocrTexts.size === 0 && (
             <div className="flex items-center gap-2 text-orange-300 text-xs">
-              <AlertCircle className="h-3 w-3" />
-              <span>This is a scanned PDF. Click "OCR Scan" button to enable search.</span>
+              <AlertCircle className="h-3 w-3 shrink-0" />
+              <span>Scanned PDF - Run OCR to enable search</span>
             </div>
           )}
           
           {/* OCR progress */}
           {ocrInProgress && (
             <div className="flex items-center gap-2 text-white/70 text-xs">
-              <Loader2 className="h-3 w-3 animate-spin" />
-              <span>OCR scanning pages... {ocrProgress}%</span>
+              <Loader2 className="h-3 w-3 animate-spin shrink-0" />
+              <span>OCR {ocrProgress}%</span>
               <div className="flex-1 bg-white/20 rounded-full h-1.5">
                 <div 
                   className="bg-teal-400 h-1.5 rounded-full transition-all"
@@ -629,22 +636,14 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
               </div>
             </div>
           )}
-          
-          {/* Search result preview */}
-          {searchResults.length > 0 && searchResults[currentSearchIndex] && (
-            <div className="bg-white/10 rounded px-3 py-2 text-white/80 text-sm" dir="auto">
-              <span className="text-white/50">Page {searchResults[currentSearchIndex].pageIndex}: </span>
-              ...{searchResults[currentSearchIndex].text}...
-            </div>
-          )}
         </div>
       )}
 
       {/* Main Content Area */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Thumbnails Sidebar */}
+      <div className="flex-1 flex overflow-hidden min-h-0">
+        {/* Thumbnails Sidebar - Hidden on mobile when closed */}
         {showThumbnails && (
-          <div className="w-28 sm:w-36 bg-gray-900 border-r border-gray-700">
+          <div className="w-28 bg-gray-900 border-r border-gray-700 shrink-0">
             <ScrollArea className="h-full">
               <div className="p-2 space-y-2">
                 {Array.from({ length: numPages }, (_, i) => i + 1).map((pageNum) => (
@@ -668,7 +667,7 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
                       </Document>
                     </div>
                     <div className="bg-gray-800 text-center py-1 flex items-center justify-center gap-1">
-                      <span className="text-xs text-gray-300">Page {pageNum}</span>
+                      <span className="text-xs text-gray-300">{pageNum}</span>
                       {ocrTexts.has(pageNum) && (
                         <Check className="h-3 w-3 text-green-400" />
                       )}
@@ -680,10 +679,10 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
           </div>
         )}
 
-        {/* PDF Content */}
+        {/* PDF Content - Responsive */}
         <div 
           ref={containerRef}
-          className="flex-1 overflow-auto bg-gray-800 flex justify-center items-start py-4"
+          className="flex-1 overflow-auto bg-gray-800 flex justify-center items-start p-2 sm:p-4"
         >
           {loading && (
             <div className="flex flex-col items-center justify-center py-20">
@@ -700,9 +699,10 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
           >
             <Page 
               pageNumber={currentPage} 
-              scale={scale}
+              width={pageWidth}
+              scale={fitToWidth ? undefined : scale}
               onLoadSuccess={onPageLoadSuccess}
-              className="shadow-2xl"
+              className="shadow-2xl max-w-full"
               renderTextLayer={true}
               renderAnnotationLayer={true}
               canvasBackground="white"
@@ -711,21 +711,21 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
         </div>
       </div>
 
-      {/* Footer Navigation */}
-      <div className="bg-gray-900 border-t border-gray-700 px-4 py-3">
-        <div className="flex items-center justify-between max-w-lg mx-auto">
+      {/* Footer Navigation - Mobile optimized */}
+      <div className="bg-gray-900 border-t border-gray-700 px-2 sm:px-4 py-2 sm:py-3 shrink-0 safe-area-bottom">
+        {/* Main navigation row */}
+        <div className="flex items-center justify-between gap-2">
           <Button
             variant="ghost"
             onClick={handlePrevPage}
             disabled={currentPage <= 1}
-            className="text-white hover:bg-white/10 disabled:opacity-30"
+            className="text-white hover:bg-white/10 disabled:opacity-30 h-10 px-2 sm:px-3"
           >
-            <ChevronLeft className="h-5 w-5 mr-1" />
-            <span className="hidden sm:inline">Previous</span>
+            <ChevronLeft className="h-5 w-5" />
+            <span className="hidden sm:inline ml-1">Prev</span>
           </Button>
 
-          <div className="flex items-center gap-2">
-            <span className="text-gray-400 text-sm">Page</span>
+          <div className="flex items-center gap-1 sm:gap-2">
             <Input
               type="number"
               min={1}
@@ -737,83 +737,79 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
                   setCurrentPage(page);
                 }
               }}
-              className="w-16 h-8 text-center bg-gray-800 border-gray-600 text-white text-sm"
+              className="w-14 sm:w-16 h-10 text-center bg-gray-800 border-gray-600 text-white text-sm"
             />
-            <span className="text-gray-400 text-sm">of {numPages}</span>
-            
-            {/* OCR This Page / Copy Page Text Button */}
-            {isScannedPDF && !ocrTexts.has(currentPage) ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={runOCROnCurrentPage}
-                disabled={ocrInProgress}
-                className="text-white hover:bg-white/10 ml-2"
-                title="Scan this page with OCR"
-              >
-                {ocrInProgress ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <>
-                    <ScanText className="h-4 w-4 mr-1" />
-                    <span className="hidden sm:inline text-xs">OCR Page</span>
-                  </>
-                )}
-              </Button>
-            ) : (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleCopyPageText}
-                className="text-white hover:bg-white/10 ml-2"
-                title="Copy entire page text"
-              >
-                <Copy className="h-4 w-4 mr-1" />
-                <span className="hidden sm:inline text-xs">Copy Page</span>
-              </Button>
-            )}
+            <span className="text-gray-400 text-sm">/ {numPages}</span>
           </div>
 
           <Button
             variant="ghost"
             onClick={handleNextPage}
             disabled={currentPage >= numPages}
-            className="text-white hover:bg-white/10 disabled:opacity-30"
+            className="text-white hover:bg-white/10 disabled:opacity-30 h-10 px-2 sm:px-3"
           >
-            <span className="hidden sm:inline">Next</span>
-            <ChevronRight className="h-5 w-5 ml-1" />
+            <span className="hidden sm:inline mr-1">Next</span>
+            <ChevronRight className="h-5 w-5" />
           </Button>
         </div>
 
-        {/* Mobile Zoom */}
-        <div className="flex sm:hidden items-center justify-center gap-2 mt-2">
+        {/* Zoom controls row */}
+        <div className="flex items-center justify-center gap-2 mt-2">
           <Button
             variant="ghost"
             size="sm"
             onClick={handleZoomOut}
-            className="text-white hover:bg-white/10"
-            disabled={scale <= 0.5}
+            className="text-white hover:bg-white/10 h-8 w-8 p-0"
+            disabled={!fitToWidth && scale <= 0.5}
           >
             <ZoomOut className="h-4 w-4" />
           </Button>
-          <span className="text-white text-sm min-w-[50px] text-center">{Math.round(scale * 100)}%</span>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleFitToWidth}
+            className={`text-white hover:bg-white/10 h-8 px-2 text-xs ${fitToWidth ? 'bg-white/20' : ''}`}
+            title="Fit to width"
+          >
+            <RotateCcw className="h-3 w-3 mr-1" />
+            Fit
+          </Button>
+          
+          <span className="text-white text-xs min-w-[45px] text-center">
+            {fitToWidth ? 'Auto' : `${Math.round(scale * 100)}%`}
+          </span>
+          
           <Button
             variant="ghost"
             size="sm"
             onClick={handleZoomIn}
-            className="text-white hover:bg-white/10"
-            disabled={scale >= 4}
+            className="text-white hover:bg-white/10 h-8 w-8 p-0"
+            disabled={!fitToWidth && scale >= 4}
           >
             <ZoomIn className="h-4 w-4" />
           </Button>
-        </div>
 
-        {/* Keyboard Hints */}
-        <div className="hidden sm:flex items-center justify-center gap-4 mt-2 text-gray-500 text-xs">
-          <span><kbd className="bg-gray-700 px-1.5 py-0.5 rounded text-gray-300">←</kbd> Previous</span>
-          <span><kbd className="bg-gray-700 px-1.5 py-0.5 rounded text-gray-300">→</kbd> Next</span>
-          <span><kbd className="bg-gray-700 px-1.5 py-0.5 rounded text-gray-300">Ctrl+F</kbd> Search</span>
-          <span><kbd className="bg-gray-700 px-1.5 py-0.5 rounded text-gray-300">ESC</kbd> Close</span>
+          {/* OCR current page button */}
+          {isScannedPDF && !ocrTexts.has(currentPage) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={runOCROnCurrentPage}
+              disabled={ocrInProgress}
+              className="text-white hover:bg-white/10 h-8 px-2 text-xs ml-2"
+              title="Scan this page with OCR"
+            >
+              {ocrInProgress ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <>
+                  <ScanText className="h-4 w-4 mr-1" />
+                  <span className="hidden xs:inline">OCR</span>
+                </>
+              )}
+            </Button>
+          )}
         </div>
       </div>
       
