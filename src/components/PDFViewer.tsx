@@ -28,7 +28,6 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 
-// Set up the worker
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 interface PDFViewerProps {
@@ -42,6 +41,26 @@ interface SearchResult {
   matchIndex: number;
   text: string;
 }
+
+interface OCRPageData {
+  text: string;
+  normalizedText: string;
+  loading: boolean;
+}
+
+// Normalize text for search (client-side backup)
+const normalizeForSearch = (text: string): string => {
+  if (!text) return '';
+  return text
+    .replace(/[أإآٱ]/g, 'ا')
+    .replace(/[ىئ]/g, 'ی')
+    .replace(/ك/g, 'ک')
+    .replace(/ة/g, 'ہ')
+    .replace(/[\u064B-\u065F\u0670]/g, '')
+    .replace(/\s+/g, ' ')
+    .toLowerCase()
+    .trim();
+};
 
 const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
   const [numPages, setNumPages] = useState<number>(0);
@@ -61,16 +80,13 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
   const [currentSearchIndex, setCurrentSearchIndex] = useState(0);
   const [isSearching, setIsSearching] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
-  const [pageTexts, setPageTexts] = useState<Map<number, string>>(new Map());
-  const [loadingAllText, setLoadingAllText] = useState(false);
-  const [allTextLoaded, setAllTextLoaded] = useState(false);
   
-  // OCR state for scanned PDFs
+  // OCR state - per-page on-demand
   const [isScannedPDF, setIsScannedPDF] = useState(false);
+  const [ocrPages, setOcrPages] = useState<Map<number, OCRPageData>>(new Map());
   const [ocrInProgress, setOcrInProgress] = useState(false);
-  const [ocrProgress, setOcrProgress] = useState(0);
-  const [ocrTexts, setOcrTexts] = useState<Map<number, string>>(new Map());
-  const [ocrLoaded, setOcrLoaded] = useState(false);
+  const [ocrAllProgress, setOcrAllProgress] = useState(0);
+  const [ocrAllInProgress, setOcrAllInProgress] = useState(false);
   
   // Copy state
   const [copied, setCopied] = useState(false);
@@ -78,24 +94,18 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const pdfDocRef = useRef<any>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // Calculate container width for responsive scaling
   useEffect(() => {
     const updateContainerWidth = () => {
       if (containerRef.current) {
-        const width = containerRef.current.clientWidth;
-        setContainerWidth(width);
+        setContainerWidth(containerRef.current.clientWidth);
       }
     };
 
     updateContainerWidth();
     window.addEventListener('resize', updateContainerWidth);
-    
-    // Also update on orientation change for mobile
-    window.addEventListener('orientationchange', () => {
-      setTimeout(updateContainerWidth, 100);
-    });
+    window.addEventListener('orientationchange', () => setTimeout(updateContainerWidth, 100));
 
     return () => {
       window.removeEventListener('resize', updateContainerWidth);
@@ -106,25 +116,17 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        if (showSearch) {
-          setShowSearch(false);
-        } else if (isFullscreen) {
-          setIsFullscreen(false);
-        } else {
-          onClose();
-        }
+        if (showSearch) setShowSearch(false);
+        else if (isFullscreen) setIsFullscreen(false);
+        else onClose();
       }
       if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
         e.preventDefault();
         setShowSearch(true);
         setTimeout(() => searchInputRef.current?.focus(), 100);
       }
-      if (e.key === 'ArrowLeft') {
-        handlePrevPage();
-      }
-      if (e.key === 'ArrowRight') {
-        handleNextPage();
-      }
+      if (e.key === 'ArrowLeft') handlePrevPage();
+      if (e.key === 'ArrowRight') handleNextPage();
     };
 
     document.addEventListener('keydown', handleKeyDown);
@@ -133,9 +135,7 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
+    return () => { document.body.style.overflow = 'auto'; };
   }, []);
 
   // Check if PDF is scanned (no text layer)
@@ -143,7 +143,6 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
     if (!pdfDocRef.current) return false;
     
     try {
-      // Check first 3 pages for text
       const pagesToCheck = Math.min(3, numPages);
       let totalTextLength = 0;
       
@@ -154,163 +153,123 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
         totalTextLength += pageText.trim().length;
       }
       
-      // If very little text found, it's likely a scanned PDF
-      const avgTextPerPage = totalTextLength / pagesToCheck;
-      return avgTextPerPage < 50; // Less than 50 chars per page = scanned
+      return totalTextLength / pagesToCheck < 50;
     } catch (error) {
       console.error('Error checking PDF type:', error);
       return false;
     }
   }, [numPages]);
 
-  // Load all pages text for search (regular PDFs)
-  const loadAllPagesText = useCallback(async () => {
-    if (!pdfDocRef.current || allTextLoaded || loadingAllText) return;
+  // OCR single page on-demand
+  const runOCROnPage = useCallback(async (pageNum: number): Promise<OCRPageData | null> => {
+    if (!pdfDocRef.current) return null;
     
-    setLoadingAllText(true);
-    try {
-      const pdf = pdfDocRef.current;
-      const textsMap = new Map<number, string>();
-      
-      for (let i = 1; i <= numPages; i++) {
-        const page = await pdf.getPage(i);
-        const textContent = await page.getTextContent();
-        const pageText = textContent.items.map((item: any) => item.str).join(' ');
-        textsMap.set(i, pageText);
-      }
-      
-      setPageTexts(textsMap);
-      setAllTextLoaded(true);
-      
-      // Check if this is a scanned PDF
-      const isScanned = await checkIfScannedPDF();
-      setIsScannedPDF(isScanned);
-      
-      if (isScanned) {
-        toast.info('Scanned PDF detected. Use "OCR" button to enable search.', {
-          duration: 5000
-        });
-      }
-    } catch (error) {
-      console.error('Error loading page texts:', error);
-    } finally {
-      setLoadingAllText(false);
+    // Check if already loaded or loading
+    const existing = ocrPages.get(pageNum);
+    if (existing && !existing.loading && existing.text) {
+      return existing;
     }
-  }, [numPages, allTextLoaded, loadingAllText, checkIfScannedPDF]);
-
-  // OCR: Extract text from page image using Google Cloud Vision
-  const extractTextFromPage = useCallback(async (pageNum: number): Promise<string> => {
-    if (!pdfDocRef.current) return '';
+    
+    // Mark as loading
+    setOcrPages(prev => new Map(prev).set(pageNum, { text: '', normalizedText: '', loading: true }));
     
     try {
       const page = await pdfDocRef.current.getPage(pageNum);
-      const viewport = page.getViewport({ scale: 2 }); // Higher scale for better OCR
+      const viewport = page.getViewport({ scale: 2.5 }); // Higher scale for better OCR
       
-      // Create canvas
       const canvas = document.createElement('canvas');
       const context = canvas.getContext('2d');
-      if (!context) return '';
+      if (!context) return null;
       
       canvas.width = viewport.width;
       canvas.height = viewport.height;
       
-      // Render page to canvas
-      await page.render({
-        canvasContext: context,
-        viewport: viewport
-      }).promise;
+      await page.render({ canvasContext: context, viewport }).promise;
       
-      // Convert to base64
-      const imageBase64 = canvas.toDataURL('image/jpeg', 0.9);
+      const imageBase64 = canvas.toDataURL('image/jpeg', 0.92);
       
-      // Call OCR edge function
       const { data, error } = await supabase.functions.invoke('ocr-extract-text', {
-        body: { imageBase64 }
+        body: { imageBase64, pageNumber: pageNum }
       });
       
       if (error) throw error;
       
-      if (data.success && data.text) {
-        return data.text;
+      if (data.success) {
+        const ocrData: OCRPageData = {
+          text: data.text || '',
+          normalizedText: data.normalizedText || normalizeForSearch(data.text || ''),
+          loading: false
+        };
+        
+        setOcrPages(prev => new Map(prev).set(pageNum, ocrData));
+        return ocrData;
       }
       
-      return '';
+      setOcrPages(prev => new Map(prev).set(pageNum, { text: '', normalizedText: '', loading: false }));
+      return null;
     } catch (error) {
       console.error(`OCR error for page ${pageNum}:`, error);
-      return '';
+      setOcrPages(prev => new Map(prev).set(pageNum, { text: '', normalizedText: '', loading: false }));
+      return null;
     }
-  }, []);
+  }, [ocrPages]);
 
-  // Run OCR on all pages
-  const runOCROnAllPages = useCallback(async () => {
-    if (ocrInProgress || ocrLoaded) return;
-    
-    setOcrInProgress(true);
-    setOcrProgress(0);
-    
-    const ocrTextsMap = new Map<number, string>();
-    
-    try {
-      for (let i = 1; i <= numPages; i++) {
-        const text = await extractTextFromPage(i);
-        ocrTextsMap.set(i, text);
-        setOcrProgress(Math.round((i / numPages) * 100));
-        
-        // Update state incrementally
-        setOcrTexts(new Map(ocrTextsMap));
-      }
-      
-      setOcrLoaded(true);
-      toast.success(`OCR complete! ${numPages} pages scanned.`);
-    } catch (error) {
-      console.error('OCR failed:', error);
-      toast.error('OCR failed. Please try again.');
-    } finally {
-      setOcrInProgress(false);
-    }
-  }, [numPages, extractTextFromPage, ocrInProgress, ocrLoaded]);
-
-  // Run OCR on current page only
+  // OCR current page
   const runOCROnCurrentPage = useCallback(async () => {
     if (ocrInProgress) return;
     
     setOcrInProgress(true);
     
     try {
-      const text = await extractTextFromPage(currentPage);
+      const result = await runOCROnPage(currentPage);
       
-      if (text) {
-        setOcrTexts(prev => new Map(prev).set(currentPage, text));
-        toast.success('Page text extracted!');
+      if (result?.text) {
+        toast.success('متن نکال لیا گیا! (Text extracted!)');
       } else {
-        toast.error('No text found on this page');
+        toast.error('اس صفحے پر کوئی متن نہیں ملا');
       }
     } catch (error) {
-      console.error('OCR failed:', error);
       toast.error('OCR failed');
     } finally {
       setOcrInProgress(false);
     }
-  }, [currentPage, extractTextFromPage, ocrInProgress]);
+  }, [currentPage, runOCROnPage, ocrInProgress]);
+
+  // OCR all pages
+  const runOCROnAllPages = useCallback(async () => {
+    if (ocrAllInProgress) return;
+    
+    setOcrAllInProgress(true);
+    setOcrAllProgress(0);
+    
+    try {
+      for (let i = 1; i <= numPages; i++) {
+        await runOCROnPage(i);
+        setOcrAllProgress(Math.round((i / numPages) * 100));
+      }
+      
+      toast.success(`تمام ${numPages} صفحات اسکین ہو گئے!`);
+    } catch (error) {
+      toast.error('OCR failed');
+    } finally {
+      setOcrAllInProgress(false);
+    }
+  }, [numPages, runOCROnPage, ocrAllInProgress]);
 
   const onDocumentLoadSuccess = async (pdf: any) => {
     setNumPages(pdf.numPages);
     pdfDocRef.current = pdf;
     setLoading(false);
     
-    // Start loading all text in background
-    setTimeout(() => {
-      loadAllPagesText();
+    // Check if scanned PDF
+    setTimeout(async () => {
+      const isScanned = await checkIfScannedPDF();
+      setIsScannedPDF(isScanned);
+      
+      if (isScanned) {
+        toast.info('یہ اسکین شدہ PDF ہے۔ تلاش کے لیے OCR استعمال کریں', { duration: 5000 });
+      }
     }, 500);
-  };
-
-  const onPageLoadSuccess = async (page: any) => {
-    // Also extract text for current page if not already loaded
-    if (!pageTexts.has(page.pageNumber)) {
-      const textContent = await page.getTextContent();
-      const pageText = textContent.items.map((item: any) => item.str).join(' ');
-      setPageTexts(prev => new Map(prev).set(page.pageNumber, pageText));
-    }
   };
 
   const handlePrevPage = useCallback(() => {
@@ -331,14 +290,8 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
     setScale(prev => Math.max(prev - 0.25, 0.5));
   };
 
-  const handleFitToWidth = () => {
-    setFitToWidth(true);
-  };
-
-  const toggleFullscreen = () => {
-    setIsFullscreen(!isFullscreen);
-  };
-
+  const handleFitToWidth = () => setFitToWidth(true);
+  const toggleFullscreen = () => setIsFullscreen(!isFullscreen);
   const goToPage = (page: number) => {
     if (page >= 1 && page <= numPages) {
       setCurrentPage(page);
@@ -346,68 +299,60 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
     }
   };
 
-  // Get text for a page (from OCR or regular text layer)
+  // Get text for a page
   const getPageText = useCallback((pageNum: number): string => {
-    // Prefer OCR text for scanned PDFs
-    if (ocrTexts.has(pageNum)) {
-      return ocrTexts.get(pageNum) || '';
-    }
-    return pageTexts.get(pageNum) || '';
-  }, [ocrTexts, pageTexts]);
+    const ocrData = ocrPages.get(pageNum);
+    return ocrData?.text || '';
+  }, [ocrPages]);
 
+  // Search handler
   const handleSearch = useCallback(async () => {
     if (!searchQuery.trim()) {
       setSearchResults([]);
       return;
     }
 
-    // For scanned PDFs, check if OCR is done
-    if (isScannedPDF && !ocrLoaded && ocrTexts.size === 0) {
-      toast.error('Please run OCR scan first to enable search on scanned PDFs');
+    const availablePages = Array.from(ocrPages.entries())
+      .filter(([_, data]) => data.text && !data.loading);
+    
+    if (availablePages.length === 0) {
+      toast.error('پہلے OCR چلائیں تاکہ تلاش ہو سکے');
       return;
-    }
-
-    // Ensure all text is loaded first
-    if (!allTextLoaded && !isScannedPDF) {
-      await loadAllPagesText();
     }
 
     setIsSearching(true);
     const results: SearchResult[] = [];
-    const query = searchQuery.toLowerCase();
+    const normalizedQuery = normalizeForSearch(searchQuery);
 
-    // Search through all available texts (OCR or regular)
-    const textsToSearch = ocrLoaded || ocrTexts.size > 0 ? ocrTexts : pageTexts;
-    
-    textsToSearch.forEach((text, pageIndex) => {
-      const lowerText = text.toLowerCase();
+    for (const [pageNum, data] of availablePages) {
+      const normalizedText = data.normalizedText || normalizeForSearch(data.text);
+      
+      let position = normalizedText.indexOf(normalizedQuery);
       let matchIndex = 0;
-      let position = lowerText.indexOf(query);
+      
       while (position !== -1) {
-        // Get context around match
-        const start = Math.max(0, position - 30);
-        const end = Math.min(text.length, position + query.length + 30);
-        const contextText = text.substring(start, end);
+        const start = Math.max(0, position - 40);
+        const end = Math.min(data.text.length, position + normalizedQuery.length + 40);
+        const contextText = data.text.substring(start, end);
         
-        results.push({ pageIndex, matchIndex, text: contextText });
+        results.push({ pageIndex: pageNum, matchIndex, text: contextText });
         matchIndex++;
-        position = lowerText.indexOf(query, position + 1);
+        position = normalizedText.indexOf(normalizedQuery, position + 1);
       }
-    });
+    }
 
     setSearchResults(results);
     setCurrentSearchIndex(0);
     
-    // Go to first result page
     if (results.length > 0) {
       setCurrentPage(results[0].pageIndex);
-      toast.success(`Found ${results.length} result(s)`);
+      toast.success(`${results.length} نتائج ملے`);
     } else {
-      toast.error('No results found');
+      toast.error('کوئی نتیجہ نہیں ملا');
     }
     
     setIsSearching(false);
-  }, [searchQuery, pageTexts, ocrTexts, allTextLoaded, isScannedPDF, ocrLoaded, loadAllPagesText]);
+  }, [searchQuery, ocrPages]);
 
   const goToNextSearchResult = () => {
     if (searchResults.length === 0) return;
@@ -423,68 +368,54 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
     setCurrentPage(searchResults[prevIndex].pageIndex);
   };
 
-  const handleCopySelectedText = async () => {
-    const selection = window.getSelection();
-    const selectedText = selection?.toString();
-    
-    if (selectedText) {
-      try {
-        await navigator.clipboard.writeText(selectedText);
-        setCopied(true);
-        toast.success('Text copied!');
-        setTimeout(() => setCopied(false), 2000);
-      } catch {
-        toast.error('Failed to copy text');
-      }
-    } else {
-      toast.info('Select some text first to copy');
-    }
-  };
-
   const handleCopyPageText = async () => {
     const pageText = getPageText(currentPage);
     if (pageText) {
       try {
         await navigator.clipboard.writeText(pageText);
         setCopied(true);
-        toast.success('Page text copied!');
+        toast.success('صفحے کا متن کاپی ہو گیا!');
         setTimeout(() => setCopied(false), 2000);
       } catch {
-        toast.error('Failed to copy text');
+        toast.error('کاپی ناکام');
       }
     } else if (isScannedPDF) {
-      toast.info('Run OCR scan first to extract text from this scanned page');
+      // Auto-run OCR if not done
+      toast.info('OCR چل رہا ہے...');
+      await runOCROnCurrentPage();
+      const newText = getPageText(currentPage);
+      if (newText) {
+        await navigator.clipboard.writeText(newText);
+        setCopied(true);
+        toast.success('متن کاپی ہو گیا!');
+        setTimeout(() => setCopied(false), 2000);
+      }
     } else {
-      toast.error('No text available on this page');
+      toast.error('اس صفحے پر کوئی متن نہیں');
     }
   };
 
   // Calculate responsive page width
   const getPageWidth = () => {
     if (!fitToWidth) return undefined;
-    
-    // Account for padding and thumbnails
-    const sidebarWidth = showThumbnails ? 112 : 0; // w-28 = 112px
-    const padding = 16; // 8px on each side
+    const sidebarWidth = showThumbnails ? 112 : 0;
+    const padding = 16;
     const availableWidth = containerWidth - sidebarWidth - padding;
-    
-    // Return width that fits the container, with min/max limits
     return Math.max(280, Math.min(availableWidth, 1200));
   };
 
   const pageWidth = getPageWidth();
+  const currentOcrData = ocrPages.get(currentPage);
+  const hasOcrForCurrentPage = currentOcrData?.text && !currentOcrData.loading;
+  const isCurrentPageLoading = currentOcrData?.loading;
+  const ocrPagesCount = Array.from(ocrPages.values()).filter(p => p.text && !p.loading).length;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/95 flex flex-col safe-area-inset">
-      {/* Header - Mobile optimized */}
+      {/* Header */}
       <div className="flex items-center justify-between px-2 sm:px-4 py-2 bg-gradient-to-r from-teal-900 to-teal-800 text-white shrink-0">
         <div className="flex items-center gap-1 sm:gap-2 min-w-0 flex-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            className="text-white hover:bg-white/20 h-9 w-9 shrink-0"
-          >
+          <Button variant="ghost" size="icon" onClick={onClose} className="text-white hover:bg-white/20 h-9 w-9 shrink-0">
             <X className="h-5 w-5" />
           </Button>
           <BookOpen className="h-4 w-4 shrink-0 hidden xs:block" />
@@ -492,27 +423,28 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
         </div>
         
         <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
-          {/* OCR Button - only show for scanned PDFs */}
+          {/* OCR All Button */}
           {isScannedPDF && (
             <Button
               variant="ghost"
               size="sm"
               onClick={runOCROnAllPages}
-              disabled={ocrInProgress || ocrLoaded}
+              disabled={ocrAllInProgress}
               className="text-white hover:bg-white/20 h-9 px-2 text-xs gap-1"
-              title="Scan all pages with OCR for search"
+              title="Scan all pages"
             >
-              {ocrInProgress ? (
+              {ocrAllInProgress ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  <span className="hidden sm:inline">{ocrProgress}%</span>
+                  <span className="hidden sm:inline">{ocrAllProgress}%</span>
                 </>
-              ) : ocrLoaded ? (
-                <Check className="h-4 w-4 text-green-400" />
               ) : (
                 <>
                   <ScanText className="h-4 w-4" />
-                  <span className="hidden sm:inline">OCR</span>
+                  <span className="hidden sm:inline">OCR All</span>
+                  {ocrPagesCount > 0 && (
+                    <span className="text-xs bg-white/20 px-1 rounded">{ocrPagesCount}/{numPages}</span>
+                  )}
                 </>
               )}
             </Button>
@@ -539,7 +471,7 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
             <Search className="h-4 w-4" />
           </Button>
           
-          {/* Thumbnails Toggle - hidden on very small screens */}
+          {/* Thumbnails */}
           <Button
             variant="ghost"
             size="icon"
@@ -549,99 +481,71 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
             <List className="h-4 w-4" />
           </Button>
 
-          {/* Fullscreen */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleFullscreen}
-            className="text-white hover:bg-white/20 h-9 w-9"
-          >
+          <Button variant="ghost" size="icon" onClick={toggleFullscreen} className="text-white hover:bg-white/20 h-9 w-9">
             {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
           </Button>
         </div>
       </div>
 
-      {/* Search Bar - Mobile optimized */}
+      {/* Search Bar */}
       {showSearch && (
         <div className="bg-teal-800/90 px-2 sm:px-4 py-2 flex flex-col gap-2 shrink-0">
           <div className="flex items-center gap-2">
             <Input
               ref={searchInputRef}
               type="text"
-              placeholder="Search... (تلاش کریں)"
+              placeholder="تلاش کریں..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleSearch();
-              }}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               className="flex-1 h-10 bg-white/10 border-white/20 text-white placeholder:text-white/50 text-sm"
               dir="auto"
             />
             <Button
               size="sm"
               onClick={handleSearch}
-              disabled={isSearching || loadingAllText}
+              disabled={isSearching}
               className="bg-white/20 hover:bg-white/30 h-10 px-3"
             >
-              {isSearching || loadingAllText ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Search className="h-4 w-4" />
-              )}
+              {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
             </Button>
           </div>
           
           {searchResults.length > 0 && (
             <div className="flex items-center justify-between">
-              <span className="text-white text-xs">{currentSearchIndex + 1}/{searchResults.length} results</span>
+              <span className="text-white text-xs">{currentSearchIndex + 1}/{searchResults.length}</span>
               <div className="flex items-center gap-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={goToPrevSearchResult}
-                  className="text-white hover:bg-white/20 h-8 w-8 p-0"
-                >
+                <Button variant="ghost" size="sm" onClick={goToPrevSearchResult} className="text-white hover:bg-white/20 h-8 w-8 p-0">
                   <ArrowUp className="h-4 w-4" />
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={goToNextSearchResult}
-                  className="text-white hover:bg-white/20 h-8 w-8 p-0"
-                >
+                <Button variant="ghost" size="sm" onClick={goToNextSearchResult} className="text-white hover:bg-white/20 h-8 w-8 p-0">
                   <ArrowDown className="h-4 w-4" />
                 </Button>
               </div>
             </div>
           )}
           
-          {/* OCR required warning */}
-          {isScannedPDF && !ocrLoaded && ocrTexts.size === 0 && (
+          {isScannedPDF && ocrPagesCount === 0 && (
             <div className="flex items-center gap-2 text-orange-300 text-xs">
               <AlertCircle className="h-3 w-3 shrink-0" />
-              <span>Scanned PDF - Run OCR to enable search</span>
+              <span>پہلے OCR چلائیں تاکہ تلاش ہو سکے</span>
             </div>
           )}
           
-          {/* OCR progress */}
-          {ocrInProgress && (
+          {ocrAllInProgress && (
             <div className="flex items-center gap-2 text-white/70 text-xs">
               <Loader2 className="h-3 w-3 animate-spin shrink-0" />
-              <span>OCR {ocrProgress}%</span>
+              <span>OCR {ocrAllProgress}%</span>
               <div className="flex-1 bg-white/20 rounded-full h-1.5">
-                <div 
-                  className="bg-teal-400 h-1.5 rounded-full transition-all"
-                  style={{ width: `${ocrProgress}%` }}
-                />
+                <div className="bg-teal-400 h-1.5 rounded-full transition-all" style={{ width: `${ocrAllProgress}%` }} />
               </div>
             </div>
           )}
         </div>
       )}
 
-      {/* Main Content Area */}
+      {/* Main Content */}
       <div className="flex-1 flex overflow-hidden min-h-0">
-        {/* Thumbnails Sidebar - Hidden on mobile when closed */}
         {showThumbnails && (
           <div className="w-28 bg-gray-900 border-r border-gray-700 shrink-0">
             <ScrollArea className="h-full">
@@ -658,19 +562,12 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
                   >
                     <div className="bg-white p-1">
                       <Document file={fileUrl} loading={null}>
-                        <Page 
-                          pageNumber={pageNum} 
-                          width={80}
-                          renderTextLayer={false}
-                          renderAnnotationLayer={false}
-                        />
+                        <Page pageNumber={pageNum} width={80} renderTextLayer={false} renderAnnotationLayer={false} />
                       </Document>
                     </div>
                     <div className="bg-gray-800 text-center py-1 flex items-center justify-center gap-1">
                       <span className="text-xs text-gray-300">{pageNum}</span>
-                      {ocrTexts.has(pageNum) && (
-                        <Check className="h-3 w-3 text-green-400" />
-                      )}
+                      {ocrPages.get(pageNum)?.text && <Check className="h-3 w-3 text-green-400" />}
                     </div>
                   </div>
                 ))}
@@ -679,50 +576,34 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
           </div>
         )}
 
-        {/* PDF Content - Responsive */}
-        <div 
-          ref={containerRef}
-          className="flex-1 overflow-auto bg-gray-800 flex justify-center items-start p-2 sm:p-4"
-        >
-          {loading && (
+        <div ref={containerRef} className="flex-1 overflow-auto bg-gray-800 flex justify-center items-start p-2 sm:p-4">
+          {loading ? (
             <div className="flex flex-col items-center justify-center py-20">
               <Loader2 className="h-10 w-10 text-teal-500 animate-spin mb-4" />
-              <p className="text-gray-400">Loading book...</p>
+              <p className="text-gray-400">کتاب لوڈ ہو رہی ہے...</p>
             </div>
+          ) : (
+            <Document file={fileUrl} onLoadSuccess={onDocumentLoadSuccess} loading={null} className="flex flex-col items-center select-text">
+              <Page 
+                pageNumber={currentPage} 
+                width={pageWidth}
+                scale={fitToWidth ? undefined : scale}
+                className="shadow-2xl max-w-full"
+                renderTextLayer={true}
+                renderAnnotationLayer={true}
+                canvasBackground="white"
+              />
+            </Document>
           )}
-          
-          <Document
-            file={fileUrl}
-            onLoadSuccess={onDocumentLoadSuccess}
-            loading={null}
-            className="flex flex-col items-center select-text"
-          >
-            <Page 
-              pageNumber={currentPage} 
-              width={pageWidth}
-              scale={fitToWidth ? undefined : scale}
-              onLoadSuccess={onPageLoadSuccess}
-              className="shadow-2xl max-w-full"
-              renderTextLayer={true}
-              renderAnnotationLayer={true}
-              canvasBackground="white"
-            />
-          </Document>
         </div>
       </div>
 
-      {/* Footer Navigation - Mobile optimized */}
+      {/* Footer */}
       <div className="bg-gray-900 border-t border-gray-700 px-2 sm:px-4 py-2 sm:py-3 shrink-0 safe-area-bottom">
-        {/* Main navigation row */}
         <div className="flex items-center justify-between gap-2">
-          <Button
-            variant="ghost"
-            onClick={handlePrevPage}
-            disabled={currentPage <= 1}
-            className="text-white hover:bg-white/10 disabled:opacity-30 h-10 px-2 sm:px-3"
-          >
+          <Button variant="ghost" onClick={handlePrevPage} disabled={currentPage <= 1} className="text-white hover:bg-white/10 disabled:opacity-30 h-10 px-2 sm:px-3">
             <ChevronLeft className="h-5 w-5" />
-            <span className="hidden sm:inline ml-1">Prev</span>
+            <span className="hidden sm:inline ml-1">پچھلا</span>
           </Button>
 
           <div className="flex items-center gap-1 sm:gap-2">
@@ -733,45 +614,25 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
               value={currentPage}
               onChange={(e) => {
                 const page = parseInt(e.target.value);
-                if (page >= 1 && page <= numPages) {
-                  setCurrentPage(page);
-                }
+                if (page >= 1 && page <= numPages) setCurrentPage(page);
               }}
               className="w-14 sm:w-16 h-10 text-center bg-gray-800 border-gray-600 text-white text-sm"
             />
             <span className="text-gray-400 text-sm">/ {numPages}</span>
           </div>
 
-          <Button
-            variant="ghost"
-            onClick={handleNextPage}
-            disabled={currentPage >= numPages}
-            className="text-white hover:bg-white/10 disabled:opacity-30 h-10 px-2 sm:px-3"
-          >
-            <span className="hidden sm:inline mr-1">Next</span>
+          <Button variant="ghost" onClick={handleNextPage} disabled={currentPage >= numPages} className="text-white hover:bg-white/10 disabled:opacity-30 h-10 px-2 sm:px-3">
+            <span className="hidden sm:inline mr-1">اگلا</span>
             <ChevronRight className="h-5 w-5" />
           </Button>
         </div>
 
-        {/* Zoom controls row */}
         <div className="flex items-center justify-center gap-2 mt-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleZoomOut}
-            className="text-white hover:bg-white/10 h-8 w-8 p-0"
-            disabled={!fitToWidth && scale <= 0.5}
-          >
+          <Button variant="ghost" size="sm" onClick={handleZoomOut} className="text-white hover:bg-white/10 h-8 w-8 p-0" disabled={!fitToWidth && scale <= 0.5}>
             <ZoomOut className="h-4 w-4" />
           </Button>
           
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleFitToWidth}
-            className={`text-white hover:bg-white/10 h-8 px-2 text-xs ${fitToWidth ? 'bg-white/20' : ''}`}
-            title="Fit to width"
-          >
+          <Button variant="ghost" size="sm" onClick={handleFitToWidth} className={`text-white hover:bg-white/10 h-8 px-2 text-xs ${fitToWidth ? 'bg-white/20' : ''}`}>
             <RotateCcw className="h-3 w-3 mr-1" />
             Fit
           </Button>
@@ -780,28 +641,23 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
             {fitToWidth ? 'Auto' : `${Math.round(scale * 100)}%`}
           </span>
           
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleZoomIn}
-            className="text-white hover:bg-white/10 h-8 w-8 p-0"
-            disabled={!fitToWidth && scale >= 4}
-          >
+          <Button variant="ghost" size="sm" onClick={handleZoomIn} className="text-white hover:bg-white/10 h-8 w-8 p-0" disabled={!fitToWidth && scale >= 4}>
             <ZoomIn className="h-4 w-4" />
           </Button>
 
-          {/* OCR current page button */}
-          {isScannedPDF && !ocrTexts.has(currentPage) && (
+          {/* OCR current page */}
+          {isScannedPDF && (
             <Button
               variant="ghost"
               size="sm"
               onClick={runOCROnCurrentPage}
-              disabled={ocrInProgress}
-              className="text-white hover:bg-white/10 h-8 px-2 text-xs ml-2"
-              title="Scan this page with OCR"
+              disabled={ocrInProgress || isCurrentPageLoading}
+              className={`text-white hover:bg-white/10 h-8 px-2 text-xs ml-2 ${hasOcrForCurrentPage ? 'text-green-400' : ''}`}
             >
-              {ocrInProgress ? (
+              {ocrInProgress || isCurrentPageLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
+              ) : hasOcrForCurrentPage ? (
+                <Check className="h-4 w-4" />
               ) : (
                 <>
                   <ScanText className="h-4 w-4 mr-1" />
@@ -812,9 +668,6 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
           )}
         </div>
       </div>
-      
-      {/* Hidden canvas for OCR rendering */}
-      <canvas ref={canvasRef} className="hidden" />
     </div>
   );
 };

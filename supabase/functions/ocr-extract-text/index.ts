@@ -5,16 +5,35 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Normalize Urdu/Arabic text for better searchability
+function normalizeUrduText(text: string): string {
+  if (!text) return '';
+  
+  // Normalize various forms of similar characters
+  let normalized = text
+    // Normalize alef variations
+    .replace(/[أإآٱ]/g, 'ا')
+    // Normalize yaa variations
+    .replace(/[ىئ]/g, 'ی')
+    // Normalize kaf variations  
+    .replace(/ك/g, 'ک')
+    // Normalize haa variations
+    .replace(/ة/g, 'ہ')
+    // Remove diacritics (tashkeel) for searching
+    .replace(/[\u064B-\u065F\u0670]/g, '')
+    // Normalize spaces and newlines
+    .replace(/\s+/g, ' ')
+    .trim();
+  
+  return normalized;
+}
+
 // Get access token using service account
 async function getAccessToken(serviceAccount: any): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
-  const exp = now + 3600; // Token valid for 1 hour
+  const exp = now + 3600;
 
-  const header = {
-    alg: "RS256",
-    typ: "JWT"
-  };
-
+  const header = { alg: "RS256", typ: "JWT" };
   const payload = {
     iss: serviceAccount.client_email,
     scope: "https://www.googleapis.com/auth/cloud-vision",
@@ -23,18 +42,15 @@ async function getAccessToken(serviceAccount: any): Promise<string> {
     exp: exp
   };
 
-  // Create JWT
   const headerB64 = btoa(JSON.stringify(header)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
   const payloadB64 = btoa(JSON.stringify(payload)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
   const unsignedToken = `${headerB64}.${payloadB64}`;
 
-  // Import the private key
   const pemContents = serviceAccount.private_key
     .replace('-----BEGIN PRIVATE KEY-----', '')
     .replace('-----END PRIVATE KEY-----', '')
     .replace(/\n/g, '');
   
-  // Decode base64 to binary
   const binaryString = atob(pemContents);
   const bytes = new Uint8Array(binaryString.length);
   for (let i = 0; i < binaryString.length; i++) {
@@ -44,15 +60,11 @@ async function getAccessToken(serviceAccount: any): Promise<string> {
   const cryptoKey = await crypto.subtle.importKey(
     'pkcs8',
     bytes.buffer,
-    {
-      name: 'RSASSA-PKCS1-v1_5',
-      hash: 'SHA-256',
-    },
+    { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
     false,
     ['sign']
   );
 
-  // Sign the token
   const encoder = new TextEncoder();
   const signature = await crypto.subtle.sign(
     'RSASSA-PKCS1-v1_5',
@@ -67,12 +79,9 @@ async function getAccessToken(serviceAccount: any): Promise<string> {
 
   const jwt = `${unsignedToken}.${signatureB64}`;
 
-  // Exchange JWT for access token
   const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
       grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
       assertion: jwt,
@@ -90,13 +99,14 @@ async function getAccessToken(serviceAccount: any): Promise<string> {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { imageBase64, imageUrl } = await req.json();
+    const { imageBase64, imageUrl, pageNumber } = await req.json();
+    
+    console.log(`OCR request received for page: ${pageNumber || 'unknown'}`);
 
     if (!imageBase64 && !imageUrl) {
       return new Response(
@@ -105,7 +115,6 @@ serve(async (req) => {
       );
     }
 
-    // Get service account credentials
     const serviceAccountKey = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_KEY');
     if (!serviceAccountKey) {
       throw new Error('GOOGLE_SERVICE_ACCOUNT_KEY is not configured');
@@ -114,10 +123,8 @@ serve(async (req) => {
     const serviceAccount = JSON.parse(serviceAccountKey);
     const accessToken = await getAccessToken(serviceAccount);
 
-    // Prepare the Vision API request
     let imageContent: any = {};
     if (imageBase64) {
-      // Remove data URL prefix if present
       const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
       imageContent = { content: base64Data };
     } else if (imageUrl) {
@@ -129,17 +136,10 @@ serve(async (req) => {
         {
           image: imageContent,
           features: [
-            {
-              type: 'TEXT_DETECTION',
-              maxResults: 50
-            },
-            {
-              type: 'DOCUMENT_TEXT_DETECTION',
-              maxResults: 50
-            }
+            { type: 'DOCUMENT_TEXT_DETECTION' }
           ],
           imageContext: {
-            languageHints: ['ur', 'ar', 'en'] // Urdu, Arabic, English
+            languageHints: ['ur', 'ar', 'fa', 'en'] // Urdu, Arabic, Persian, English
           }
         }
       ]
@@ -166,36 +166,41 @@ serve(async (req) => {
       throw new Error(visionResult.error.message || 'Vision API error');
     }
 
-    console.log('Vision API response received');
-
-    // Extract text from response
     const response = visionResult.responses?.[0];
     
     if (!response) {
+      console.log('No response from Vision API');
       return new Response(
         JSON.stringify({ 
           success: true, 
           text: '', 
+          normalizedText: '',
+          pageNumber,
           message: 'No text detected in the image' 
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Get full text from document detection (better for paragraphs)
+    // Get full text from document detection
     const fullText = response.fullTextAnnotation?.text || '';
-    
-    // Get individual text annotations (better for scattered text)
     const textAnnotations = response.textAnnotations || [];
-    const simpleText = textAnnotations[0]?.description || '';
+    const rawText = fullText || textAnnotations[0]?.description || '';
+    
+    // Normalize for search
+    const normalizedText = normalizeUrduText(rawText);
 
-    // Get detected language
+    // Get detected languages
     const detectedLanguages = response.fullTextAnnotation?.pages?.[0]?.property?.detectedLanguages || [];
+
+    console.log(`OCR completed for page ${pageNumber}. Text length: ${rawText.length}, Normalized: ${normalizedText.length}`);
 
     return new Response(
       JSON.stringify({
         success: true,
-        text: fullText || simpleText,
+        text: rawText,
+        normalizedText: normalizedText,
+        pageNumber,
         detectedLanguages: detectedLanguages.map((lang: any) => ({
           language: lang.languageCode,
           confidence: lang.confidence
