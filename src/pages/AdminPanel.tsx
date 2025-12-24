@@ -79,6 +79,15 @@ const AdminPanel: React.FC = () => {
       adminOnly: true
     },
     { 
+      title: 'Books Library', 
+      description: 'Upload and manage books', 
+      icon: BookOpen,
+      href: '/admin/books',
+      gradient: 'from-indigo-500/20 to-indigo-500/5',
+      iconBg: 'bg-indigo-500/20 text-indigo-600 dark:text-indigo-400',
+      adminOnly: true
+    },
+    { 
       title: 'Content Uploads', 
       description: 'Upload PDFs and learning materials', 
       icon: Upload,
