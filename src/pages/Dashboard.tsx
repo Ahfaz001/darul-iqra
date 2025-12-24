@@ -78,6 +78,14 @@ const Dashboard: React.FC = () => {
       iconBg: 'bg-rose-500/20 text-rose-600 dark:text-rose-400'
     },
     { 
+      title: 'Books Library', 
+      description: 'Read Islamic books', 
+      icon: BookOpen,
+      href: '/books',
+      gradient: 'from-indigo-500/20 to-indigo-500/5',
+      iconBg: 'bg-indigo-500/20 text-indigo-600 dark:text-indigo-400'
+    },
+    { 
       title: 'My Profile', 
       description: 'Manage your account settings', 
       icon: User,
@@ -207,7 +215,7 @@ const Dashboard: React.FC = () => {
               View All <ChevronRight className="w-4 h-4 ml-1" />
             </Button>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
             {menuItems.map((item, index) => (
               <Card 
                 key={index} 

@@ -15,6 +15,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import StudentProfile from "./pages/StudentProfile";
 import StudentHadith from "./pages/StudentHadith";
+import StudentBooks from "./pages/StudentBooks";
 import StudentAttendance from "./pages/StudentAttendance";
 import StudentResults from "./pages/StudentResults";
 import AdminPanel from "./pages/AdminPanel";
@@ -25,6 +26,7 @@ import CreateExamWithTranslation from "./pages/admin/CreateExamWithTranslation";
 import AttendanceManagement from "./pages/admin/AttendanceManagement";
 import UserManagement from "./pages/admin/UserManagement";
 import HadithManagement from "./pages/admin/HadithManagement";
+import BookManagement from "./pages/admin/BookManagement";
 import ContentManagement from "./pages/admin/ContentManagement";
 import Reports from "./pages/admin/Reports";
 import StudentExams from "./pages/StudentExams";
@@ -71,6 +73,14 @@ const App = () => (
                     <StudentHadith />
                   </ProtectedRoute>
                 } 
+              />
+              <Route 
+                path="/books" 
+                element={
+                  <ProtectedRoute allowedRoles={['student']}>
+                    <StudentBooks />
+                  </ProtectedRoute>
+                }
               />
               <Route 
                 path="/exams" 
@@ -167,6 +177,14 @@ const App = () => (
                     <HadithManagement />
                   </ProtectedRoute>
                 } 
+              />
+              <Route 
+                path="/admin/books" 
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <BookManagement />
+                  </ProtectedRoute>
+                }
               />
               <Route 
                 path="/admin/content" 

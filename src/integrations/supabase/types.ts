@@ -44,6 +44,54 @@ export type Database = {
         }
         Relationships: []
       }
+      books: {
+        Row: {
+          author: string | null
+          cover_url: string | null
+          created_at: string
+          description: string | null
+          file_path: string
+          file_size: number | null
+          file_url: string
+          id: string
+          language: string
+          title: string
+          total_pages: number | null
+          updated_at: string
+          uploaded_by: string
+        }
+        Insert: {
+          author?: string | null
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          file_path: string
+          file_size?: number | null
+          file_url: string
+          id?: string
+          language?: string
+          title: string
+          total_pages?: number | null
+          updated_at?: string
+          uploaded_by: string
+        }
+        Update: {
+          author?: string | null
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          file_path?: string
+          file_size?: number | null
+          file_url?: string
+          id?: string
+          language?: string
+          title?: string
+          total_pages?: number | null
+          updated_at?: string
+          uploaded_by?: string
+        }
+        Relationships: []
+      }
       exam_assignments: {
         Row: {
           assigned_at: string
