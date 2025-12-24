@@ -2,20 +2,46 @@ import { ArrowRight, BookOpen, GraduationCap, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import madrasaLogo from "@/assets/madrasa-logo.jpg";
+import { useEffect, useState } from "react";
 
 const HeroSection = () => {
   const { t, isRTL } = useLanguage();
+  const [scrollY, setScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+    
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
     <section id="home" className="relative min-h-screen flex flex-col overflow-hidden">
-      {/* Background with enhanced gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[hsl(220,55%,22%)] via-[hsl(220,55%,25%)] to-[hsl(220,60%,18%)]"></div>
-      <div className="absolute inset-0 islamic-pattern opacity-20"></div>
+      {/* Background with enhanced gradient - parallax layer */}
+      <div 
+        className="absolute inset-0 bg-gradient-to-br from-[hsl(220,55%,22%)] via-[hsl(220,55%,25%)] to-[hsl(220,60%,18%)]"
+        style={{ transform: `translateY(${scrollY * 0.1}px)` }}
+      ></div>
+      <div 
+        className="absolute inset-0 islamic-pattern opacity-20"
+        style={{ transform: `translateY(${scrollY * 0.15}px)` }}
+      ></div>
       
-      {/* Decorative elements */}
-      <div className="absolute top-20 right-10 w-72 h-72 bg-secondary/10 rounded-full blur-3xl animate-float"></div>
-      <div className="absolute bottom-40 left-10 w-96 h-96 bg-gold/5 rounded-full blur-3xl"></div>
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-secondary/5 rounded-full blur-3xl"></div>
+      {/* Decorative elements with parallax */}
+      <div 
+        className="absolute top-20 right-10 w-72 h-72 bg-secondary/10 rounded-full blur-3xl animate-float"
+        style={{ transform: `translateY(${scrollY * 0.3}px) translateX(${scrollY * -0.1}px)` }}
+      ></div>
+      <div 
+        className="absolute bottom-40 left-10 w-96 h-96 bg-gold/5 rounded-full blur-3xl"
+        style={{ transform: `translateY(${scrollY * 0.25}px) translateX(${scrollY * 0.05}px)` }}
+      ></div>
+      <div 
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-secondary/5 rounded-full blur-3xl"
+        style={{ transform: `translate(-50%, calc(-50% + ${scrollY * 0.2}px))` }}
+      ></div>
 
       <div className="container mx-auto px-4 pt-28 pb-16 relative z-10 flex-1 flex flex-col">
         {/* Logo at Top Center */}
