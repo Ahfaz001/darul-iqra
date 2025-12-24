@@ -35,6 +35,7 @@ interface PDFViewerProps {
   title: string;
   bookId?: string;
   onClose: () => void;
+  autoStartOcr?: boolean;
 }
 
 interface SearchResult {
@@ -63,7 +64,7 @@ const normalizeForSearch = (text: string): string => {
     .trim();
 };
 
-const PDFViewer = ({ fileUrl, title, bookId, onClose }: PDFViewerProps) => {
+const PDFViewer = ({ fileUrl, title, bookId, onClose, autoStartOcr = false }: PDFViewerProps) => {
   const [numPages, setNumPages] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [scale, setScale] = useState<number>(1);
@@ -89,6 +90,7 @@ const PDFViewer = ({ fileUrl, title, bookId, onClose }: PDFViewerProps) => {
   const [ocrAllProgress, setOcrAllProgress] = useState(0);
   const [ocrAllInProgress, setOcrAllInProgress] = useState(false);
   const [dbTextLoaded, setDbTextLoaded] = useState(false);
+  const [ocrAutoStarted, setOcrAutoStarted] = useState(false);
   
   // Copy state
   const [copied, setCopied] = useState(false);
@@ -278,7 +280,7 @@ const PDFViewer = ({ fileUrl, title, bookId, onClose }: PDFViewerProps) => {
     }
   }, [currentPage, runOCROnPage, ocrInProgress]);
 
-  // OCR all pages
+  // OCR all pages with DB progress updates
   const runOCROnAllPages = useCallback(async () => {
     if (ocrAllInProgress) return;
     
@@ -299,9 +301,20 @@ const PDFViewer = ({ fileUrl, title, bookId, onClose }: PDFViewerProps) => {
         const result = await runOCROnPage(i);
         if (result?.text) successCount++;
         setOcrAllProgress(Math.round((i / numPages) * 100));
+        
+        // Update progress in DB every 5 pages or at the end
+        if (bookId && (i % 5 === 0 || i === numPages)) {
+          await supabase
+            .from('books')
+            .update({ 
+              ocr_pages_done: successCount,
+              ocr_status: 'processing'
+            })
+            .eq('id', bookId);
+        }
       }
       
-      // Update book OCR status
+      // Update book OCR status to completed
       if (bookId) {
         await supabase
           .from('books')
@@ -311,22 +324,51 @@ const PDFViewer = ({ fileUrl, title, bookId, onClose }: PDFViewerProps) => {
       
       toast.success(`تمام ${successCount} صفحات اسکین ہو گئے!`);
     } catch (error) {
+      console.error('OCR All error:', error);
+      // Mark as failed if error occurs
+      if (bookId) {
+        await supabase
+          .from('books')
+          .update({ ocr_status: 'failed' })
+          .eq('id', bookId);
+      }
       toast.error('OCR ناکام');
     } finally {
       setOcrAllInProgress(false);
     }
   }, [numPages, runOCROnPage, ocrAllInProgress, pageTexts, bookId]);
 
+  // Auto-start OCR when autoStartOcr prop is true
+  useEffect(() => {
+    if (autoStartOcr && numPages > 0 && !ocrAutoStarted && !loading && dbTextLoaded) {
+      // Check if already has OCR data
+      const existingPages = pageTexts.size;
+      if (existingPages < numPages) {
+        setOcrAutoStarted(true);
+        toast.info('OCR خود بخود شروع ہو رہا ہے...');
+        runOCROnAllPages();
+      }
+    }
+  }, [autoStartOcr, numPages, ocrAutoStarted, loading, dbTextLoaded, pageTexts.size, runOCROnAllPages]);
+
   const onDocumentLoadSuccess = async (pdf: any) => {
     setNumPages(pdf.numPages);
     pdfDocRef.current = pdf;
     setLoading(false);
     
+    // Update total_pages in DB if bookId exists
+    if (bookId) {
+      await supabase
+        .from('books')
+        .update({ total_pages: pdf.numPages })
+        .eq('id', bookId);
+    }
+    
     setTimeout(async () => {
       const isScanned = await checkIfScannedPDF();
       setIsScannedPDF(isScanned);
       
-      if (isScanned && pageTexts.size === 0) {
+      if (isScanned && pageTexts.size === 0 && !autoStartOcr) {
         toast.info('یہ اسکین شدہ PDF ہے۔ تلاش کے لیے OCR استعمال کریں', { duration: 5000 });
       }
     }, 500);
