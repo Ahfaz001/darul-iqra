@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { BookOpen, Plus, Trash2, Eye, ArrowLeft, Upload, FileText, User, Globe } from 'lucide-react';
+import { BookOpen, Plus, Trash2, Eye, ArrowLeft, Upload, FileText, User, Globe, ImagePlus } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import madrasaLogo from '@/assets/madrasa-logo.jpg';
@@ -54,6 +54,8 @@ const BookManagement = () => {
   const [language, setLanguage] = useState('urdu');
   const [totalPages, setTotalPages] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedCover, setSelectedCover] = useState<File | null>(null);
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
 
   useEffect(() => {
     fetchBooks();
@@ -91,6 +93,25 @@ const BookManagement = () => {
     }
   };
 
+  const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please select an image file');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Cover image must be less than 5MB');
+        return;
+      }
+      setSelectedCover(file);
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => setCoverPreview(e.target?.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleUpload = async () => {
     if (!selectedFile || !title.trim() || !user) {
       toast.error('Please fill in the title and select a file');
@@ -99,6 +120,7 @@ const BookManagement = () => {
 
     setUploading(true);
     try {
+      // Upload PDF file
       const fileExt = selectedFile.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
       const filePath = `${language}/${fileName}`;
@@ -113,6 +135,24 @@ const BookManagement = () => {
         .from('books')
         .getPublicUrl(filePath);
 
+      // Upload cover image if selected
+      let coverUrl = null;
+      if (selectedCover) {
+        const coverExt = selectedCover.name.split('.').pop();
+        const coverFileName = `covers/${Date.now()}-${Math.random().toString(36).substring(7)}.${coverExt}`;
+        
+        const { error: coverUploadError } = await supabase.storage
+          .from('books')
+          .upload(coverFileName, selectedCover);
+        
+        if (!coverUploadError) {
+          const { data: coverUrlData } = supabase.storage
+            .from('books')
+            .getPublicUrl(coverFileName);
+          coverUrl = coverUrlData.publicUrl;
+        }
+      }
+
       const { error: dbError } = await supabase
         .from('books')
         .insert({
@@ -123,6 +163,7 @@ const BookManagement = () => {
           file_path: filePath,
           file_url: urlData.publicUrl,
           file_size: selectedFile.size,
+          cover_url: coverUrl,
           total_pages: totalPages ? parseInt(totalPages) : null,
           uploaded_by: user.id,
         });
@@ -175,6 +216,8 @@ const BookManagement = () => {
     setLanguage('urdu');
     setTotalPages('');
     setSelectedFile(null);
+    setSelectedCover(null);
+    setCoverPreview(null);
   };
 
   const handleViewBook = (book: Book) => {
@@ -324,6 +367,26 @@ const BookManagement = () => {
                     </div>
 
                     <div>
+                      <Label htmlFor="cover">Cover Image (Optional, Max 5MB)</Label>
+                      <Input
+                        id="cover"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleCoverChange}
+                        className="cursor-pointer"
+                      />
+                      {coverPreview && (
+                        <div className="mt-2 relative w-24 h-32">
+                          <img 
+                            src={coverPreview} 
+                            alt="Cover preview" 
+                            className="w-full h-full object-cover rounded border"
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
                       <Label htmlFor="file">PDF File * (Max 50MB)</Label>
                       <Input
                         id="file"
@@ -412,8 +475,16 @@ const BookManagement = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {filteredBooks.map((book) => (
                 <Card key={book.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                  <div className="h-24 sm:h-32 bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center relative">
-                    <BookOpen className="h-12 w-12 sm:h-16 sm:w-16 text-white/50" />
+                  <div className="h-32 sm:h-40 bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center relative">
+                    {book.cover_url ? (
+                      <img 
+                        src={book.cover_url} 
+                        alt={book.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <BookOpen className="h-12 w-12 sm:h-16 sm:w-16 text-white/50" />
+                    )}
                     <span className={`absolute top-2 right-2 sm:top-3 sm:right-3 px-2 py-1 rounded-full text-xs font-medium ${getLanguageColor(book.language)}`}>
                       {getLanguageLabel(book.language)}
                     </span>
