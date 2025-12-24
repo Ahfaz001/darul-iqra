@@ -71,15 +71,12 @@ const Navbar = () => {
         <div className={`flex items-center justify-between h-20 ${isRTL ? 'flex-row-reverse' : ''}`}>
           {/* Logo */}
           <Link to="/" className={`flex items-center gap-3 group ${isRTL ? 'flex-row-reverse' : ''}`}>
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur-lg opacity-30 group-hover:opacity-50 transition-opacity"></div>
-              <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-primary/30 shadow-lg group-hover:border-secondary transition-colors duration-300">
-                <img
-                  src={madrasaLogo}
-                  alt="Idarah Tarjumat-ul-Qur'an Wa Sunnah Kalyan"
-                  className="w-full h-full object-cover"
-                />
-              </div>
+            <div className="relative w-11 h-11 overflow-hidden border-2 border-amber-500 shadow-lg rounded-lg">
+              <img
+                src={madrasaLogo}
+                alt="Idarah Tarjumat-ul-Qur'an Wa Sunnah Kalyan"
+                className="w-full h-full object-cover"
+              />
             </div>
             <div className="hidden sm:block">
               <h1 className={`font-display font-semibold text-base leading-tight ${scrolled ? 'text-foreground' : 'text-white'}`}>
