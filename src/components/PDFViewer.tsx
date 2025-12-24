@@ -33,6 +33,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/b
 interface PDFViewerProps {
   fileUrl: string;
   title: string;
+  bookId?: string;
   onClose: () => void;
 }
 
@@ -42,13 +43,13 @@ interface SearchResult {
   text: string;
 }
 
-interface OCRPageData {
+interface PageTextData {
   text: string;
   normalizedText: string;
-  loading: boolean;
+  fromDb: boolean;
 }
 
-// Normalize text for search (client-side backup)
+// Normalize text for search
 const normalizeForSearch = (text: string): string => {
   if (!text) return '';
   return text
@@ -62,7 +63,7 @@ const normalizeForSearch = (text: string): string => {
     .trim();
 };
 
-const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
+const PDFViewer = ({ fileUrl, title, bookId, onClose }: PDFViewerProps) => {
   const [numPages, setNumPages] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [scale, setScale] = useState<number>(1);
@@ -81,12 +82,13 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
   const [isSearching, setIsSearching] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   
-  // OCR state - per-page on-demand
+  // Text/OCR state
   const [isScannedPDF, setIsScannedPDF] = useState(false);
-  const [ocrPages, setOcrPages] = useState<Map<number, OCRPageData>>(new Map());
+  const [pageTexts, setPageTexts] = useState<Map<number, PageTextData>>(new Map());
   const [ocrInProgress, setOcrInProgress] = useState(false);
   const [ocrAllProgress, setOcrAllProgress] = useState(0);
   const [ocrAllInProgress, setOcrAllInProgress] = useState(false);
+  const [dbTextLoaded, setDbTextLoaded] = useState(false);
   
   // Copy state
   const [copied, setCopied] = useState(false);
@@ -95,7 +97,45 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const pdfDocRef = useRef<any>(null);
 
-  // Calculate container width for responsive scaling
+  // Load pre-extracted text from database
+  useEffect(() => {
+    if (bookId && !dbTextLoaded) {
+      loadTextFromDatabase();
+    }
+  }, [bookId, dbTextLoaded]);
+
+  const loadTextFromDatabase = async () => {
+    if (!bookId) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('book_pages')
+        .select('page_number, text_content, normalized_text')
+        .eq('book_id', bookId)
+        .order('page_number');
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        const textsMap = new Map<number, PageTextData>();
+        data.forEach(page => {
+          textsMap.set(page.page_number, {
+            text: page.text_content,
+            normalizedText: page.normalized_text,
+            fromDb: true
+          });
+        });
+        setPageTexts(textsMap);
+        toast.success(`${data.length} صفحات کا متن لوڈ ہو گیا`);
+      }
+      setDbTextLoaded(true);
+    } catch (error) {
+      console.error('Error loading text from DB:', error);
+      setDbTextLoaded(true);
+    }
+  };
+
+  // Calculate container width
   useEffect(() => {
     const updateContainerWidth = () => {
       if (containerRef.current) {
@@ -138,7 +178,7 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
     return () => { document.body.style.overflow = 'auto'; };
   }, []);
 
-  // Check if PDF is scanned (no text layer)
+  // Check if PDF is scanned
   const checkIfScannedPDF = useCallback(async () => {
     if (!pdfDocRef.current) return false;
     
@@ -160,22 +200,17 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
     }
   }, [numPages]);
 
-  // OCR single page on-demand
-  const runOCROnPage = useCallback(async (pageNum: number): Promise<OCRPageData | null> => {
+  // OCR single page
+  const runOCROnPage = useCallback(async (pageNum: number): Promise<PageTextData | null> => {
     if (!pdfDocRef.current) return null;
     
-    // Check if already loaded or loading
-    const existing = ocrPages.get(pageNum);
-    if (existing && !existing.loading && existing.text) {
-      return existing;
-    }
-    
-    // Mark as loading
-    setOcrPages(prev => new Map(prev).set(pageNum, { text: '', normalizedText: '', loading: true }));
+    // Check if already loaded
+    const existing = pageTexts.get(pageNum);
+    if (existing?.text) return existing;
     
     try {
       const page = await pdfDocRef.current.getPage(pageNum);
-      const viewport = page.getViewport({ scale: 2.5 }); // Higher scale for better OCR
+      const viewport = page.getViewport({ scale: 2.5 });
       
       const canvas = document.createElement('canvas');
       const context = canvas.getContext('2d');
@@ -195,24 +230,32 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
       if (error) throw error;
       
       if (data.success) {
-        const ocrData: OCRPageData = {
+        const ocrData: PageTextData = {
           text: data.text || '',
           normalizedText: data.normalizedText || normalizeForSearch(data.text || ''),
-          loading: false
+          fromDb: false
         };
         
-        setOcrPages(prev => new Map(prev).set(pageNum, ocrData));
+        // Save to database if we have bookId
+        if (bookId && ocrData.text) {
+          await supabase.from('book_pages').upsert({
+            book_id: bookId,
+            page_number: pageNum,
+            text_content: ocrData.text,
+            normalized_text: ocrData.normalizedText,
+          }, { onConflict: 'book_id,page_number' });
+        }
+        
+        setPageTexts(prev => new Map(prev).set(pageNum, { ...ocrData, fromDb: true }));
         return ocrData;
       }
       
-      setOcrPages(prev => new Map(prev).set(pageNum, { text: '', normalizedText: '', loading: false }));
       return null;
     } catch (error) {
       console.error(`OCR error for page ${pageNum}:`, error);
-      setOcrPages(prev => new Map(prev).set(pageNum, { text: '', normalizedText: '', loading: false }));
       return null;
     }
-  }, [ocrPages]);
+  }, [pageTexts, bookId]);
 
   // OCR current page
   const runOCROnCurrentPage = useCallback(async () => {
@@ -224,12 +267,12 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
       const result = await runOCROnPage(currentPage);
       
       if (result?.text) {
-        toast.success('متن نکال لیا گیا! (Text extracted!)');
+        toast.success('متن نکال لیا گیا!');
       } else {
         toast.error('اس صفحے پر کوئی متن نہیں ملا');
       }
     } catch (error) {
-      toast.error('OCR failed');
+      toast.error('OCR ناکام');
     } finally {
       setOcrInProgress(false);
     }
@@ -243,30 +286,47 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
     setOcrAllProgress(0);
     
     try {
+      let successCount = 0;
+      
       for (let i = 1; i <= numPages; i++) {
-        await runOCROnPage(i);
+        // Skip if already have text
+        if (pageTexts.get(i)?.text) {
+          setOcrAllProgress(Math.round((i / numPages) * 100));
+          successCount++;
+          continue;
+        }
+        
+        const result = await runOCROnPage(i);
+        if (result?.text) successCount++;
         setOcrAllProgress(Math.round((i / numPages) * 100));
       }
       
-      toast.success(`تمام ${numPages} صفحات اسکین ہو گئے!`);
+      // Update book OCR status
+      if (bookId) {
+        await supabase
+          .from('books')
+          .update({ ocr_status: 'completed', ocr_pages_done: successCount })
+          .eq('id', bookId);
+      }
+      
+      toast.success(`تمام ${successCount} صفحات اسکین ہو گئے!`);
     } catch (error) {
-      toast.error('OCR failed');
+      toast.error('OCR ناکام');
     } finally {
       setOcrAllInProgress(false);
     }
-  }, [numPages, runOCROnPage, ocrAllInProgress]);
+  }, [numPages, runOCROnPage, ocrAllInProgress, pageTexts, bookId]);
 
   const onDocumentLoadSuccess = async (pdf: any) => {
     setNumPages(pdf.numPages);
     pdfDocRef.current = pdf;
     setLoading(false);
     
-    // Check if scanned PDF
     setTimeout(async () => {
       const isScanned = await checkIfScannedPDF();
       setIsScannedPDF(isScanned);
       
-      if (isScanned) {
+      if (isScanned && pageTexts.size === 0) {
         toast.info('یہ اسکین شدہ PDF ہے۔ تلاش کے لیے OCR استعمال کریں', { duration: 5000 });
       }
     }, 500);
@@ -292,6 +352,7 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
 
   const handleFitToWidth = () => setFitToWidth(true);
   const toggleFullscreen = () => setIsFullscreen(!isFullscreen);
+  
   const goToPage = (page: number) => {
     if (page >= 1 && page <= numPages) {
       setCurrentPage(page);
@@ -301,9 +362,8 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
 
   // Get text for a page
   const getPageText = useCallback((pageNum: number): string => {
-    const ocrData = ocrPages.get(pageNum);
-    return ocrData?.text || '';
-  }, [ocrPages]);
+    return pageTexts.get(pageNum)?.text || '';
+  }, [pageTexts]);
 
   // Search handler
   const handleSearch = useCallback(async () => {
@@ -312,8 +372,8 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
       return;
     }
 
-    const availablePages = Array.from(ocrPages.entries())
-      .filter(([_, data]) => data.text && !data.loading);
+    const availablePages = Array.from(pageTexts.entries())
+      .filter(([_, data]) => data.text);
     
     if (availablePages.length === 0) {
       toast.error('پہلے OCR چلائیں تاکہ تلاش ہو سکے');
@@ -352,7 +412,7 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
     }
     
     setIsSearching(false);
-  }, [searchQuery, ocrPages]);
+  }, [searchQuery, pageTexts]);
 
   const goToNextSearchResult = () => {
     if (searchResults.length === 0) return;
@@ -369,26 +429,24 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
   };
 
   const handleCopyPageText = async () => {
-    const pageText = getPageText(currentPage);
+    let pageText = getPageText(currentPage);
+    
+    if (!pageText && isScannedPDF) {
+      toast.info('OCR چل رہا ہے...');
+      setOcrInProgress(true);
+      const result = await runOCROnPage(currentPage);
+      setOcrInProgress(false);
+      pageText = result?.text || '';
+    }
+    
     if (pageText) {
       try {
         await navigator.clipboard.writeText(pageText);
         setCopied(true);
-        toast.success('صفحے کا متن کاپی ہو گیا!');
+        toast.success('متن کاپی ہو گیا!');
         setTimeout(() => setCopied(false), 2000);
       } catch {
         toast.error('کاپی ناکام');
-      }
-    } else if (isScannedPDF) {
-      // Auto-run OCR if not done
-      toast.info('OCR چل رہا ہے...');
-      await runOCROnCurrentPage();
-      const newText = getPageText(currentPage);
-      if (newText) {
-        await navigator.clipboard.writeText(newText);
-        setCopied(true);
-        toast.success('متن کاپی ہو گیا!');
-        setTimeout(() => setCopied(false), 2000);
       }
     } else {
       toast.error('اس صفحے پر کوئی متن نہیں');
@@ -405,10 +463,8 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
   };
 
   const pageWidth = getPageWidth();
-  const currentOcrData = ocrPages.get(currentPage);
-  const hasOcrForCurrentPage = currentOcrData?.text && !currentOcrData.loading;
-  const isCurrentPageLoading = currentOcrData?.loading;
-  const ocrPagesCount = Array.from(ocrPages.values()).filter(p => p.text && !p.loading).length;
+  const hasOcrForCurrentPage = !!pageTexts.get(currentPage)?.text;
+  const ocrPagesCount = Array.from(pageTexts.values()).filter(p => p.text).length;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/95 flex flex-col safe-area-inset">
@@ -431,7 +487,6 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
               onClick={runOCROnAllPages}
               disabled={ocrAllInProgress}
               className="text-white hover:bg-white/20 h-9 px-2 text-xs gap-1"
-              title="Scan all pages"
             >
               {ocrAllInProgress ? (
                 <>
@@ -455,10 +510,10 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
             variant="ghost"
             size="icon"
             onClick={handleCopyPageText}
+            disabled={ocrInProgress}
             className="text-white hover:bg-white/20 h-9 w-9"
-            title="Copy page text"
           >
-            {copied ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4" />}
+            {ocrInProgress ? <Loader2 className="h-4 w-4 animate-spin" /> : copied ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4" />}
           </Button>
           
           {/* Search Toggle */}
@@ -567,7 +622,7 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
                     </div>
                     <div className="bg-gray-800 text-center py-1 flex items-center justify-center gap-1">
                       <span className="text-xs text-gray-300">{pageNum}</span>
-                      {ocrPages.get(pageNum)?.text && <Check className="h-3 w-3 text-green-400" />}
+                      {pageTexts.get(pageNum)?.text && <Check className="h-3 w-3 text-green-400" />}
                     </div>
                   </div>
                 ))}
@@ -651,10 +706,10 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
               variant="ghost"
               size="sm"
               onClick={runOCROnCurrentPage}
-              disabled={ocrInProgress || isCurrentPageLoading}
+              disabled={ocrInProgress || ocrAllInProgress}
               className={`text-white hover:bg-white/10 h-8 px-2 text-xs ml-2 ${hasOcrForCurrentPage ? 'text-green-400' : ''}`}
             >
-              {ocrInProgress || isCurrentPageLoading ? (
+              {ocrInProgress ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : hasOcrForCurrentPage ? (
                 <Check className="h-4 w-4" />
