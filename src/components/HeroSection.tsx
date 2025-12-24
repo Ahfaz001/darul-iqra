@@ -19,22 +19,22 @@ const HeroSection = () => {
 
   return (
     <section id="home" className="relative min-h-screen flex flex-col overflow-hidden">
-      {/* Clean Turquoise gradient background */}
+      {/* Ultra Lite Turquoise gradient background */}
       <div 
-        className="absolute inset-0 bg-gradient-to-br from-cyan-400 via-teal-400 to-turquoise-500 dark:from-cyan-800 dark:via-teal-800 dark:to-slate-900"
+        className="absolute inset-0 bg-gradient-to-br from-cyan-100 via-teal-100 to-cyan-200 dark:from-cyan-900 dark:via-teal-900 dark:to-slate-900"
         style={{ transform: `translateY(${scrollY * 0.1}px)` }}
       ></div>
       
-      {/* Subtle overlay for depth - NO blur */}
-      <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-transparent to-cyan-600/20 dark:from-black/20 dark:to-teal-900/40"></div>
+      {/* Subtle overlay for depth */}
+      <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-transparent to-cyan-200/30 dark:from-black/20 dark:to-teal-900/40"></div>
       
       {/* Subtle geometric shapes - no circles behind logo */}
       <div 
-        className="absolute top-20 right-10 w-40 h-40 bg-gradient-to-br from-amber-400/20 to-orange-500/10 rotate-45"
+        className="absolute top-20 right-10 w-40 h-40 bg-gradient-to-br from-amber-300/15 to-orange-400/10 rotate-45"
         style={{ transform: `translateY(${scrollY * 0.3}px) rotate(45deg)` }}
       ></div>
       <div 
-        className="absolute bottom-40 left-10 w-32 h-32 bg-gradient-to-tr from-white/20 to-cyan-300/10 rotate-12"
+        className="absolute bottom-40 left-10 w-32 h-32 bg-gradient-to-tr from-white/30 to-cyan-200/15 rotate-12"
         style={{ transform: `translateY(${scrollY * 0.25}px) rotate(12deg)` }}
       ></div>
       
