@@ -28,10 +28,8 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.mjs',
-  import.meta.url
-).toString();
+// Use CDN for PDF.js worker - more reliable across environments
+pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
 
 interface PDFViewerProps {
   fileUrl: string;
