@@ -274,22 +274,30 @@ const Dashboard: React.FC = () => {
 
           {/* Quick Stats */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            {quickStats.map((stat, index) => (
-              <Card key={index} className="group relative overflow-hidden border-border/50 hover:shadow-xl transition-all duration-300">
-                <div className={`absolute inset-0 bg-gradient-to-br ${stat.color} opacity-0 group-hover:opacity-5 transition-opacity`}></div>
-                <CardContent className="flex items-center gap-4 p-5">
-                  <div className={`p-3 rounded-xl ${stat.bgColor}`}>
-                    <stat.icon className={`h-6 w-6 bg-gradient-to-br ${stat.color} bg-clip-text`} style={{color: 'transparent', backgroundImage: `linear-gradient(to bottom right, ${stat.color.includes('emerald') ? '#10b981, #14b8a6' : stat.color.includes('amber') ? '#f59e0b, #f97316' : stat.color.includes('purple') ? '#a855f7, #ec4899' : '#3b82f6, #06b6d4'})`}} />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-foreground">
-                      {loadingStats ? '...' : stat.value}
-                    </p>
-                    <p className="text-sm text-muted-foreground">{stat.label}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+            {quickStats.map((stat, index) => {
+              const IconComponent = stat.icon;
+              return (
+                <Card key={index} className="group relative overflow-hidden border-border/50 hover:shadow-xl transition-all duration-300">
+                  <div className={`absolute inset-0 bg-gradient-to-br ${stat.color} opacity-0 group-hover:opacity-5 transition-opacity`}></div>
+                  <CardContent className="flex items-center gap-4 p-5">
+                    <div className={`p-3 rounded-xl ${stat.bgColor}`}>
+                      <IconComponent className={`h-6 w-6 ${
+                        stat.color.includes('emerald') ? 'text-emerald-600' : 
+                        stat.color.includes('amber') ? 'text-amber-600' : 
+                        stat.color.includes('purple') ? 'text-purple-600' : 
+                        'text-blue-600'
+                      }`} />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-foreground">
+                        {loadingStats ? '...' : stat.value}
+                      </p>
+                      <p className="text-sm text-muted-foreground">{stat.label}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
 
           {/* Daily Hadith Card */}
