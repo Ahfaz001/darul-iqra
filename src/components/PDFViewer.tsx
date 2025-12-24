@@ -4,6 +4,7 @@ import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -19,7 +20,9 @@ import {
   ArrowDown,
   Loader2,
   Copy,
-  Check
+  Check,
+  ScanText,
+  AlertCircle
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
@@ -57,12 +60,20 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
   const [loadingAllText, setLoadingAllText] = useState(false);
   const [allTextLoaded, setAllTextLoaded] = useState(false);
   
+  // OCR state for scanned PDFs
+  const [isScannedPDF, setIsScannedPDF] = useState(false);
+  const [ocrInProgress, setOcrInProgress] = useState(false);
+  const [ocrProgress, setOcrProgress] = useState(0);
+  const [ocrTexts, setOcrTexts] = useState<Map<number, string>>(new Map());
+  const [ocrLoaded, setOcrLoaded] = useState(false);
+  
   // Copy state
   const [copied, setCopied] = useState(false);
   
   const containerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const pdfDocRef = useRef<any>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -99,7 +110,32 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
     };
   }, []);
 
-  // Load all pages text for search
+  // Check if PDF is scanned (no text layer)
+  const checkIfScannedPDF = useCallback(async () => {
+    if (!pdfDocRef.current) return false;
+    
+    try {
+      // Check first 3 pages for text
+      const pagesToCheck = Math.min(3, numPages);
+      let totalTextLength = 0;
+      
+      for (let i = 1; i <= pagesToCheck; i++) {
+        const page = await pdfDocRef.current.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items.map((item: any) => item.str).join('');
+        totalTextLength += pageText.trim().length;
+      }
+      
+      // If very little text found, it's likely a scanned PDF
+      const avgTextPerPage = totalTextLength / pagesToCheck;
+      return avgTextPerPage < 50; // Less than 50 chars per page = scanned
+    } catch (error) {
+      console.error('Error checking PDF type:', error);
+      return false;
+    }
+  }, [numPages]);
+
+  // Load all pages text for search (regular PDFs)
   const loadAllPagesText = useCallback(async () => {
     if (!pdfDocRef.current || allTextLoaded || loadingAllText) return;
     
@@ -117,12 +153,117 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
       
       setPageTexts(textsMap);
       setAllTextLoaded(true);
+      
+      // Check if this is a scanned PDF
+      const isScanned = await checkIfScannedPDF();
+      setIsScannedPDF(isScanned);
+      
+      if (isScanned) {
+        toast.info('Scanned PDF detected. Use "OCR Scan" button to enable search.', {
+          duration: 5000
+        });
+      }
     } catch (error) {
       console.error('Error loading page texts:', error);
     } finally {
       setLoadingAllText(false);
     }
-  }, [numPages, allTextLoaded, loadingAllText]);
+  }, [numPages, allTextLoaded, loadingAllText, checkIfScannedPDF]);
+
+  // OCR: Extract text from page image using Google Cloud Vision
+  const extractTextFromPage = useCallback(async (pageNum: number): Promise<string> => {
+    if (!pdfDocRef.current) return '';
+    
+    try {
+      const page = await pdfDocRef.current.getPage(pageNum);
+      const viewport = page.getViewport({ scale: 2 }); // Higher scale for better OCR
+      
+      // Create canvas
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      if (!context) return '';
+      
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      
+      // Render page to canvas
+      await page.render({
+        canvasContext: context,
+        viewport: viewport
+      }).promise;
+      
+      // Convert to base64
+      const imageBase64 = canvas.toDataURL('image/jpeg', 0.9);
+      
+      // Call OCR edge function
+      const { data, error } = await supabase.functions.invoke('ocr-extract-text', {
+        body: { imageBase64 }
+      });
+      
+      if (error) throw error;
+      
+      if (data.success && data.text) {
+        return data.text;
+      }
+      
+      return '';
+    } catch (error) {
+      console.error(`OCR error for page ${pageNum}:`, error);
+      return '';
+    }
+  }, []);
+
+  // Run OCR on all pages
+  const runOCROnAllPages = useCallback(async () => {
+    if (ocrInProgress || ocrLoaded) return;
+    
+    setOcrInProgress(true);
+    setOcrProgress(0);
+    
+    const ocrTextsMap = new Map<number, string>();
+    
+    try {
+      for (let i = 1; i <= numPages; i++) {
+        const text = await extractTextFromPage(i);
+        ocrTextsMap.set(i, text);
+        setOcrProgress(Math.round((i / numPages) * 100));
+        
+        // Update state incrementally
+        setOcrTexts(new Map(ocrTextsMap));
+      }
+      
+      setOcrLoaded(true);
+      toast.success(`OCR complete! ${numPages} pages scanned.`);
+    } catch (error) {
+      console.error('OCR failed:', error);
+      toast.error('OCR failed. Please try again.');
+    } finally {
+      setOcrInProgress(false);
+    }
+  }, [numPages, extractTextFromPage, ocrInProgress, ocrLoaded]);
+
+  // Run OCR on current page only
+  const runOCROnCurrentPage = useCallback(async () => {
+    if (ocrInProgress) return;
+    
+    setOcrInProgress(true);
+    
+    try {
+      const text = await extractTextFromPage(currentPage);
+      
+      if (text) {
+        setOcrTexts(prev => new Map(prev).set(currentPage, text));
+        toast.success('Page text extracted!');
+      } else {
+        toast.error('No text found on this page');
+      }
+    } catch (error) {
+      console.error('OCR failed:', error);
+      toast.error('OCR failed');
+    } finally {
+      setOcrInProgress(false);
+    }
+  }, [currentPage, extractTextFromPage, ocrInProgress]);
 
   const onDocumentLoadSuccess = async (pdf: any) => {
     setNumPages(pdf.numPages);
@@ -171,14 +312,29 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
     }
   };
 
+  // Get text for a page (from OCR or regular text layer)
+  const getPageText = useCallback((pageNum: number): string => {
+    // Prefer OCR text for scanned PDFs
+    if (ocrTexts.has(pageNum)) {
+      return ocrTexts.get(pageNum) || '';
+    }
+    return pageTexts.get(pageNum) || '';
+  }, [ocrTexts, pageTexts]);
+
   const handleSearch = useCallback(async () => {
     if (!searchQuery.trim()) {
       setSearchResults([]);
       return;
     }
 
+    // For scanned PDFs, check if OCR is done
+    if (isScannedPDF && !ocrLoaded && ocrTexts.size === 0) {
+      toast.error('Please run OCR scan first to enable search on scanned PDFs');
+      return;
+    }
+
     // Ensure all text is loaded first
-    if (!allTextLoaded) {
+    if (!allTextLoaded && !isScannedPDF) {
       await loadAllPagesText();
     }
 
@@ -186,8 +342,10 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
     const results: SearchResult[] = [];
     const query = searchQuery.toLowerCase();
 
-    // Search through all loaded page texts
-    pageTexts.forEach((text, pageIndex) => {
+    // Search through all available texts (OCR or regular)
+    const textsToSearch = ocrLoaded || ocrTexts.size > 0 ? ocrTexts : pageTexts;
+    
+    textsToSearch.forEach((text, pageIndex) => {
       const lowerText = text.toLowerCase();
       let matchIndex = 0;
       let position = lowerText.indexOf(query);
@@ -215,7 +373,7 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
     }
     
     setIsSearching(false);
-  }, [searchQuery, pageTexts, allTextLoaded, loadAllPagesText]);
+  }, [searchQuery, pageTexts, ocrTexts, allTextLoaded, isScannedPDF, ocrLoaded, loadAllPagesText]);
 
   const goToNextSearchResult = () => {
     if (searchResults.length === 0) return;
@@ -250,7 +408,7 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
   };
 
   const handleCopyPageText = async () => {
-    const pageText = pageTexts.get(currentPage);
+    const pageText = getPageText(currentPage);
     if (pageText) {
       try {
         await navigator.clipboard.writeText(pageText);
@@ -260,6 +418,10 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
       } catch {
         toast.error('Failed to copy text');
       }
+    } else if (isScannedPDF) {
+      toast.info('Run OCR scan first to extract text from this scanned page');
+    } else {
+      toast.error('No text available on this page');
     }
   };
 
@@ -278,9 +440,46 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
           </Button>
           <BookOpen className="h-5 w-5 hidden sm:block" />
           <h2 className="text-sm sm:text-lg font-semibold truncate max-w-[120px] sm:max-w-[300px]">{title}</h2>
+          
+          {/* Scanned PDF indicator */}
+          {isScannedPDF && (
+            <span className="hidden sm:flex items-center gap-1 px-2 py-0.5 bg-orange-500/20 text-orange-300 rounded text-xs">
+              <AlertCircle className="h-3 w-3" />
+              Scanned PDF
+            </span>
+          )}
         </div>
         
         <div className="flex items-center gap-1">
+          {/* OCR Button - only show for scanned PDFs */}
+          {isScannedPDF && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={runOCROnAllPages}
+              disabled={ocrInProgress || ocrLoaded}
+              className="text-white hover:bg-white/20 h-8 text-xs gap-1"
+              title="Scan all pages with OCR for search"
+            >
+              {ocrInProgress ? (
+                <>
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  <span className="hidden sm:inline">{ocrProgress}%</span>
+                </>
+              ) : ocrLoaded ? (
+                <>
+                  <Check className="h-3 w-3 text-green-400" />
+                  <span className="hidden sm:inline">OCR Done</span>
+                </>
+              ) : (
+                <>
+                  <ScanText className="h-3 w-3" />
+                  <span className="hidden sm:inline">OCR Scan</span>
+                </>
+              )}
+            </Button>
+          )}
+          
           {/* Copy Button */}
           <Button
             variant="ghost"
@@ -401,11 +600,33 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
             )}
           </div>
           
-          {/* Loading indicator for text extraction */}
+          {/* Loading/OCR indicator */}
           {loadingAllText && (
             <div className="flex items-center gap-2 text-white/70 text-xs">
               <Loader2 className="h-3 w-3 animate-spin" />
-              <span>Loading book text for search...</span>
+              <span>Loading book text...</span>
+            </div>
+          )}
+          
+          {/* OCR required warning */}
+          {isScannedPDF && !ocrLoaded && ocrTexts.size === 0 && (
+            <div className="flex items-center gap-2 text-orange-300 text-xs">
+              <AlertCircle className="h-3 w-3" />
+              <span>This is a scanned PDF. Click "OCR Scan" button to enable search.</span>
+            </div>
+          )}
+          
+          {/* OCR progress */}
+          {ocrInProgress && (
+            <div className="flex items-center gap-2 text-white/70 text-xs">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              <span>OCR scanning pages... {ocrProgress}%</span>
+              <div className="flex-1 bg-white/20 rounded-full h-1.5">
+                <div 
+                  className="bg-teal-400 h-1.5 rounded-full transition-all"
+                  style={{ width: `${ocrProgress}%` }}
+                />
+              </div>
             </div>
           )}
           
@@ -446,8 +667,11 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
                         />
                       </Document>
                     </div>
-                    <div className="bg-gray-800 text-center py-1">
+                    <div className="bg-gray-800 text-center py-1 flex items-center justify-center gap-1">
                       <span className="text-xs text-gray-300">Page {pageNum}</span>
+                      {ocrTexts.has(pageNum) && (
+                        <Check className="h-3 w-3 text-green-400" />
+                      )}
                     </div>
                   </div>
                 ))}
@@ -517,17 +741,37 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
             />
             <span className="text-gray-400 text-sm">of {numPages}</span>
             
-            {/* Copy Page Text Button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleCopyPageText}
-              className="text-white hover:bg-white/10 ml-2"
-              title="Copy entire page text"
-            >
-              <Copy className="h-4 w-4 mr-1" />
-              <span className="hidden sm:inline text-xs">Copy Page</span>
-            </Button>
+            {/* OCR This Page / Copy Page Text Button */}
+            {isScannedPDF && !ocrTexts.has(currentPage) ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={runOCROnCurrentPage}
+                disabled={ocrInProgress}
+                className="text-white hover:bg-white/10 ml-2"
+                title="Scan this page with OCR"
+              >
+                {ocrInProgress ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    <ScanText className="h-4 w-4 mr-1" />
+                    <span className="hidden sm:inline text-xs">OCR Page</span>
+                  </>
+                )}
+              </Button>
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleCopyPageText}
+                className="text-white hover:bg-white/10 ml-2"
+                title="Copy entire page text"
+              >
+                <Copy className="h-4 w-4 mr-1" />
+                <span className="hidden sm:inline text-xs">Copy Page</span>
+              </Button>
+            )}
           </div>
 
           <Button
@@ -570,9 +814,11 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
           <span><kbd className="bg-gray-700 px-1.5 py-0.5 rounded text-gray-300">→</kbd> Next</span>
           <span><kbd className="bg-gray-700 px-1.5 py-0.5 rounded text-gray-300">Ctrl+F</kbd> Search</span>
           <span><kbd className="bg-gray-700 px-1.5 py-0.5 rounded text-gray-300">ESC</kbd> Close</span>
-          <span>Select text → Copy</span>
         </div>
       </div>
+      
+      {/* Hidden canvas for OCR rendering */}
+      <canvas ref={canvasRef} className="hidden" />
     </div>
   );
 };
