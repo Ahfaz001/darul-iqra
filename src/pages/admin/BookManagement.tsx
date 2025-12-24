@@ -6,10 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { BookOpen, Plus, Trash2, Eye, ArrowLeft, Upload, FileText, User, Globe, ScanText, Loader2, ImagePlus, Copy, Check, RefreshCw, AlertCircle } from 'lucide-react';
+import { BookOpen, Plus, Trash2, Eye, ArrowLeft, Upload, FileText, User, Globe } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import madrasaLogo from '@/assets/madrasa-logo.jpg';
@@ -27,8 +27,6 @@ interface Book {
   cover_url: string | null;
   total_pages: number | null;
   created_at: string;
-  ocr_status?: string;
-  ocr_pages_done?: number;
 }
 
 const LANGUAGES = [
@@ -44,17 +42,10 @@ const BookManagement = () => {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [ocrDialogOpen, setOcrDialogOpen] = useState(false);
   const [filterLanguage, setFilterLanguage] = useState('all');
-  
-  // OCR states
-  const [ocrProcessing, setOcrProcessing] = useState(false);
-  const [extractedText, setExtractedText] = useState('');
-  const [copied, setCopied] = useState(false);
 
   // PDF Viewer state
   const [viewingBook, setViewingBook] = useState<Book | null>(null);
-  const [autoStartOcr, setAutoStartOcr] = useState(false);
 
   // Form states
   const [title, setTitle] = useState('');
@@ -186,110 +177,12 @@ const BookManagement = () => {
     setSelectedFile(null);
   };
 
-  const handleStartOCR = async (book: Book) => {
-    await supabase
-      .from('books')
-      .update({ ocr_status: 'processing', ocr_pages_done: 0 })
-      .eq('id', book.id);
-    
-    setAutoStartOcr(true);
-    setViewingBook(book);
-    fetchBooks();
-  };
-
-  const handleRetryOCR = async (book: Book) => {
-    await supabase
-      .from('books')
-      .update({ ocr_status: 'processing', ocr_pages_done: 0 })
-      .eq('id', book.id);
-    
-    await supabase
-      .from('book_pages')
-      .delete()
-      .eq('book_id', book.id);
-    
-    toast.info('OCR دوبارہ شروع ہو رہا ہے...');
-    setAutoStartOcr(true);
-    setViewingBook(book);
-    fetchBooks();
-  };
-
   const handleViewBook = (book: Book) => {
-    setAutoStartOcr(false);
     setViewingBook(book);
   };
 
   const handleClosePDFViewer = () => {
     setViewingBook(null);
-    setAutoStartOcr(false);
-    fetchBooks();
-  };
-
-  const handleOcrImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
-    const imageFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
-    if (imageFiles.length === 0) {
-      toast.error('Please select image files (JPG, PNG, etc.)');
-      return;
-    }
-
-    setOcrProcessing(true);
-
-    try {
-      let allText = '';
-      
-      for (const file of imageFiles) {
-        const base64 = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
-
-        const { data, error } = await supabase.functions.invoke('ocr-extract-text', {
-          body: { imageBase64: base64 }
-        });
-
-        if (error) throw error;
-
-        if (data.success && data.text) {
-          allText += data.text + '\n\n---\n\n';
-        } else if (data.error) {
-          throw new Error(data.error);
-        }
-      }
-
-      if (allText.trim()) {
-        setExtractedText(prev => prev ? prev + '\n\n' + allText.trim() : allText.trim());
-        toast.success(`Text extracted from ${imageFiles.length} image(s)!`);
-      } else {
-        toast.error('No text found in image(s)');
-      }
-    } catch (error: any) {
-      console.error('OCR error:', error);
-      toast.error(error.message || 'Failed to extract text');
-    } finally {
-      setOcrProcessing(false);
-      e.target.value = '';
-    }
-  };
-
-  const handleCopyText = async () => {
-    try {
-      await navigator.clipboard.writeText(extractedText);
-      setCopied(true);
-      toast.success('Text copied to clipboard!');
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      toast.error('Failed to copy text');
-    }
-  };
-
-  const resetOcrDialog = () => {
-    setExtractedText('');
-    setCopied(false);
   };
 
   const filteredBooks = filterLanguage === 'all' 
@@ -355,228 +248,117 @@ const BookManagement = () => {
                 </div>
               </div>
 
-              {/* Right side - action buttons */}
-              <div className="flex items-center gap-2 flex-wrap">
-                {/* OCR Dialog */}
-                <Dialog open={ocrDialogOpen} onOpenChange={(open) => {
-                  setOcrDialogOpen(open);
-                  if (!open) resetOcrDialog();
-                }}>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="bg-white/10 text-white border-white/30 hover:bg-white/20 text-xs sm:text-sm">
-                      <ScanText className="h-4 w-4 sm:mr-2" />
-                      <span className="hidden sm:inline">OCR Extract</span>
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                    <DialogHeader>
-                      <DialogTitle className="flex items-center gap-2">
-                        <ScanText className="h-5 w-5" />
-                        Extract Text from Images (OCR)
-                      </DialogTitle>
-                    </DialogHeader>
+              {/* Right side - Upload button */}
+              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="bg-white text-teal-700 hover:bg-teal-50 text-xs sm:text-sm">
+                    <Plus className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Upload Book</span>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <Upload className="h-5 w-5" />
+                      Upload New Book
+                    </DialogTitle>
+                  </DialogHeader>
 
-                    <div className="space-y-4 mt-4">
-                      <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center">
-                        <input
-                          type="file"
-                          id="ocr-image-upload"
-                          accept="image/*"
-                          multiple
-                          className="hidden"
-                          onChange={handleOcrImageUpload}
-                          disabled={ocrProcessing}
-                        />
-                        <label
-                          htmlFor="ocr-image-upload"
-                          className="cursor-pointer flex flex-col items-center gap-2"
-                        >
-                          {ocrProcessing ? (
-                            <>
-                              <Loader2 className="h-12 w-12 text-teal-600 animate-spin" />
-                              <p className="text-teal-600 font-medium">Extracting text...</p>
-                            </>
-                          ) : (
-                            <>
-                              <ImagePlus className="h-12 w-12 text-gray-400" />
-                              <p className="text-gray-600 dark:text-gray-300 font-medium">
-                                Click to upload images
-                              </p>
-                              <p className="text-sm text-gray-500">
-                                Supports Urdu, Arabic, English text
-                              </p>
-                            </>
-                          )}
-                        </label>
-                      </div>
+                  <div className="space-y-4 mt-4">
+                    <div>
+                      <Label htmlFor="title">Book Title *</Label>
+                      <Input
+                        id="title"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        placeholder="Enter book title"
+                      />
+                    </div>
 
-                      {extractedText && (
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <Label>Extracted Text</Label>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={handleCopyText}
-                              className="gap-1"
-                            >
-                              {copied ? (
-                                <>
-                                  <Check className="h-4 w-4 text-green-600" />
-                                  Copied!
-                                </>
-                              ) : (
-                                <>
-                                  <Copy className="h-4 w-4" />
-                                  Copy All
-                                </>
-                              )}
-                            </Button>
-                          </div>
-                          <Textarea
-                            value={extractedText}
-                            onChange={(e) => setExtractedText(e.target.value)}
-                            className="min-h-[300px] font-urdu"
-                            dir="auto"
-                            placeholder="Extracted text will appear here..."
-                          />
-                          <div className="flex gap-2">
-                            <Button
-                              variant="outline"
-                              onClick={() => setExtractedText('')}
-                              className="flex-1"
-                            >
-                              Clear Text
-                            </Button>
-                            <Button
-                              onClick={() => {
-                                document.getElementById('ocr-image-upload')?.click();
-                              }}
-                              disabled={ocrProcessing}
-                              className="flex-1 bg-teal-600 hover:bg-teal-700"
-                            >
-                              <ImagePlus className="h-4 w-4 mr-2" />
-                              Add More Images
-                            </Button>
-                          </div>
-                        </div>
+                    <div>
+                      <Label htmlFor="author">Author</Label>
+                      <Input
+                        id="author"
+                        value={author}
+                        onChange={(e) => setAuthor(e.target.value)}
+                        placeholder="Enter author name"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="language">Language *</Label>
+                      <Select value={language} onValueChange={setLanguage}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {LANGUAGES.map((lang) => (
+                            <SelectItem key={lang.value} value={lang.value}>
+                              {lang.label} - {lang.labelNative}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="pages">Total Pages</Label>
+                      <Input
+                        id="pages"
+                        type="number"
+                        value={totalPages}
+                        onChange={(e) => setTotalPages(e.target.value)}
+                        placeholder="Enter total pages (optional)"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="description">Description</Label>
+                      <Textarea
+                        id="description"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        placeholder="Enter book description (optional)"
+                        rows={3}
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="file">PDF File * (Max 50MB)</Label>
+                      <Input
+                        id="file"
+                        type="file"
+                        accept=".pdf"
+                        onChange={handleFileChange}
+                        className="cursor-pointer"
+                      />
+                      {selectedFile && (
+                        <p className="text-sm text-gray-500 mt-1">
+                          Selected: {selectedFile.name} ({formatFileSize(selectedFile.size)})
+                        </p>
                       )}
                     </div>
-                  </DialogContent>
-                </Dialog>
 
-                {/* Upload Book Dialog */}
-                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button size="sm" className="bg-white text-teal-700 hover:bg-teal-50 text-xs sm:text-sm">
-                      <Plus className="h-4 w-4 sm:mr-2" />
-                      <span className="hidden sm:inline">Upload Book</span>
+                    <Button
+                      onClick={handleUpload}
+                      disabled={uploading || !selectedFile || !title.trim()}
+                      className="w-full bg-teal-600 hover:bg-teal-700"
+                    >
+                      {uploading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="h-4 w-4 mr-2" />
+                          Upload Book
+                        </>
+                      )}
                     </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-                    <DialogHeader>
-                      <DialogTitle className="flex items-center gap-2">
-                        <Upload className="h-5 w-5" />
-                        Upload New Book
-                      </DialogTitle>
-                    </DialogHeader>
-
-                    <div className="space-y-4 mt-4">
-                      <div>
-                        <Label htmlFor="title">Book Title *</Label>
-                        <Input
-                          id="title"
-                          value={title}
-                          onChange={(e) => setTitle(e.target.value)}
-                          placeholder="Enter book title"
-                        />
-                      </div>
-
-                      <div>
-                        <Label htmlFor="author">Author</Label>
-                        <Input
-                          id="author"
-                          value={author}
-                          onChange={(e) => setAuthor(e.target.value)}
-                          placeholder="Enter author name"
-                        />
-                      </div>
-
-                      <div>
-                        <Label htmlFor="language">Language *</Label>
-                        <Select value={language} onValueChange={setLanguage}>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {LANGUAGES.map((lang) => (
-                              <SelectItem key={lang.value} value={lang.value}>
-                                {lang.label} - {lang.labelNative}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div>
-                        <Label htmlFor="pages">Total Pages</Label>
-                        <Input
-                          id="pages"
-                          type="number"
-                          value={totalPages}
-                          onChange={(e) => setTotalPages(e.target.value)}
-                          placeholder="Enter total pages (optional)"
-                        />
-                      </div>
-
-                      <div>
-                        <Label htmlFor="description">Description</Label>
-                        <Textarea
-                          id="description"
-                          value={description}
-                          onChange={(e) => setDescription(e.target.value)}
-                          placeholder="Enter book description (optional)"
-                          rows={3}
-                        />
-                      </div>
-
-                      <div>
-                        <Label htmlFor="file">PDF File * (Max 50MB)</Label>
-                        <Input
-                          id="file"
-                          type="file"
-                          accept=".pdf"
-                          onChange={handleFileChange}
-                          className="cursor-pointer"
-                        />
-                        {selectedFile && (
-                          <p className="text-sm text-gray-500 mt-1">
-                            Selected: {selectedFile.name} ({formatFileSize(selectedFile.size)})
-                          </p>
-                        )}
-                      </div>
-
-                      <Button
-                        onClick={handleUpload}
-                        disabled={uploading || !selectedFile || !title.trim()}
-                        className="w-full bg-teal-600 hover:bg-teal-700"
-                      >
-                        {uploading ? (
-                          <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                            Uploading...
-                          </>
-                        ) : (
-                          <>
-                            <Upload className="h-4 w-4 mr-2" />
-                            Upload Book
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
         </div>
@@ -650,73 +432,12 @@ const BookManagement = () => {
                       <p className="text-gray-500 text-xs sm:text-sm line-clamp-2 mb-3">{book.description}</p>
                     )}
 
-                    <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
+                    <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
                       <span className="flex items-center gap-1">
                         <FileText className="h-3 w-3" />
                         {formatFileSize(book.file_size)}
                       </span>
                       {book.total_pages && <span>{book.total_pages} pages</span>}
-                    </div>
-
-                    {/* OCR Status */}
-                    <div className="flex items-center gap-2 text-xs mb-3 flex-wrap">
-                      {book.ocr_status === 'completed' ? (
-                        <span className="flex items-center gap-1 text-green-600 dark:text-green-400">
-                          <Check className="h-3 w-3" />
-                          OCR Complete ({book.ocr_pages_done} pages)
-                        </span>
-                      ) : book.ocr_status === 'processing' ? (
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="flex items-center gap-1 text-orange-600 dark:text-orange-400">
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                            OCR ({book.ocr_pages_done || 0}/{book.total_pages || '?'})
-                          </span>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRetryOCR(book);
-                            }}
-                            className="h-5 text-xs gap-1 px-2"
-                          >
-                            <RefreshCw className="h-3 w-3" />
-                            Retry
-                          </Button>
-                        </div>
-                      ) : book.ocr_status === 'failed' ? (
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="flex items-center gap-1 text-red-600 dark:text-red-400">
-                            <AlertCircle className="h-3 w-3" />
-                            OCR Failed
-                          </span>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRetryOCR(book);
-                            }}
-                            className="h-5 text-xs gap-1 px-2"
-                          >
-                            <RefreshCw className="h-3 w-3" />
-                            Retry
-                          </Button>
-                        </div>
-                      ) : (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleStartOCR(book);
-                          }}
-                          className="h-6 text-xs gap-1"
-                        >
-                          <ScanText className="h-3 w-3" />
-                          Start OCR
-                        </Button>
-                      )}
                     </div>
 
                     <div className="flex gap-2">
@@ -750,9 +471,7 @@ const BookManagement = () => {
         <PDFViewer
           fileUrl={viewingBook.file_url}
           title={viewingBook.title}
-          bookId={viewingBook.id}
           onClose={handleClosePDFViewer}
-          autoStartOcr={autoStartOcr}
         />
       )}
     </>
