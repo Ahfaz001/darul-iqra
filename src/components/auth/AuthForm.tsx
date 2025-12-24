@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,9 +26,10 @@ const signupSchema = loginSchema.extend({
 interface AuthFormProps {
   mode: 'login' | 'signup';
   onToggleMode?: () => void;
+  userType?: 'student' | 'admin'; // New prop to restrict login by role
 }
 
-export const AuthForm: React.FC<AuthFormProps> = ({ mode, onToggleMode }) => {
+export const AuthForm: React.FC<AuthFormProps> = ({ mode, onToggleMode, userType = 'student' }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -63,6 +65,15 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onToggleMode }) => {
     }
   };
 
+  // Check user role after login
+  const checkUserRole = async (userId: string): Promise<string | null> => {
+    const { data } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId)
+      .single();
+    return data?.role || 'student';
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,26 +85,61 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onToggleMode }) => {
     try {
       if (mode === 'login') {
         const { error } = await signIn(email, password);
-          if (error) {
-            if (error.message.includes('Invalid login credentials')) {
-              toast({
-                title: 'Login Failed',
-                description: 'Invalid email or password. Please try again.',
-                variant: 'destructive',
-              });
-            } else {
-              toast({
-                title: 'Login Failed',
-                description: error.message,
-                variant: 'destructive',
-              });
-            }
+        if (error) {
+          if (error.message.includes('Invalid login credentials')) {
+            toast({
+              title: 'Login Failed',
+              description: 'Invalid email or password. Please try again.',
+              variant: 'destructive',
+            });
           } else {
-          toast({
-            title: 'Welcome back!',
-            description: 'You have been logged in successfully.',
-          });
-          navigate('/dashboard');
+            toast({
+              title: 'Login Failed',
+              description: error.message,
+              variant: 'destructive',
+            });
+          }
+        } else {
+          // Check user role and enforce restrictions
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            const role = await checkUserRole(user.id);
+            
+            // Enforce role-based login restrictions
+            if (userType === 'student' && (role === 'admin' || role === 'teacher')) {
+              // Admin/Teacher trying to login via student portal - sign them out
+              await supabase.auth.signOut();
+              toast({
+                title: 'Access Denied',
+                description: 'Admins and teachers must login through the Admin Portal.',
+                variant: 'destructive',
+              });
+              return;
+            }
+            
+            if (userType === 'admin' && role === 'student') {
+              // Student trying to login via admin portal - sign them out
+              await supabase.auth.signOut();
+              toast({
+                title: 'Access Denied',
+                description: 'Students must login through the Student Portal.',
+                variant: 'destructive',
+              });
+              return;
+            }
+            
+            // Successful login - redirect appropriately
+            toast({
+              title: 'Welcome back!',
+              description: 'You have been logged in successfully.',
+            });
+            
+            if (role === 'admin' || role === 'teacher') {
+              navigate('/admin');
+            } else {
+              navigate('/dashboard');
+            }
+          }
         }
       } else {
         const { error } = await signUp(email, password, fullName);
@@ -114,9 +160,11 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onToggleMode }) => {
         } else {
           toast({
             title: 'Account Created!',
-            description: 'Welcome to Dar-ul-Ulum! You can now access your dashboard.',
+            description: userType === 'admin' 
+              ? 'Account created! Admin access will be enabled after approval.'
+              : 'Welcome to Dar-ul-Ulum! You can now access your dashboard.',
           });
-          navigate('/dashboard');
+          navigate(userType === 'admin' ? '/admin-login' : '/dashboard');
         }
       }
     } catch (error) {

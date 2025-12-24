@@ -115,7 +115,7 @@ const AdminLogin: React.FC = () => {
                 </p>
               </div>
 
-              <AuthForm mode={mode} onToggleMode={toggleMode} />
+              <AuthForm mode={mode} onToggleMode={toggleMode} userType="admin" />
             </div>
 
             <p className="text-center text-sm text-muted-foreground mt-6">
