@@ -1,29 +1,30 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
+import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  ZoomIn, 
-  ZoomOut, 
-  X, 
-  Maximize2, 
+import {
+  ChevronLeft,
+  ChevronRight,
+  ZoomIn,
+  ZoomOut,
+  X,
+  Maximize2,
   Minimize2,
   Search,
   List,
   ArrowUp,
   ArrowDown,
   Loader2,
-  RotateCcw
+  RotateCcw,
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 
-// Use CDN for PDF.js worker (classic worker for best compatibility)
-pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+// Use bundled PDF.js worker (matches installed pdfjs-dist version)
+pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 interface PDFViewerProps {
   fileUrl: string;
