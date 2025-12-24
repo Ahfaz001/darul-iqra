@@ -28,42 +28,33 @@ const HeroSection = () => {
       {/* Subtle overlay for depth - NO blur */}
       <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-transparent to-cyan-600/20 dark:from-black/20 dark:to-teal-900/40"></div>
       
-      {/* Decorative circles - NO blur */}
+      {/* Subtle geometric shapes - no circles behind logo */}
       <div 
-        className="absolute top-20 right-10 w-72 h-72 bg-gradient-to-br from-amber-300/40 to-orange-400/30 rounded-full animate-float"
-        style={{ transform: `translateY(${scrollY * 0.3}px) translateX(${scrollY * -0.1}px)` }}
+        className="absolute top-20 right-10 w-40 h-40 bg-gradient-to-br from-amber-400/20 to-orange-500/10 rotate-45"
+        style={{ transform: `translateY(${scrollY * 0.3}px) rotate(45deg)` }}
       ></div>
       <div 
-        className="absolute bottom-40 left-10 w-80 h-80 bg-gradient-to-tr from-white/30 to-cyan-200/20 rounded-full"
-        style={{ transform: `translateY(${scrollY * 0.25}px) translateX(${scrollY * 0.05}px)` }}
-      ></div>
-      <div 
-        className="absolute top-1/3 left-1/4 w-56 h-56 bg-gradient-to-br from-teal-200/30 to-cyan-300/20 rounded-full animate-pulse"
+        className="absolute bottom-40 left-10 w-32 h-32 bg-gradient-to-tr from-white/20 to-cyan-300/10 rotate-12"
+        style={{ transform: `translateY(${scrollY * 0.25}px) rotate(12deg)` }}
       ></div>
       
-      {/* Grid pattern overlay */}
-      <div className="absolute inset-0 opacity-10" style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.5'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+      {/* Clean grid pattern */}
+      <div className="absolute inset-0 opacity-5" style={{
+        backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M0 0h1v40H0zM39 0h1v40h-1zM0 0h40v1H0zM0 39h40v1H0z'/%3E%3C/g%3E%3C/svg%3E")`,
       }}></div>
 
       <div className="container mx-auto px-4 pt-28 pb-16 relative z-10 flex-1 flex flex-col">
-        {/* Logo at Top Center - CLEAR, NO blur */}
+        {/* Logo at Top Center - CLEAN, NO round bg */}
         <div className="flex flex-col items-center mb-8 animate-fade-up">
           <div className="relative">
-            {/* Clean glow effect - NO blur */}
-            <div className="absolute -inset-4 bg-gradient-to-r from-amber-400 to-orange-400 rounded-full opacity-50 animate-pulse"></div>
-            
-            {/* Logo container - SHARP & CLEAR */}
-            <div className="relative w-36 h-36 md:w-44 md:h-44 rounded-full overflow-hidden border-4 border-white shadow-2xl ring-4 ring-amber-400/50">
+            {/* Logo - clean with sharp border only */}
+            <div className="relative w-32 h-32 md:w-40 md:h-40 overflow-hidden border-4 border-white shadow-2xl rounded-2xl">
               <img
                 src={madrasaLogo}
                 alt="Dar-ul-Ulum Al-Qur'an Wa Sunnah Kalyan Logo"
                 className="w-full h-full object-cover"
               />
             </div>
-
-            {/* Decorative ring */}
-            <div className="absolute inset-0 rounded-full border-2 border-amber-400/40 scale-150 animate-ping opacity-20"></div>
           </div>
         </div>
 
@@ -80,33 +71,33 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Main Heading - Clear text with shadow for readability */}
+          {/* Main Heading - Bold vibrant colors */}
           <div className="space-y-4 animate-fade-up delay-100 mb-6">
-            <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight drop-shadow-xl">
-              {t('instituteName')}
-              <span className="block bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-400 bg-clip-text text-transparent mt-2 drop-shadow-none">
+            <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight">
+              <span className="text-slate-900 dark:text-white drop-shadow-lg">{t('instituteName')}</span>
+              <span className="block text-amber-500 dark:text-amber-400 mt-2">
                 {t('waSunnah')}
               </span>
             </h1>
-            <p className="text-lg md:text-xl text-white font-urdu drop-shadow-lg">
+            <p className="text-xl md:text-2xl text-slate-800 dark:text-cyan-100 font-urdu font-bold">
               {t('instituteUrdu')}
             </p>
             <div className="flex items-center justify-center gap-3">
-              <div className="h-1 w-20 bg-gradient-to-r from-transparent via-amber-400 to-transparent rounded-full"></div>
-              <p className="text-base text-amber-200 font-arabic drop-shadow-md">
+              <div className="h-1 w-16 bg-amber-500 dark:bg-amber-400 rounded-full"></div>
+              <p className="text-base text-slate-700 dark:text-amber-300 font-arabic font-semibold">
                 {t('obeySunnah')}
               </p>
-              <div className="h-1 w-20 bg-gradient-to-r from-transparent via-amber-400 to-transparent rounded-full"></div>
+              <div className="h-1 w-16 bg-amber-500 dark:bg-amber-400 rounded-full"></div>
             </div>
-            <p className="text-white/90 text-sm md:text-base flex items-center justify-center gap-2 drop-shadow-md">
-              <span className="inline-block w-2 h-2 rounded-full bg-amber-400"></span>
+            <p className="text-slate-700 dark:text-cyan-200 text-sm md:text-base flex items-center justify-center gap-2 font-medium">
+              <span className="inline-block w-2 h-2 rounded-full bg-amber-500"></span>
               {t('location')}
-              <span className="inline-block w-2 h-2 rounded-full bg-amber-400"></span>
+              <span className="inline-block w-2 h-2 rounded-full bg-amber-500"></span>
             </p>
           </div>
 
           {/* Description */}
-          <p className={`text-white/95 text-base md:text-lg max-w-2xl mx-auto animate-fade-up delay-200 mb-8 leading-relaxed drop-shadow-md ${isRTL ? 'font-urdu' : ''}`}>
+          <p className={`text-slate-700 dark:text-cyan-100 text-base md:text-lg max-w-2xl mx-auto animate-fade-up delay-200 mb-8 leading-relaxed font-medium ${isRTL ? 'font-urdu' : ''}`}>
             {t('heroDescription')}
           </p>
 
@@ -114,7 +105,7 @@ const HeroSection = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-up delay-300 mb-10">
             <Button 
               size="lg" 
-              className="bg-gradient-to-r from-amber-400 to-orange-500 text-slate-900 hover:from-amber-500 hover:to-orange-600 shadow-xl hover:shadow-2xl hover:shadow-amber-500/30 transition-all duration-300 gap-2 text-base px-8 py-6 font-bold border-2 border-white/50"
+              className="bg-gradient-to-r from-amber-500 to-orange-600 text-white hover:from-amber-600 hover:to-orange-700 shadow-xl hover:shadow-2xl transition-all duration-300 gap-2 text-base px-8 py-6 font-bold"
             >
               <GraduationCap className="w-5 h-5" />
               {t('enrollNow')}
@@ -123,26 +114,26 @@ const HeroSection = () => {
             <Button 
               size="lg" 
               variant="outline" 
-              className="border-3 border-white text-white bg-white/20 hover:bg-white/40 hover:text-teal-800 gap-2 text-base px-8 py-6 transition-all duration-300 font-semibold shadow-lg"
+              className="border-2 border-slate-800 dark:border-white text-slate-800 dark:text-white bg-white/50 dark:bg-white/10 hover:bg-slate-800 hover:text-white dark:hover:bg-white dark:hover:text-slate-900 gap-2 text-base px-8 py-6 transition-all duration-300 font-bold"
             >
               <BookOpen className="w-5 h-5" />
               {t('learnMore')}
             </Button>
           </div>
 
-          {/* Stats - Clean solid cards, NO blur */}
+          {/* Stats - Clean solid cards */}
           <div className="grid grid-cols-3 gap-4 md:gap-8 w-full max-w-2xl animate-fade-up delay-400">
-            <div className="group bg-white/95 dark:bg-slate-800/95 rounded-2xl p-4 md:p-6 border-2 border-amber-400/50 shadow-xl hover:shadow-2xl hover:border-amber-400 transition-all duration-300 hover:-translate-y-2">
-              <div className="font-display text-2xl md:text-4xl font-bold text-teal-600 dark:text-cyan-400 mb-1">17+</div>
-              <div className={`text-teal-700/80 dark:text-cyan-300/80 text-xs md:text-sm font-medium ${isRTL ? 'font-urdu' : ''}`}>{t('yearsLegacy')}</div>
+            <div className="group bg-white dark:bg-slate-800 rounded-xl p-4 md:p-6 border-2 border-amber-500 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <div className="font-display text-2xl md:text-4xl font-extrabold text-teal-600 dark:text-cyan-400 mb-1">17+</div>
+              <div className={`text-slate-700 dark:text-slate-300 text-xs md:text-sm font-bold ${isRTL ? 'font-urdu' : ''}`}>{t('yearsLegacy')}</div>
             </div>
-            <div className="group bg-white/95 dark:bg-slate-800/95 rounded-2xl p-4 md:p-6 border-2 border-amber-400/50 shadow-xl hover:shadow-2xl hover:border-amber-400 transition-all duration-300 hover:-translate-y-2">
-              <div className="font-display text-2xl md:text-4xl font-bold text-teal-600 dark:text-cyan-400 mb-1">500+</div>
-              <div className={`text-teal-700/80 dark:text-cyan-300/80 text-xs md:text-sm font-medium ${isRTL ? 'font-urdu' : ''}`}>{t('students')}</div>
+            <div className="group bg-white dark:bg-slate-800 rounded-xl p-4 md:p-6 border-2 border-amber-500 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <div className="font-display text-2xl md:text-4xl font-extrabold text-teal-600 dark:text-cyan-400 mb-1">500+</div>
+              <div className={`text-slate-700 dark:text-slate-300 text-xs md:text-sm font-bold ${isRTL ? 'font-urdu' : ''}`}>{t('students')}</div>
             </div>
-            <div className="group bg-white/95 dark:bg-slate-800/95 rounded-2xl p-4 md:p-6 border-2 border-amber-400/50 shadow-xl hover:shadow-2xl hover:border-amber-400 transition-all duration-300 hover:-translate-y-2">
-              <div className="font-display text-2xl md:text-4xl font-bold text-teal-600 dark:text-cyan-400 mb-1">20+</div>
-              <div className={`text-teal-700/80 dark:text-cyan-300/80 text-xs md:text-sm font-medium ${isRTL ? 'font-urdu' : ''}`}>{t('scholars')}</div>
+            <div className="group bg-white dark:bg-slate-800 rounded-xl p-4 md:p-6 border-2 border-amber-500 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <div className="font-display text-2xl md:text-4xl font-extrabold text-teal-600 dark:text-cyan-400 mb-1">20+</div>
+              <div className={`text-slate-700 dark:text-slate-300 text-xs md:text-sm font-bold ${isRTL ? 'font-urdu' : ''}`}>{t('scholars')}</div>
             </div>
           </div>
         </div>
