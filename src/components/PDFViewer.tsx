@@ -28,7 +28,10 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+  'pdfjs-dist/build/pdf.worker.min.mjs',
+  import.meta.url
+).toString();
 
 interface PDFViewerProps {
   fileUrl: string;
@@ -70,6 +73,8 @@ const PDFViewer = ({ fileUrl, title, bookId, onClose, autoStartOcr = false }: PD
   const [scale, setScale] = useState<number>(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [documentKey, setDocumentKey] = useState(0);
   const [showThumbnails, setShowThumbnails] = useState(false);
   
   // Responsive state
@@ -351,9 +356,26 @@ const PDFViewer = ({ fileUrl, title, bookId, onClose, autoStartOcr = false }: PD
     }
   }, [autoStartOcr, numPages, ocrAutoStarted, loading, dbTextLoaded, pageTexts.size, runOCROnAllPages]);
 
+  const handleDocumentError = useCallback((err: any) => {
+    console.error('PDF load error:', err);
+    setLoading(false);
+    setLoadError(err?.message || 'PDF failed to load');
+    toast.error('PDF لوڈ نہیں ہوا');
+  }, []);
+
+  const handleRetryLoad = () => {
+    setLoadError(null);
+    setLoading(true);
+    setNumPages(0);
+    setCurrentPage(1);
+    setOcrAutoStarted(false);
+    setDocumentKey((k) => k + 1);
+  };
+
   const onDocumentLoadSuccess = async (pdf: any) => {
     setNumPages(pdf.numPages);
     pdfDocRef.current = pdf;
+    setLoadError(null);
     setLoading(false);
     
     // Update total_pages in DB if bookId exists
@@ -674,15 +696,32 @@ const PDFViewer = ({ fileUrl, title, bookId, onClose, autoStartOcr = false }: PD
         )}
 
         <div ref={containerRef} className="flex-1 overflow-auto bg-gray-800 flex justify-center items-start p-2 sm:p-4">
-          {loading ? (
+          {loadError ? (
+            <div className="flex flex-col items-center justify-center py-16 px-4 text-center max-w-md">
+              <AlertCircle className="h-10 w-10 text-red-400 mb-3" />
+              <p className="text-gray-200 font-medium mb-1">PDF لوڈ نہیں ہو رہی</p>
+              <p className="text-gray-400 text-sm mb-4 break-words">{loadError}</p>
+              <Button onClick={handleRetryLoad} className="bg-teal-600 hover:bg-teal-700">
+                دوبارہ کوشش کریں
+              </Button>
+            </div>
+          ) : loading ? (
             <div className="flex flex-col items-center justify-center py-20">
               <Loader2 className="h-10 w-10 text-teal-500 animate-spin mb-4" />
               <p className="text-gray-400">کتاب لوڈ ہو رہی ہے...</p>
             </div>
           ) : (
-            <Document file={fileUrl} onLoadSuccess={onDocumentLoadSuccess} loading={null} className="flex flex-col items-center select-text">
+            <Document
+              key={documentKey}
+              file={fileUrl}
+              onLoadSuccess={onDocumentLoadSuccess}
+              onLoadError={handleDocumentError}
+              onSourceError={handleDocumentError}
+              loading={null}
+              className="flex flex-col items-center select-text"
+            >
               <Page 
-                pageNumber={currentPage} 
+                pageNumber={currentPage}
                 width={pageWidth}
                 scale={fitToWidth ? undefined : scale}
                 className="shadow-2xl max-w-full"
