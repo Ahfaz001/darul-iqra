@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import ThemeToggle from '@/components/ThemeToggle';
@@ -25,20 +26,194 @@ import {
   Activity
 } from 'lucide-react';
 
+interface AdminStats {
+  totalStudents: number;
+  totalTeachers: number;
+  activeExams: number;
+  avgAttendance: number;
+  recentStudents: number;
+}
+
+interface RecentActivity {
+  id: string;
+  type: 'enrollment' | 'exam' | 'attendance';
+  title: string;
+  description: string;
+  time: string;
+}
+
 const AdminPanel: React.FC = () => {
   const { user, role, signOut } = useAuth();
   const navigate = useNavigate();
+  const [stats, setStats] = useState<AdminStats>({
+    totalStudents: 0,
+    totalTeachers: 0,
+    activeExams: 0,
+    avgAttendance: 0,
+    recentStudents: 0
+  });
+  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchAdminStats();
+  }, []);
+
+  const fetchAdminStats = async () => {
+    try {
+      // Fetch student count
+      const { data: studentRoles } = await supabase
+        .from('user_roles')
+        .select('id, created_at')
+        .eq('role', 'student');
+
+      const totalStudents = studentRoles?.length || 0;
+      
+      // Count students added this month
+      const thisMonth = new Date();
+      thisMonth.setDate(1);
+      const recentStudents = studentRoles?.filter(s => 
+        new Date(s.created_at) >= thisMonth
+      ).length || 0;
+
+      // Fetch teacher count
+      const { data: teacherRoles } = await supabase
+        .from('user_roles')
+        .select('id')
+        .eq('role', 'teacher');
+
+      const totalTeachers = teacherRoles?.length || 0;
+
+      // Fetch active exams (upcoming or today)
+      const today = new Date().toISOString().split('T')[0];
+      const { data: exams } = await supabase
+        .from('exams')
+        .select('id')
+        .gte('exam_date', today);
+
+      const activeExams = exams?.length || 0;
+
+      // Fetch attendance stats for this month
+      const monthStart = new Date();
+      monthStart.setDate(1);
+      const { data: attendance } = await supabase
+        .from('attendance')
+        .select('status')
+        .gte('date', monthStart.toISOString().split('T')[0]);
+
+      const totalAttendance = attendance?.length || 0;
+      const presentCount = attendance?.filter(a => a.status === 'present' || a.status === 'late').length || 0;
+      const avgAttendance = totalAttendance > 0 ? Math.round((presentCount / totalAttendance) * 100) : 0;
+
+      setStats({
+        totalStudents,
+        totalTeachers,
+        activeExams,
+        avgAttendance,
+        recentStudents
+      });
+
+      // Build recent activity
+      const activities: RecentActivity[] = [];
+      
+      // Get recent exam results
+      const { data: recentResults } = await supabase
+        .from('exam_results')
+        .select('id, created_at, exam:exams(title)')
+        .order('created_at', { ascending: false })
+        .limit(2);
+
+      recentResults?.forEach(r => {
+        const exam = Array.isArray(r.exam) ? r.exam[0] : r.exam;
+        activities.push({
+          id: r.id,
+          type: 'exam',
+          title: 'Exam results published',
+          description: exam?.title || 'Exam',
+          time: getRelativeTime(r.created_at)
+        });
+      });
+
+      // Get recent attendance
+      const { data: recentAttendance } = await supabase
+        .from('attendance')
+        .select('id, date, status')
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (recentAttendance && recentAttendance.length > 0) {
+        const todayAttendance = attendance?.filter(a => 
+          a.status === 'present'
+        ).length || 0;
+        
+        activities.push({
+          id: recentAttendance[0].id,
+          type: 'attendance',
+          title: 'Attendance marked',
+          description: `${todayAttendance} students present today`,
+          time: 'Today'
+        });
+      }
+
+      setRecentActivity(activities.slice(0, 3));
+    } catch (error) {
+      console.error('Error fetching admin stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getRelativeTime = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffHours < 1) return 'Just now';
+    if (diffHours < 24) return `${diffHours} hours ago`;
+    if (diffDays === 1) return 'Yesterday';
+    return `${diffDays} days ago`;
+  };
 
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
   };
 
-  const stats = [
-    { label: 'Total Students', value: '156', change: '+12 this month', icon: Users, gradient: 'from-blue-500 to-cyan-500', trend: 'up' },
-    { label: 'Active Exams', value: '8', change: '3 pending review', icon: FileText, gradient: 'from-amber-500 to-orange-500', trend: 'up' },
-    { label: 'Avg Attendance', value: '89%', change: '+2% from last week', icon: Calendar, gradient: 'from-emerald-500 to-teal-500', trend: 'up' },
-    { label: 'Total Teachers', value: '12', change: 'All active', icon: UserPlus, gradient: 'from-purple-500 to-pink-500', trend: 'stable' },
+  const displayStats = [
+    { 
+      label: 'Total Students', 
+      value: loading ? '...' : stats.totalStudents.toString(), 
+      change: `+${stats.recentStudents} this month`, 
+      icon: Users, 
+      gradient: 'from-blue-500 to-cyan-500', 
+      trend: 'up' 
+    },
+    { 
+      label: 'Active Exams', 
+      value: loading ? '...' : stats.activeExams.toString(), 
+      change: 'Upcoming exams', 
+      icon: FileText, 
+      gradient: 'from-amber-500 to-orange-500', 
+      trend: 'up' 
+    },
+    { 
+      label: 'Avg Attendance', 
+      value: loading ? '...' : `${stats.avgAttendance}%`, 
+      change: 'This month', 
+      icon: Calendar, 
+      gradient: 'from-emerald-500 to-teal-500', 
+      trend: 'up' 
+    },
+    { 
+      label: 'Total Teachers', 
+      value: loading ? '...' : stats.totalTeachers.toString(), 
+      change: 'All active', 
+      icon: UserPlus, 
+      gradient: 'from-purple-500 to-pink-500', 
+      trend: 'stable' 
+    },
   ];
 
   const adminModules = [
@@ -112,11 +287,29 @@ const AdminPanel: React.FC = () => {
     : adminModules.filter(m => !m.adminOnly);
 
   const quickActions = [
-    { label: 'Add Student', icon: UserPlus, variant: 'default' as const },
-    { label: 'Create Exam', icon: FileText, variant: 'outline' as const },
-    { label: 'Mark Attendance', icon: ClipboardList, variant: 'outline' as const },
-    { label: 'Upload Content', icon: Upload, variant: 'outline' as const },
+    { label: 'Add Student', icon: UserPlus, variant: 'default' as const, href: '/admin/users' },
+    { label: 'Create Exam', icon: FileText, variant: 'outline' as const, href: '/admin/exams' },
+    { label: 'Mark Attendance', icon: ClipboardList, variant: 'outline' as const, href: '/admin/attendance' },
+    { label: 'Upload Content', icon: Upload, variant: 'outline' as const, href: '/admin/content' },
   ];
+
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case 'enrollment': return UserPlus;
+      case 'exam': return FileText;
+      case 'attendance': return Calendar;
+      default: return Activity;
+    }
+  };
+
+  const getActivityColor = (type: string) => {
+    switch (type) {
+      case 'enrollment': return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400';
+      case 'exam': return 'bg-blue-500/10 text-blue-600 dark:text-blue-400';
+      case 'attendance': return 'bg-amber-500/10 text-amber-600 dark:text-amber-400';
+      default: return 'bg-muted text-muted-foreground';
+    }
+  };
 
   return (
     <>
@@ -157,7 +350,11 @@ const AdminPanel: React.FC = () => {
               <div className="flex items-center gap-3">
                 <Button variant="ghost" size="icon" className="relative">
                   <Bell className="h-5 w-5" />
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-destructive-foreground text-[10px] rounded-full flex items-center justify-center">5</span>
+                  {stats.activeExams > 0 && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-destructive-foreground text-[10px] rounded-full flex items-center justify-center">
+                      {stats.activeExams}
+                    </span>
+                  )}
                 </Button>
                 <ThemeToggle />
                 <div className="hidden sm:block text-right px-3 py-1 rounded-lg bg-muted/50">
@@ -202,7 +399,7 @@ const AdminPanel: React.FC = () => {
           {/* Stats Grid */}
           {role === 'admin' && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              {stats.map((stat, index) => (
+              {displayStats.map((stat, index) => (
                 <Card key={index} className="group relative overflow-hidden border-border/50 hover:shadow-xl transition-all duration-300">
                   <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-10 transition-opacity`}></div>
                   <CardContent className="p-6">
@@ -270,6 +467,7 @@ const AdminPanel: React.FC = () => {
                     key={index} 
                     variant={action.variant}
                     className={action.variant === 'default' ? 'bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg' : ''}
+                    onClick={() => navigate(action.href)}
                   >
                     <action.icon className="h-4 w-4 mr-2" />
                     {action.label}
@@ -293,38 +491,31 @@ const AdminPanel: React.FC = () => {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center gap-4 p-3 rounded-xl hover:bg-muted/50 transition-colors">
-                  <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                    <UserPlus className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">New student enrolled</p>
-                    <p className="text-xs text-muted-foreground">Ahmed Khan joined Hifz Program</p>
-                  </div>
-                  <span className="text-xs text-muted-foreground">2 hours ago</span>
+              {loading ? (
+                <div className="flex items-center justify-center py-4">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
                 </div>
-                <div className="flex items-center gap-4 p-3 rounded-xl hover:bg-muted/50 transition-colors">
-                  <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center">
-                    <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Exam results published</p>
-                    <p className="text-xs text-muted-foreground">Quran Recitation - Class 3</p>
-                  </div>
-                  <span className="text-xs text-muted-foreground">5 hours ago</span>
+              ) : recentActivity.length === 0 ? (
+                <p className="text-muted-foreground text-center py-4">No recent activity</p>
+              ) : (
+                <div className="space-y-3">
+                  {recentActivity.map((activity) => {
+                    const IconComponent = getActivityIcon(activity.type);
+                    return (
+                      <div key={activity.id} className="flex items-center gap-4 p-3 rounded-xl hover:bg-muted/50 transition-colors">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getActivityColor(activity.type)}`}>
+                          <IconComponent className="w-5 h-5" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">{activity.title}</p>
+                          <p className="text-xs text-muted-foreground">{activity.description}</p>
+                        </div>
+                        <span className="text-xs text-muted-foreground">{activity.time}</span>
+                      </div>
+                    );
+                  })}
                 </div>
-                <div className="flex items-center gap-4 p-3 rounded-xl hover:bg-muted/50 transition-colors">
-                  <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center">
-                    <Calendar className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Attendance marked</p>
-                    <p className="text-xs text-muted-foreground">45 students present today</p>
-                  </div>
-                  <span className="text-xs text-muted-foreground">Today</span>
-                </div>
-              </div>
+              )}
             </CardContent>
           </Card>
         </main>

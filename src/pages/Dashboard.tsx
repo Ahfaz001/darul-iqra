@@ -1,7 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import ThemeToggle from '@/components/ThemeToggle';
@@ -22,9 +23,33 @@ import {
   Sparkles
 } from 'lucide-react';
 
+interface DashboardStats {
+  attendanceRate: number;
+  examsCompleted: number;
+  totalExams: number;
+  avgScore: number;
+  pendingExams: number;
+}
+
+interface UpcomingExam {
+  id: string;
+  title: string;
+  subject: string;
+  exam_date: string;
+}
+
 const Dashboard: React.FC = () => {
   const { user, role, signOut, loading } = useAuth();
   const navigate = useNavigate();
+  const [stats, setStats] = useState<DashboardStats>({
+    attendanceRate: 0,
+    examsCompleted: 0,
+    totalExams: 0,
+    avgScore: 0,
+    pendingExams: 0
+  });
+  const [upcomingExams, setUpcomingExams] = useState<UpcomingExam[]>([]);
+  const [loadingStats, setLoadingStats] = useState(true);
 
   useEffect(() => {
     if (!loading && role && (role === 'admin' || role === 'teacher')) {
@@ -32,16 +57,91 @@ const Dashboard: React.FC = () => {
     }
   }, [role, loading, navigate]);
 
+  useEffect(() => {
+    if (user) {
+      fetchDashboardData();
+    }
+  }, [user]);
+
+  const fetchDashboardData = async () => {
+    if (!user) return;
+    
+    try {
+      // Fetch attendance stats
+      const { data: attendance } = await supabase
+        .from('attendance')
+        .select('status')
+        .eq('student_id', user.id);
+
+      const totalAttendance = attendance?.length || 0;
+      const presentCount = attendance?.filter(a => a.status === 'present' || a.status === 'late').length || 0;
+      const attendanceRate = totalAttendance > 0 ? Math.round((presentCount / totalAttendance) * 100) : 0;
+
+      // Fetch exam results
+      const { data: results } = await supabase
+        .from('exam_results')
+        .select('marks_obtained, exam:exams(total_marks)')
+        .eq('student_id', user.id)
+        .eq('is_published', true);
+
+      const examsCompleted = results?.length || 0;
+      let avgScore = 0;
+      if (results && results.length > 0) {
+        const totalPercentage = results.reduce((acc, r) => {
+          const exam = Array.isArray(r.exam) ? r.exam[0] : r.exam;
+          const totalMarks = exam?.total_marks || 100;
+          return acc + (r.marks_obtained / totalMarks) * 100;
+        }, 0);
+        avgScore = Math.round(totalPercentage / results.length);
+      }
+
+      // Fetch assigned exams (pending)
+      const { data: assignments } = await supabase
+        .from('exam_assignments')
+        .select('id, status')
+        .eq('student_id', user.id);
+
+      const pendingExams = assignments?.filter(a => a.status === 'pending' || a.status === 'in_progress').length || 0;
+      const totalExams = assignments?.length || 0;
+
+      // Fetch upcoming exams
+      const today = new Date().toISOString().split('T')[0];
+      const { data: upcoming } = await supabase
+        .from('exam_assignments')
+        .select('exam:exams(id, title, subject, exam_date)')
+        .eq('student_id', user.id)
+        .eq('status', 'pending')
+        .limit(3);
+
+      const upcomingExamsList = (upcoming || [])
+        .map(a => Array.isArray(a.exam) ? a.exam[0] : a.exam)
+        .filter(Boolean) as UpcomingExam[];
+
+      setStats({
+        attendanceRate,
+        examsCompleted,
+        totalExams,
+        avgScore,
+        pendingExams
+      });
+      setUpcomingExams(upcomingExamsList);
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setLoadingStats(false);
+    }
+  };
+
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
   };
 
   const quickStats = [
-    { label: 'Attendance Rate', value: '92%', icon: Calendar, color: 'from-emerald-500 to-teal-500', bgColor: 'bg-emerald-500/10' },
-    { label: 'Exams Completed', value: '12', icon: FileText, color: 'from-amber-500 to-orange-500', bgColor: 'bg-amber-500/10' },
-    { label: 'Current Rank', value: '#5', icon: TrendingUp, color: 'from-purple-500 to-pink-500', bgColor: 'bg-purple-500/10' },
-    { label: 'Achievements', value: '8', icon: Award, color: 'from-blue-500 to-cyan-500', bgColor: 'bg-blue-500/10' },
+    { label: 'Attendance Rate', value: `${stats.attendanceRate}%`, icon: Calendar, color: 'from-emerald-500 to-teal-500', bgColor: 'bg-emerald-500/10' },
+    { label: 'Exams Completed', value: `${stats.examsCompleted}`, icon: FileText, color: 'from-amber-500 to-orange-500', bgColor: 'bg-amber-500/10' },
+    { label: 'Average Score', value: `${stats.avgScore}%`, icon: TrendingUp, color: 'from-purple-500 to-pink-500', bgColor: 'bg-purple-500/10' },
+    { label: 'Pending Exams', value: `${stats.pendingExams}`, icon: Award, color: 'from-blue-500 to-cyan-500', bgColor: 'bg-blue-500/10' },
   ];
 
   const menuItems = [
@@ -134,7 +234,11 @@ const Dashboard: React.FC = () => {
               <div className="flex items-center gap-3">
                 <Button variant="ghost" size="icon" className="relative">
                   <Bell className="h-5 w-5" />
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-destructive-foreground text-[10px] rounded-full flex items-center justify-center">3</span>
+                  {stats.pendingExams > 0 && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-destructive-foreground text-[10px] rounded-full flex items-center justify-center">
+                      {stats.pendingExams}
+                    </span>
+                  )}
                 </Button>
                 <ThemeToggle />
                 <div className="hidden sm:block text-right px-3 py-1 rounded-lg bg-muted/50">
@@ -178,7 +282,9 @@ const Dashboard: React.FC = () => {
                     <stat.icon className={`h-6 w-6 bg-gradient-to-br ${stat.color} bg-clip-text`} style={{color: 'transparent', backgroundImage: `linear-gradient(to bottom right, ${stat.color.includes('emerald') ? '#10b981, #14b8a6' : stat.color.includes('amber') ? '#f59e0b, #f97316' : stat.color.includes('purple') ? '#a855f7, #ec4899' : '#3b82f6, #06b6d4'})`}} />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+                    <p className="text-2xl font-bold text-foreground">
+                      {loadingStats ? '...' : stat.value}
+                    </p>
                     <p className="text-sm text-muted-foreground">{stat.label}</p>
                   </div>
                 </CardContent>
@@ -241,34 +347,47 @@ const Dashboard: React.FC = () => {
                   <div className="p-2 rounded-lg bg-muted">
                     <Clock className="h-5 w-5 text-muted-foreground" />
                   </div>
-                  <CardTitle className="text-lg">Upcoming Schedule</CardTitle>
+                  <CardTitle className="text-lg">Upcoming Exams</CardTitle>
                 </div>
-                <Button variant="ghost" size="sm">View Calendar</Button>
+                <Button variant="ghost" size="sm" onClick={() => navigate('/exams')}>View All</Button>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-primary/5 to-transparent border border-primary/10 hover:border-primary/20 transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className="w-1 h-12 rounded-full bg-gradient-to-b from-primary to-primary/50" />
-                    <div>
-                      <p className="font-medium text-foreground">Quran Recitation Exam</p>
-                      <p className="text-sm text-muted-foreground">Surah Al-Baqarah (1-50)</p>
-                    </div>
-                  </div>
-                  <span className="px-3 py-1 text-sm font-medium text-primary bg-primary/10 rounded-full">Tomorrow</span>
+              {loadingStats ? (
+                <div className="flex items-center justify-center py-4">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
                 </div>
-                <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-amber-500/5 to-transparent border border-amber-500/10 hover:border-amber-500/20 transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className="w-1 h-12 rounded-full bg-gradient-to-b from-amber-500 to-amber-500/50" />
-                    <div>
-                      <p className="font-medium text-foreground">Hadith Class</p>
-                      <p className="text-sm text-muted-foreground">Sahih Bukhari - Chapter 3</p>
+              ) : upcomingExams.length === 0 ? (
+                <p className="text-muted-foreground text-center py-4">No upcoming exams</p>
+              ) : (
+                <div className="space-y-3">
+                  {upcomingExams.map((exam, index) => (
+                    <div 
+                      key={exam.id}
+                      className={`flex items-center justify-between p-4 rounded-xl bg-gradient-to-r ${
+                        index === 0 ? 'from-primary/5 to-transparent border border-primary/10 hover:border-primary/20' : 
+                        'from-amber-500/5 to-transparent border border-amber-500/10 hover:border-amber-500/20'
+                      } transition-colors cursor-pointer`}
+                      onClick={() => navigate('/exams')}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className={`w-1 h-12 rounded-full bg-gradient-to-b ${
+                          index === 0 ? 'from-primary to-primary/50' : 'from-amber-500 to-amber-500/50'
+                        }`} />
+                        <div>
+                          <p className="font-medium text-foreground">{exam.title}</p>
+                          <p className="text-sm text-muted-foreground">{exam.subject}</p>
+                        </div>
+                      </div>
+                      <span className={`px-3 py-1 text-sm font-medium ${
+                        index === 0 ? 'text-primary bg-primary/10' : 'text-amber-600 dark:text-amber-400 bg-amber-500/10'
+                      } rounded-full`}>
+                        {new Date(exam.exam_date).toLocaleDateString()}
+                      </span>
                     </div>
-                  </div>
-                  <span className="px-3 py-1 text-sm font-medium text-amber-600 dark:text-amber-400 bg-amber-500/10 rounded-full">In 3 days</span>
+                  ))}
                 </div>
-              </div>
+              )}
             </CardContent>
           </Card>
         </main>
