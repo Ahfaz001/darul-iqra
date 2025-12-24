@@ -11,3 +11,6 @@ verify_jwt = true
 
 [functions.ocr-extract-text]
 verify_jwt = false
+
+[functions.process-book-ocr]
+verify_jwt = false

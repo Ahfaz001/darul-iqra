@@ -44,6 +44,44 @@ export type Database = {
         }
         Relationships: []
       }
+      book_pages: {
+        Row: {
+          book_id: string
+          created_at: string
+          id: string
+          normalized_text: string
+          page_number: number
+          text_content: string
+          updated_at: string
+        }
+        Insert: {
+          book_id: string
+          created_at?: string
+          id?: string
+          normalized_text?: string
+          page_number: number
+          text_content?: string
+          updated_at?: string
+        }
+        Update: {
+          book_id?: string
+          created_at?: string
+          id?: string
+          normalized_text?: string
+          page_number?: number
+          text_content?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "book_pages_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       books: {
         Row: {
           author: string | null
@@ -55,6 +93,8 @@ export type Database = {
           file_url: string
           id: string
           language: string
+          ocr_pages_done: number | null
+          ocr_status: string | null
           title: string
           total_pages: number | null
           updated_at: string
@@ -70,6 +110,8 @@ export type Database = {
           file_url: string
           id?: string
           language?: string
+          ocr_pages_done?: number | null
+          ocr_status?: string | null
           title: string
           total_pages?: number | null
           updated_at?: string
@@ -85,6 +127,8 @@ export type Database = {
           file_url?: string
           id?: string
           language?: string
+          ocr_pages_done?: number | null
+          ocr_status?: string | null
           title?: string
           total_pages?: number | null
           updated_at?: string

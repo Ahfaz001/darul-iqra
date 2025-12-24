@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { BookOpen, Plus, Trash2, ExternalLink, ArrowLeft, Upload, FileText, User, Globe, ScanText, Loader2, ImagePlus, Copy, Check } from 'lucide-react';
+import { BookOpen, Plus, Trash2, ExternalLink, ArrowLeft, Upload, FileText, User, Globe, ScanText, Loader2, ImagePlus, Copy, Check, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import madrasaLogo from '@/assets/madrasa-logo.jpg';
@@ -26,6 +26,8 @@ interface Book {
   cover_url: string | null;
   total_pages: number | null;
   created_at: string;
+  ocr_status?: string;
+  ocr_pages_done?: number;
 }
 
 const LANGUAGES = [
@@ -183,6 +185,19 @@ const BookManagement = () => {
     setLanguage('urdu');
     setTotalPages('');
     setSelectedFile(null);
+  };
+
+  // Start OCR processing for a book (opens book in viewer to trigger OCR)
+  const handleStartOCR = async (book: Book) => {
+    toast.info(`OCR شروع ہو رہا ہے - کتاب "${book.title}" کھولیں اور OCR All بٹن دبائیں`, { 
+      duration: 5000 
+    });
+    // Update status to processing
+    await supabase
+      .from('books')
+      .update({ ocr_status: 'processing' })
+      .eq('id', book.id);
+    fetchBooks();
   };
 
   const handleOcrImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -606,12 +621,40 @@ const BookManagement = () => {
                       <p className="text-gray-500 text-sm line-clamp-2 mb-3">{book.description}</p>
                     )}
 
-                    <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
+                    <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
                       <span className="flex items-center gap-1">
                         <FileText className="h-3 w-3" />
                         {formatFileSize(book.file_size)}
                       </span>
                       {book.total_pages && <span>{book.total_pages} pages</span>}
+                    </div>
+
+                    {/* OCR Status */}
+                    <div className="flex items-center gap-2 text-xs mb-3">
+                      {book.ocr_status === 'completed' ? (
+                        <span className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                          <Check className="h-3 w-3" />
+                          OCR Complete ({book.ocr_pages_done} pages)
+                        </span>
+                      ) : book.ocr_status === 'processing' ? (
+                        <span className="flex items-center gap-1 text-orange-600 dark:text-orange-400">
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          OCR Processing ({book.ocr_pages_done}/{book.total_pages || '?'})
+                        </span>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStartOCR(book);
+                          }}
+                          className="h-6 text-xs gap-1"
+                        >
+                          <ScanText className="h-3 w-3" />
+                          Start OCR
+                        </Button>
+                      )}
                     </div>
 
                     <div className="flex gap-2">

@@ -281,6 +281,7 @@ const StudentBooks = () => {
         <PDFViewer
           fileUrl={selectedBook.file_url}
           title={selectedBook.title}
+          bookId={selectedBook.id}
           onClose={handleCloseViewer}
         />
       )}
