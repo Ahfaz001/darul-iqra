@@ -70,20 +70,20 @@ const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className={`flex items-center justify-between h-20 ${isRTL ? 'flex-row-reverse' : ''}`}>
           {/* Logo */}
-          <Link to="/" className={`flex items-center gap-3 group ${isRTL ? 'flex-row-reverse' : ''}`}>
-            <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-amber-500 shadow-lg">
+          <Link to="/" className={`flex items-center gap-2 sm:gap-3 group ${isRTL ? 'flex-row-reverse' : ''}`}>
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden border-2 border-amber-500 shadow-lg flex-shrink-0">
               <img
                 src={madrasaLogo}
                 alt="Idarah Tarjumat-ul-Qur'an Wa Sunnah Kalyan"
                 className="w-full h-full object-cover"
               />
             </div>
-            <div className="hidden sm:block">
-              <h1 className={`font-display font-semibold text-base leading-tight ${scrolled ? 'text-foreground' : 'text-slate-800 dark:text-white'}`}>
-                Idarah Tarjumat-ul-Qur'an
+            <div className="flex flex-col">
+              <h1 className={`font-display font-semibold text-xs sm:text-sm md:text-base leading-tight ${scrolled ? 'text-foreground' : 'text-slate-800 dark:text-white'}`}>
+                <span className="hidden xs:inline">Idarah </span>Tarjumat-ul-Qur'an
               </h1>
-              <p className={`text-xs flex items-center gap-1 ${scrolled ? 'text-muted-foreground' : 'text-slate-600 dark:text-white/70'}`}>
-                <Sparkles className="w-3 h-3 text-secondary" />
+              <p className={`text-[10px] sm:text-xs flex items-center gap-1 ${scrolled ? 'text-muted-foreground' : 'text-slate-600 dark:text-white/70'}`}>
+                <Sparkles className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-secondary" />
                 Wa Sunnah • Kalyan
               </p>
             </div>
