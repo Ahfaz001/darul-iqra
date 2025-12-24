@@ -9,10 +9,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { BookOpen, Plus, Trash2, ExternalLink, ArrowLeft, Upload, FileText, User, Globe, ScanText, Loader2, ImagePlus, Copy, Check, RefreshCw } from 'lucide-react';
+import { BookOpen, Plus, Trash2, Eye, ArrowLeft, Upload, FileText, User, Globe, ScanText, Loader2, ImagePlus, Copy, Check, RefreshCw, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import madrasaLogo from '@/assets/madrasa-logo.jpg';
+import PDFViewer from '@/components/PDFViewer';
 
 interface Book {
   id: string;
@@ -50,6 +51,10 @@ const BookManagement = () => {
   const [ocrProcessing, setOcrProcessing] = useState(false);
   const [extractedText, setExtractedText] = useState('');
   const [copied, setCopied] = useState(false);
+
+  // PDF Viewer state
+  const [viewingBook, setViewingBook] = useState<Book | null>(null);
+  const [autoStartOcr, setAutoStartOcr] = useState(false);
 
   // Form states
   const [title, setTitle] = useState('');
@@ -187,16 +192,49 @@ const BookManagement = () => {
     setSelectedFile(null);
   };
 
-  // Start OCR processing for a book (opens book in viewer to trigger OCR)
+  // Start OCR processing - opens PDFViewer with auto-OCR
   const handleStartOCR = async (book: Book) => {
-    toast.info(`OCR شروع ہو رہا ہے - کتاب "${book.title}" کھولیں اور OCR All بٹن دبائیں`, { 
-      duration: 5000 
-    });
     // Update status to processing
     await supabase
       .from('books')
-      .update({ ocr_status: 'processing' })
+      .update({ ocr_status: 'processing', ocr_pages_done: 0 })
       .eq('id', book.id);
+    
+    setAutoStartOcr(true);
+    setViewingBook(book);
+    fetchBooks();
+  };
+
+  // Retry OCR for stuck/failed books
+  const handleRetryOCR = async (book: Book) => {
+    // Reset OCR status
+    await supabase
+      .from('books')
+      .update({ ocr_status: 'processing', ocr_pages_done: 0 })
+      .eq('id', book.id);
+    
+    // Delete existing pages to re-OCR
+    await supabase
+      .from('book_pages')
+      .delete()
+      .eq('book_id', book.id);
+    
+    toast.info('OCR دوبارہ شروع ہو رہا ہے...');
+    setAutoStartOcr(true);
+    setViewingBook(book);
+    fetchBooks();
+  };
+
+  // View book in PDFViewer
+  const handleViewBook = (book: Book) => {
+    setAutoStartOcr(false);
+    setViewingBook(book);
+  };
+
+  // Close PDFViewer and refresh books
+  const handleClosePDFViewer = () => {
+    setViewingBook(null);
+    setAutoStartOcr(false);
     fetchBooks();
   };
 
@@ -305,50 +343,53 @@ const BookManagement = () => {
 
       <div className="min-h-screen bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-gray-900 dark:to-gray-800">
         {/* Header */}
-        <div className="bg-gradient-to-r from-teal-600 to-teal-700 text-white py-6 px-4">
+        <div className="bg-gradient-to-r from-teal-600 to-teal-700 text-white py-4 sm:py-6 px-3 sm:px-4">
           <div className="container mx-auto">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
+              {/* Left side */}
+              <div className="flex items-center gap-2 sm:gap-4">
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => navigate('/admin')}
-                  className="text-white hover:bg-white/20"
+                  className="text-white hover:bg-white/20 h-9 w-9 shrink-0"
                 >
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
                 <img 
                   src={madrasaLogo} 
                   alt="Madrasa Logo" 
-                  className="w-12 h-12 rounded-full object-cover border-2 border-white/30"
+                  className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-white/30 shrink-0"
                 />
-                <div>
-                  <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
-                    <BookOpen className="h-6 w-6" />
-                    Book Management
+                <div className="min-w-0">
+                  <h1 className="text-lg sm:text-2xl font-bold flex items-center gap-2">
+                    <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 shrink-0" />
+                    <span className="truncate">Book Management</span>
                   </h1>
-                  <p className="text-teal-100 text-sm">Manage library books</p>
+                  <p className="text-teal-100 text-xs sm:text-sm">Manage library books</p>
                 </div>
               </div>
 
-              {/* OCR Dialog */}
-              <Dialog open={ocrDialogOpen} onOpenChange={(open) => {
-                setOcrDialogOpen(open);
-                if (!open) resetOcrDialog();
-              }}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" className="bg-white/10 text-white border-white/30 hover:bg-white/20">
-                    <ScanText className="h-4 w-4 mr-2" />
-                    OCR Extract
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                      <ScanText className="h-5 w-5" />
-                      Extract Text from Images (OCR)
-                    </DialogTitle>
-                  </DialogHeader>
+              {/* Right side - action buttons */}
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* OCR Dialog */}
+                <Dialog open={ocrDialogOpen} onOpenChange={(open) => {
+                  setOcrDialogOpen(open);
+                  if (!open) resetOcrDialog();
+                }}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="bg-white/10 text-white border-white/30 hover:bg-white/20 text-xs sm:text-sm">
+                      <ScanText className="h-4 w-4 sm:mr-2" />
+                      <span className="hidden sm:inline">OCR Extract</span>
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        <ScanText className="h-5 w-5" />
+                        Extract Text from Images (OCR)
+                      </DialogTitle>
+                    </DialogHeader>
 
                   <div className="space-y-4 mt-4">
                     <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center">
@@ -442,12 +483,13 @@ const BookManagement = () => {
               {/* Upload Book Dialog */}
               <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="bg-white text-teal-700 hover:bg-teal-50">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Upload Book
+                  <Button size="sm" className="bg-white text-teal-700 hover:bg-teal-50 text-xs sm:text-sm">
+                    <Plus className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Upload Book</span>
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
                   <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                       <Upload className="h-5 w-5" />
@@ -630,17 +672,50 @@ const BookManagement = () => {
                     </div>
 
                     {/* OCR Status */}
-                    <div className="flex items-center gap-2 text-xs mb-3">
+                    <div className="flex items-center gap-2 text-xs mb-3 flex-wrap">
                       {book.ocr_status === 'completed' ? (
                         <span className="flex items-center gap-1 text-green-600 dark:text-green-400">
                           <Check className="h-3 w-3" />
                           OCR Complete ({book.ocr_pages_done} pages)
                         </span>
                       ) : book.ocr_status === 'processing' ? (
-                        <span className="flex items-center gap-1 text-orange-600 dark:text-orange-400">
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                          OCR Processing ({book.ocr_pages_done}/{book.total_pages || '?'})
-                        </span>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="flex items-center gap-1 text-orange-600 dark:text-orange-400">
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            OCR ({book.ocr_pages_done || 0}/{book.total_pages || '?'})
+                          </span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRetryOCR(book);
+                            }}
+                            className="h-5 text-xs gap-1 px-2"
+                          >
+                            <RefreshCw className="h-3 w-3" />
+                            Retry
+                          </Button>
+                        </div>
+                      ) : book.ocr_status === 'failed' ? (
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="flex items-center gap-1 text-red-600 dark:text-red-400">
+                            <AlertCircle className="h-3 w-3" />
+                            OCR Failed
+                          </span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRetryOCR(book);
+                            }}
+                            className="h-5 text-xs gap-1 px-2"
+                          >
+                            <RefreshCw className="h-3 w-3" />
+                            Retry
+                          </Button>
+                        </div>
                       ) : (
                         <Button
                           variant="outline"
@@ -662,9 +737,9 @@ const BookManagement = () => {
                         variant="outline"
                         size="sm"
                         className="flex-1"
-                        onClick={() => window.open(book.file_url, '_blank')}
+                        onClick={() => handleViewBook(book)}
                       >
-                        <ExternalLink className="h-4 w-4 mr-1" />
+                        <Eye className="h-4 w-4 mr-1" />
                         View
                       </Button>
                       <Button
@@ -682,6 +757,17 @@ const BookManagement = () => {
           )}
         </div>
       </div>
+
+      {/* PDF Viewer Modal */}
+      {viewingBook && (
+        <PDFViewer
+          fileUrl={viewingBook.file_url}
+          title={viewingBook.title}
+          bookId={viewingBook.id}
+          onClose={handleClosePDFViewer}
+          autoStartOcr={autoStartOcr}
+        />
+      )}
     </>
   );
 };
