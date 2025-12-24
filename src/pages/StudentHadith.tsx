@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,8 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import madrasaLogo from '@/assets/madrasa-logo.jpg';
-import { ArrowLeft, BookOpen, Globe, Search, ExternalLink, FileText } from 'lucide-react';
+import StudentHeader from '@/components/StudentHeader';
+import { BookOpen, Globe, Search, ExternalLink, FileText } from 'lucide-react';
 
 interface HadithBook {
   id: string;
@@ -31,6 +32,7 @@ const LANGUAGES = [
 
 const StudentHadith: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [books, setBooks] = useState<HadithBook[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterLanguage, setFilterLanguage] = useState<string>('all');
@@ -96,32 +98,13 @@ const StudentHadith: React.FC = () => {
         <meta name="description" content="Browse and read Hadith books in multiple languages" />
       </Helmet>
 
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50">
-        <header className="bg-white border-b border-border/50 sticky top-0 z-50">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center gap-3">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => navigate('/dashboard')}
-                className="mr-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <img 
-                src={madrasaLogo} 
-                alt="Madrasa Logo" 
-                className="w-10 h-10 rounded-full"
-              />
-              <div>
-                <h1 className="font-display font-bold text-primary text-lg">
-                  Hadith Library
-                </h1>
-                <p className="text-xs text-muted-foreground">Browse Hadith books • حدیث کی کتابیں</p>
-              </div>
-            </div>
-          </div>
-        </header>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50 dark:from-background dark:via-background dark:to-background">
+        <StudentHeader 
+          title="Daily Hadith"
+          titleKey="dailyHadith"
+          subtitle="Browse Hadith books"
+          subtitleKey="readTodayHadith"
+        />
 
         <main className="container mx-auto px-4 py-8">
           {/* Bismillah Header */}

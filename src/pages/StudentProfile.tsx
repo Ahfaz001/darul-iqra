@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,9 +11,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import madrasaLogo from '@/assets/madrasa-logo.jpg';
+import StudentHeader from '@/components/StudentHeader';
 import { 
-  ArrowLeft, 
   User, 
   Save, 
   Calendar, 
@@ -51,6 +51,7 @@ interface AttendanceRecord {
 
 const StudentProfile: React.FC = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -200,32 +201,13 @@ const StudentProfile: React.FC = () => {
         <meta name="description" content="View and update your profile information" />
       </Helmet>
 
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50">
-        <header className="bg-white border-b border-border/50 sticky top-0 z-50">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center gap-3">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => navigate('/dashboard')}
-                className="mr-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <img 
-                src={madrasaLogo} 
-                alt="Madrasa Logo" 
-                className="w-10 h-10 rounded-full"
-              />
-              <div>
-                <h1 className="font-display font-bold text-primary text-lg">
-                  My Profile
-                </h1>
-                <p className="text-xs text-muted-foreground">View and update your information</p>
-              </div>
-            </div>
-          </div>
-        </header>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50 dark:from-background dark:via-background dark:to-background">
+        <StudentHeader 
+          title="My Profile"
+          titleKey="myProfile"
+          subtitle="Manage your account settings"
+          subtitleKey="manageAccount"
+        />
 
         <main className="container mx-auto px-4 py-8">
           <div className="grid lg:grid-cols-3 gap-6">

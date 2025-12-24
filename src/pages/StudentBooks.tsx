@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '@/integrations/supabase/client';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { BookOpen, Search, User, FileText, ExternalLink, Globe } from 'lucide-react';
 import { toast } from 'sonner';
 import PDFViewer from '@/components/PDFViewer';
-import madrasaLogo from '@/assets/madrasa-logo.jpg';
+import StudentHeader from '@/components/StudentHeader';
 
 interface Book {
   id: string;
@@ -31,6 +32,7 @@ const LANGUAGES = [
 ];
 
 const StudentBooks = () => {
+  const { t } = useLanguage();
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterLanguage, setFilterLanguage] = useState('all');
@@ -105,25 +107,16 @@ const StudentBooks = () => {
       </Helmet>
 
       <div className="min-h-screen bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-gray-900 dark:to-gray-800">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-teal-600 to-teal-700 text-white py-8 px-4">
-          <div className="container mx-auto">
-            <div className="flex items-center gap-4 mb-6">
-              <img 
-                src={madrasaLogo} 
-                alt="Madrasa Logo" 
-                className="w-16 h-16 rounded-full object-cover border-2 border-white/30"
-              />
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-3">
-                  <BookOpen className="h-8 w-8" />
-                  کتب خانہ
-                </h1>
-                <p className="text-teal-100 text-sm sm:text-base">Books Library - Digital Collection</p>
-              </div>
-            </div>
+        <StudentHeader 
+          title="Books Library"
+          titleKey="booksLibrary"
+          subtitle="Read Islamic books"
+          subtitleKey="readBooks"
+        />
 
-            {/* Search and Filter */}
+        {/* Search and Filter */}
+        <div className="bg-gradient-to-r from-teal-600 to-teal-700 text-white py-6 px-4">
+          <div className="container mx-auto">
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-teal-300 h-5 w-5" />

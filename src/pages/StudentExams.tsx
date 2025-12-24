@@ -5,13 +5,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
-import madrasaLogo from '@/assets/madrasa-logo.jpg';
+import StudentHeader from '@/components/StudentHeader';
 import { 
-  ArrowLeft, 
   FileText, 
   Clock,
   CheckCircle,
@@ -119,37 +117,13 @@ const StudentExams: React.FC = () => {
         <meta name="description" content="View and take your assigned exams" />
       </Helmet>
 
-      <div className="min-h-screen bg-gradient-to-br from-cream via-white to-emerald-50">
-        {/* Header */}
-        <header className="bg-white border-b border-border/50 sticky top-0 z-50">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center gap-3">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => navigate('/dashboard')}
-                className="mr-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <img 
-                src={madrasaLogo} 
-                alt="Madrasa Logo" 
-                className="w-10 h-10 rounded-full"
-              />
-              <div>
-                <h1 className="font-display font-bold text-primary text-lg">
-                  {language === 'ur' ? 'میرے امتحانات' : language === 'roman' ? 'Mere Imtehanaat' : 'My Exams'}
-                </h1>
-                <p className="text-xs text-muted-foreground">
-                  {language === 'ur' ? 'تفویض شدہ امتحانات دیکھیں اور دیں' : 
-                   language === 'roman' ? 'Tafweez shuda imtehanaat dekhein aur dein' : 
-                   'View and take assigned exams'}
-                </p>
-              </div>
-            </div>
-          </div>
-        </header>
+      <div className="min-h-screen bg-gradient-to-br from-cream via-white to-emerald-50 dark:from-background dark:via-background dark:to-background">
+        <StudentHeader 
+          title="My Exams"
+          titleKey="myExams"
+          subtitle="View and take assigned exams"
+          subtitleKey="viewTakeExams"
+        />
 
         {/* Main Content */}
         <main className="container mx-auto px-4 py-8">
