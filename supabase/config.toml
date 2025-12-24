@@ -8,3 +8,6 @@ verify_jwt = true
 
 [functions.send-result-notification]
 verify_jwt = true
+
+[functions.ocr-extract-text]
+verify_jwt = false
