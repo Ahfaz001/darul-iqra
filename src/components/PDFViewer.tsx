@@ -336,22 +336,28 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
         )}
 
         <div ref={containerRef} className="flex-1 overflow-auto bg-gray-800 flex justify-center items-start p-2 sm:p-4">
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-20">
-              <Loader2 className="h-10 w-10 text-teal-500 animate-spin mb-4" />
-              <p className="text-gray-400">کتاب لوڈ ہو رہی ہے...</p>
-            </div>
-          ) : (
-            <Document 
-              file={fileUrl} 
-              onLoadSuccess={onDocumentLoadSuccess} 
-              loading={null} 
-              className="flex flex-col items-center select-text"
-              onLoadError={(error) => {
-                console.error('PDF load error:', error);
-                toast.error('PDF لوڈ نہیں ہوا');
-              }}
-            >
+          <Document 
+            file={fileUrl} 
+            onLoadSuccess={onDocumentLoadSuccess} 
+            loading={
+              <div className="flex flex-col items-center justify-center py-20">
+                <Loader2 className="h-10 w-10 text-teal-500 animate-spin mb-4" />
+                <p className="text-gray-400">کتاب لوڈ ہو رہی ہے...</p>
+              </div>
+            }
+            error={
+              <div className="flex flex-col items-center justify-center py-20">
+                <p className="text-red-400">PDF لوڈ نہیں ہوا</p>
+              </div>
+            }
+            className="flex flex-col items-center select-text"
+            onLoadError={(error) => {
+              console.error('PDF load error:', error);
+              setLoading(false);
+              toast.error('PDF لوڈ نہیں ہوا');
+            }}
+          >
+            {!loading && (
               <Page 
                 pageNumber={currentPage} 
                 width={pageWidth}
@@ -360,9 +366,14 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
                 renderTextLayer={true}
                 renderAnnotationLayer={true}
                 canvasBackground="white"
+                loading={
+                  <div className="flex items-center justify-center py-10">
+                    <Loader2 className="h-6 w-6 text-teal-500 animate-spin" />
+                  </div>
+                }
               />
-            </Document>
-          )}
+            )}
+          </Document>
         </div>
       </div>
 
