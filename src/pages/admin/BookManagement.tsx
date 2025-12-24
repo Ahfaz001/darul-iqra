@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { BookOpen, Plus, Trash2, ExternalLink, ArrowLeft, Upload, FileText, User, Globe } from 'lucide-react';
+import { BookOpen, Plus, Trash2, ExternalLink, ArrowLeft, Upload, FileText, User, Globe, ScanText, Loader2, ImagePlus, Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import madrasaLogo from '@/assets/madrasa-logo.jpg';
@@ -41,7 +41,13 @@ const BookManagement = () => {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [ocrDialogOpen, setOcrDialogOpen] = useState(false);
   const [filterLanguage, setFilterLanguage] = useState('all');
+  
+  // OCR states
+  const [ocrProcessing, setOcrProcessing] = useState(false);
+  const [extractedText, setExtractedText] = useState('');
+  const [copied, setCopied] = useState(false);
 
   // Form states
   const [title, setTitle] = useState('');
@@ -179,6 +185,75 @@ const BookManagement = () => {
     setSelectedFile(null);
   };
 
+  const handleOcrImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const imageFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
+    if (imageFiles.length === 0) {
+      toast.error('Please select image files (JPG, PNG, etc.)');
+      return;
+    }
+
+    setOcrProcessing(true);
+
+    try {
+      let allText = '';
+      
+      for (const file of imageFiles) {
+        // Convert to base64
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+
+        // Call OCR edge function
+        const { data, error } = await supabase.functions.invoke('ocr-extract-text', {
+          body: { imageBase64: base64 }
+        });
+
+        if (error) throw error;
+
+        if (data.success && data.text) {
+          allText += data.text + '\n\n---\n\n';
+        } else if (data.error) {
+          throw new Error(data.error);
+        }
+      }
+
+      if (allText.trim()) {
+        setExtractedText(prev => prev ? prev + '\n\n' + allText.trim() : allText.trim());
+        toast.success(`Text extracted from ${imageFiles.length} image(s)!`);
+      } else {
+        toast.error('No text found in image(s)');
+      }
+    } catch (error: any) {
+      console.error('OCR error:', error);
+      toast.error(error.message || 'Failed to extract text');
+    } finally {
+      setOcrProcessing(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleCopyText = async () => {
+    try {
+      await navigator.clipboard.writeText(extractedText);
+      setCopied(true);
+      toast.success('Text copied to clipboard!');
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error('Failed to copy text');
+    }
+  };
+
+  const resetOcrDialog = () => {
+    setExtractedText('');
+    setCopied(false);
+  };
+
   const filteredBooks = filterLanguage === 'all' 
     ? books 
     : books.filter(b => b.language === filterLanguage);
@@ -241,6 +316,115 @@ const BookManagement = () => {
                 </div>
               </div>
 
+              {/* OCR Dialog */}
+              <Dialog open={ocrDialogOpen} onOpenChange={(open) => {
+                setOcrDialogOpen(open);
+                if (!open) resetOcrDialog();
+              }}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="bg-white/10 text-white border-white/30 hover:bg-white/20">
+                    <ScanText className="h-4 w-4 mr-2" />
+                    OCR Extract
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <ScanText className="h-5 w-5" />
+                      Extract Text from Images (OCR)
+                    </DialogTitle>
+                  </DialogHeader>
+
+                  <div className="space-y-4 mt-4">
+                    <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center">
+                      <input
+                        type="file"
+                        id="ocr-image-upload"
+                        accept="image/*"
+                        multiple
+                        className="hidden"
+                        onChange={handleOcrImageUpload}
+                        disabled={ocrProcessing}
+                      />
+                      <label
+                        htmlFor="ocr-image-upload"
+                        className="cursor-pointer flex flex-col items-center gap-2"
+                      >
+                        {ocrProcessing ? (
+                          <>
+                            <Loader2 className="h-12 w-12 text-teal-600 animate-spin" />
+                            <p className="text-teal-600 font-medium">Extracting text...</p>
+                          </>
+                        ) : (
+                          <>
+                            <ImagePlus className="h-12 w-12 text-gray-400" />
+                            <p className="text-gray-600 dark:text-gray-300 font-medium">
+                              Click to upload images
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              Supports Urdu, Arabic, English text
+                            </p>
+                          </>
+                        )}
+                      </label>
+                    </div>
+
+                    {extractedText && (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label>Extracted Text</Label>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleCopyText}
+                            className="gap-1"
+                          >
+                            {copied ? (
+                              <>
+                                <Check className="h-4 w-4 text-green-600" />
+                                Copied!
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="h-4 w-4" />
+                                Copy All
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                        <Textarea
+                          value={extractedText}
+                          onChange={(e) => setExtractedText(e.target.value)}
+                          className="min-h-[300px] font-urdu"
+                          dir="auto"
+                          placeholder="Extracted text will appear here..."
+                        />
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            onClick={() => setExtractedText('')}
+                            className="flex-1"
+                          >
+                            Clear Text
+                          </Button>
+                          <Button
+                            onClick={() => {
+                              document.getElementById('ocr-image-upload')?.click();
+                            }}
+                            disabled={ocrProcessing}
+                            className="flex-1 bg-teal-600 hover:bg-teal-700"
+                          >
+                            <ImagePlus className="h-4 w-4 mr-2" />
+                            Add More Images
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </DialogContent>
+              </Dialog>
+
+              {/* Upload Book Dialog */}
               <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogTrigger asChild>
                   <Button className="bg-white text-teal-700 hover:bg-teal-50">
