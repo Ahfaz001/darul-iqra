@@ -73,7 +73,7 @@ const Auth: React.FC = () => {
 
             <div className="mt-auto flex items-center gap-2 text-white/60 text-sm">
               <BookOpen className="h-4 w-4" />
-              <span>Student & Teacher Portal</span>
+              <span>Student Portal</span>
             </div>
           </div>
         </div>
@@ -95,13 +95,13 @@ const Auth: React.FC = () => {
             <div className="bg-card rounded-2xl shadow-xl p-8 border border-border/50">
               <div className="text-center mb-8">
                 <h2 className="text-2xl font-display font-bold text-foreground">
-                  {mode === 'login' ? 'Welcome Back' : 'Create Account'}
+                  {mode === 'login' ? 'Student Login' : 'Student Registration'}
                 </h2>
                 <p className="text-muted-foreground mt-2">
-                  {mode === 'login' ? 'Sign in to access your portal' : 'Register to join our community'}
+                  {mode === 'login' ? 'Sign in to access your student portal' : 'Register as a new student'}
                 </p>
               </div>
-              <AuthForm mode={mode} onToggleMode={toggleMode} />
+              <AuthForm mode={mode} onToggleMode={toggleMode} userType="student" />
             </div>
           </div>
         </div>
