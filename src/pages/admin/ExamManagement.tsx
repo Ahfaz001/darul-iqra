@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { validatePositiveInteger } from '@/lib/validation';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
@@ -96,7 +97,7 @@ const ExamManagement: React.FC = () => {
           description: description.trim() || null,
           subject: subject.trim(),
           exam_date: format(examDate, 'yyyy-MM-dd'),
-          total_marks: parseInt(totalMarks) || 100,
+          total_marks: validatePositiveInteger(totalMarks, 100, 1000),
           created_by: user?.id
         });
 
