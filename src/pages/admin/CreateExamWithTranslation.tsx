@@ -26,7 +26,9 @@ import {
   Users,
   Clock,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  ImagePlus,
+  ScanText
 } from 'lucide-react';
 
 interface TranslatedQuestion {
@@ -76,12 +78,88 @@ const CreateExamWithTranslation: React.FC = () => {
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [saving, setSaving] = useState(false);
+  
+  // OCR state
+  const [ocrProcessing, setOcrProcessing] = useState(false);
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
 
   useEffect(() => {
     if (step === 'assign') {
       fetchStudents();
     }
   }, [step]);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const imageFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
+    if (imageFiles.length === 0) {
+      toast({
+        title: "Invalid Files",
+        description: "Please select image files (JPG, PNG, etc.)",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setSelectedImages(imageFiles);
+    setOcrProcessing(true);
+
+    try {
+      let extractedText = '';
+      
+      for (const file of imageFiles) {
+        // Convert to base64
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+
+        // Call OCR edge function
+        const { data, error } = await supabase.functions.invoke('ocr-extract-text', {
+          body: { imageBase64: base64 }
+        });
+
+        if (error) throw error;
+
+        if (data.success && data.text) {
+          extractedText += data.text + '\n\n';
+        } else if (data.error) {
+          throw new Error(data.error);
+        }
+      }
+
+      if (extractedText.trim()) {
+        // Append to existing content or replace
+        setExamContent(prev => prev ? prev + '\n\n' + extractedText.trim() : extractedText.trim());
+        toast({
+          title: "Text Extracted!",
+          description: `Successfully extracted text from ${imageFiles.length} image(s)`
+        });
+      } else {
+        toast({
+          title: "No Text Found",
+          description: "Could not detect any text in the image(s)",
+          variant: "destructive"
+        });
+      }
+    } catch (error: any) {
+      console.error('OCR error:', error);
+      toast({
+        title: "OCR Failed",
+        description: error.message || "Failed to extract text from image",
+        variant: "destructive"
+      });
+    } finally {
+      setOcrProcessing(false);
+      setSelectedImages([]);
+      // Reset input
+      e.target.value = '';
+    }
+  };
 
   const fetchStudents = async () => {
     setLoadingStudents(true);
@@ -435,12 +513,53 @@ const CreateExamWithTranslation: React.FC = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="content">Exam Content (Urdu) *</Label>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="content">Exam Content (Urdu) *</Label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="file"
+                          id="ocr-upload"
+                          accept="image/*"
+                          multiple
+                          className="hidden"
+                          onChange={handleImageUpload}
+                          disabled={ocrProcessing}
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => document.getElementById('ocr-upload')?.click()}
+                          disabled={ocrProcessing}
+                          className="gap-2"
+                        >
+                          {ocrProcessing ? (
+                            <>
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Extracting Text...
+                            </>
+                          ) : (
+                            <>
+                              <ScanText className="h-4 w-4" />
+                              OCR: Upload Image
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    {selectedImages.length > 0 && ocrProcessing && (
+                      <div className="flex items-center gap-2 p-3 bg-blue-50 text-blue-700 rounded-lg text-sm">
+                        <ImagePlus className="h-4 w-4" />
+                        Processing {selectedImages.length} image(s)...
+                      </div>
+                    )}
+                    
                     <Textarea
                       id="content"
                       value={examContent}
                       onChange={(e) => setExamContent(e.target.value)}
-                      placeholder="یہاں پورا امتحانی پرچہ پیسٹ کریں..."
+                      placeholder="یہاں پورا امتحانی پرچہ پیسٹ کریں... یا اوپر OCR بٹن سے تصویر اپلوڈ کریں"
                       className="min-h-[400px] font-urdu text-right"
                       dir="rtl"
                     />
