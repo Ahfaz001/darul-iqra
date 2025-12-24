@@ -17,9 +17,12 @@ import {
   List,
   ArrowUp,
   ArrowDown,
-  Loader2
+  Loader2,
+  Copy,
+  Check
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { toast } from 'sonner';
 
 // Set up the worker
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
@@ -33,12 +36,13 @@ interface PDFViewerProps {
 interface SearchResult {
   pageIndex: number;
   matchIndex: number;
+  text: string;
 }
 
 const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
   const [numPages, setNumPages] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [scale, setScale] = useState<number>(1.0);
+  const [scale, setScale] = useState<number>(1.2);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showThumbnails, setShowThumbnails] = useState(false);
@@ -50,9 +54,15 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
   const [isSearching, setIsSearching] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [pageTexts, setPageTexts] = useState<Map<number, string>>(new Map());
+  const [loadingAllText, setLoadingAllText] = useState(false);
+  const [allTextLoaded, setAllTextLoaded] = useState(false);
+  
+  // Copy state
+  const [copied, setCopied] = useState(false);
   
   const containerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const pdfDocRef = useRef<any>(null);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -89,16 +99,49 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
     };
   }, []);
 
-  const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
-    setNumPages(numPages);
+  // Load all pages text for search
+  const loadAllPagesText = useCallback(async () => {
+    if (!pdfDocRef.current || allTextLoaded || loadingAllText) return;
+    
+    setLoadingAllText(true);
+    try {
+      const pdf = pdfDocRef.current;
+      const textsMap = new Map<number, string>();
+      
+      for (let i = 1; i <= numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items.map((item: any) => item.str).join(' ');
+        textsMap.set(i, pageText);
+      }
+      
+      setPageTexts(textsMap);
+      setAllTextLoaded(true);
+    } catch (error) {
+      console.error('Error loading page texts:', error);
+    } finally {
+      setLoadingAllText(false);
+    }
+  }, [numPages, allTextLoaded, loadingAllText]);
+
+  const onDocumentLoadSuccess = async (pdf: any) => {
+    setNumPages(pdf.numPages);
+    pdfDocRef.current = pdf;
     setLoading(false);
+    
+    // Start loading all text in background
+    setTimeout(() => {
+      loadAllPagesText();
+    }, 500);
   };
 
   const onPageLoadSuccess = async (page: any) => {
-    // Extract text for search
-    const textContent = await page.getTextContent();
-    const pageText = textContent.items.map((item: any) => item.str).join(' ');
-    setPageTexts(prev => new Map(prev).set(page.pageNumber, pageText));
+    // Also extract text for current page if not already loaded
+    if (!pageTexts.has(page.pageNumber)) {
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items.map((item: any) => item.str).join(' ');
+      setPageTexts(prev => new Map(prev).set(page.pageNumber, pageText));
+    }
   };
 
   const handlePrevPage = useCallback(() => {
@@ -110,7 +153,7 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
   }, [numPages]);
 
   const handleZoomIn = () => {
-    setScale(prev => Math.min(prev + 0.25, 3));
+    setScale(prev => Math.min(prev + 0.25, 4));
   };
 
   const handleZoomOut = () => {
@@ -134,6 +177,11 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
       return;
     }
 
+    // Ensure all text is loaded first
+    if (!allTextLoaded) {
+      await loadAllPagesText();
+    }
+
     setIsSearching(true);
     const results: SearchResult[] = [];
     const query = searchQuery.toLowerCase();
@@ -144,7 +192,12 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
       let matchIndex = 0;
       let position = lowerText.indexOf(query);
       while (position !== -1) {
-        results.push({ pageIndex, matchIndex });
+        // Get context around match
+        const start = Math.max(0, position - 30);
+        const end = Math.min(text.length, position + query.length + 30);
+        const contextText = text.substring(start, end);
+        
+        results.push({ pageIndex, matchIndex, text: contextText });
         matchIndex++;
         position = lowerText.indexOf(query, position + 1);
       }
@@ -156,10 +209,13 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
     // Go to first result page
     if (results.length > 0) {
       setCurrentPage(results[0].pageIndex);
+      toast.success(`Found ${results.length} result(s)`);
+    } else {
+      toast.error('No results found');
     }
     
     setIsSearching(false);
-  }, [searchQuery, pageTexts]);
+  }, [searchQuery, pageTexts, allTextLoaded, loadAllPagesText]);
 
   const goToNextSearchResult = () => {
     if (searchResults.length === 0) return;
@@ -173,6 +229,38 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
     const prevIndex = (currentSearchIndex - 1 + searchResults.length) % searchResults.length;
     setCurrentSearchIndex(prevIndex);
     setCurrentPage(searchResults[prevIndex].pageIndex);
+  };
+
+  const handleCopySelectedText = async () => {
+    const selection = window.getSelection();
+    const selectedText = selection?.toString();
+    
+    if (selectedText) {
+      try {
+        await navigator.clipboard.writeText(selectedText);
+        setCopied(true);
+        toast.success('Text copied!');
+        setTimeout(() => setCopied(false), 2000);
+      } catch {
+        toast.error('Failed to copy text');
+      }
+    } else {
+      toast.info('Select some text first to copy');
+    }
+  };
+
+  const handleCopyPageText = async () => {
+    const pageText = pageTexts.get(currentPage);
+    if (pageText) {
+      try {
+        await navigator.clipboard.writeText(pageText);
+        setCopied(true);
+        toast.success('Page text copied!');
+        setTimeout(() => setCopied(false), 2000);
+      } catch {
+        toast.error('Failed to copy text');
+      }
+    }
   };
 
   return (
@@ -193,6 +281,17 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
         </div>
         
         <div className="flex items-center gap-1">
+          {/* Copy Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleCopySelectedText}
+            className="text-white hover:bg-white/20 h-8 w-8"
+            title="Copy selected text"
+          >
+            {copied ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4" />}
+          </Button>
+          
           {/* Search Toggle */}
           <Button
             variant="ghost"
@@ -230,7 +329,7 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
               size="icon"
               onClick={handleZoomIn}
               className="text-white hover:bg-white/20 h-8 w-8"
-              disabled={scale >= 3}
+              disabled={scale >= 4}
             >
               <ZoomIn className="h-4 w-4" />
             </Button>
@@ -249,50 +348,73 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
 
       {/* Search Bar */}
       {showSearch && (
-        <div className="bg-teal-800/90 px-4 py-2 flex items-center gap-2">
-          <Search className="h-4 w-4 text-white/70" />
-          <Input
-            ref={searchInputRef}
-            type="text"
-            placeholder="Search in book..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleSearch();
-            }}
-            className="flex-1 h-8 bg-white/10 border-white/20 text-white placeholder:text-white/50 text-sm"
-          />
-          <Button
-            size="sm"
-            onClick={handleSearch}
-            disabled={isSearching}
-            className="bg-white/20 hover:bg-white/30 h-8"
-          >
-            {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Search'}
-          </Button>
-          {searchResults.length > 0 && (
-            <div className="flex items-center gap-1 text-white text-sm">
-              <span>{currentSearchIndex + 1}/{searchResults.length}</span>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={goToPrevSearchResult}
-                className="text-white hover:bg-white/20 h-6 w-6"
-              >
-                <ArrowUp className="h-3 w-3" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={goToNextSearchResult}
-                className="text-white hover:bg-white/20 h-6 w-6"
-              >
-                <ArrowDown className="h-3 w-3" />
-              </Button>
+        <div className="bg-teal-800/90 px-4 py-2 flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <Search className="h-4 w-4 text-white/70" />
+            <Input
+              ref={searchInputRef}
+              type="text"
+              placeholder="Search in book... (کتاب میں تلاش کریں)"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSearch();
+              }}
+              className="flex-1 h-8 bg-white/10 border-white/20 text-white placeholder:text-white/50 text-sm"
+              dir="auto"
+            />
+            <Button
+              size="sm"
+              onClick={handleSearch}
+              disabled={isSearching || loadingAllText}
+              className="bg-white/20 hover:bg-white/30 h-8"
+            >
+              {isSearching || loadingAllText ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                'Search'
+              )}
+            </Button>
+            {searchResults.length > 0 && (
+              <div className="flex items-center gap-1 text-white text-sm">
+                <span>{currentSearchIndex + 1}/{searchResults.length}</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={goToPrevSearchResult}
+                  className="text-white hover:bg-white/20 h-6 w-6"
+                >
+                  <ArrowUp className="h-3 w-3" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={goToNextSearchResult}
+                  className="text-white hover:bg-white/20 h-6 w-6"
+                >
+                  <ArrowDown className="h-3 w-3" />
+                </Button>
+              </div>
+            )}
+            {searchQuery && searchResults.length === 0 && !isSearching && (
+              <span className="text-white/70 text-sm">No results</span>
+            )}
+          </div>
+          
+          {/* Loading indicator for text extraction */}
+          {loadingAllText && (
+            <div className="flex items-center gap-2 text-white/70 text-xs">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              <span>Loading book text for search...</span>
             </div>
           )}
-          {searchQuery && searchResults.length === 0 && !isSearching && (
-            <span className="text-white/70 text-sm">No results</span>
+          
+          {/* Search result preview */}
+          {searchResults.length > 0 && searchResults[currentSearchIndex] && (
+            <div className="bg-white/10 rounded px-3 py-2 text-white/80 text-sm" dir="auto">
+              <span className="text-white/50">Page {searchResults[currentSearchIndex].pageIndex}: </span>
+              ...{searchResults[currentSearchIndex].text}...
+            </div>
           )}
         </div>
       )}
@@ -350,7 +472,7 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
             file={fileUrl}
             onLoadSuccess={onDocumentLoadSuccess}
             loading={null}
-            className="flex flex-col items-center"
+            className="flex flex-col items-center select-text"
           >
             <Page 
               pageNumber={currentPage} 
@@ -359,6 +481,7 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
               className="shadow-2xl"
               renderTextLayer={true}
               renderAnnotationLayer={true}
+              canvasBackground="white"
             />
           </Document>
         </div>
@@ -393,6 +516,18 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
               className="w-16 h-8 text-center bg-gray-800 border-gray-600 text-white text-sm"
             />
             <span className="text-gray-400 text-sm">of {numPages}</span>
+            
+            {/* Copy Page Text Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleCopyPageText}
+              className="text-white hover:bg-white/10 ml-2"
+              title="Copy entire page text"
+            >
+              <Copy className="h-4 w-4 mr-1" />
+              <span className="hidden sm:inline text-xs">Copy Page</span>
+            </Button>
           </div>
 
           <Button
@@ -423,7 +558,7 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
             size="sm"
             onClick={handleZoomIn}
             className="text-white hover:bg-white/10"
-            disabled={scale >= 3}
+            disabled={scale >= 4}
           >
             <ZoomIn className="h-4 w-4" />
           </Button>
@@ -435,6 +570,7 @@ const PDFViewer = ({ fileUrl, title, onClose }: PDFViewerProps) => {
           <span><kbd className="bg-gray-700 px-1.5 py-0.5 rounded text-gray-300">→</kbd> Next</span>
           <span><kbd className="bg-gray-700 px-1.5 py-0.5 rounded text-gray-300">Ctrl+F</kbd> Search</span>
           <span><kbd className="bg-gray-700 px-1.5 py-0.5 rounded text-gray-300">ESC</kbd> Close</span>
+          <span>Select text → Copy</span>
         </div>
       </div>
     </div>
