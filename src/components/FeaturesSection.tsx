@@ -1,5 +1,6 @@
 import { BookOpen, Users, Calendar, Award, Heart, Sparkles } from "lucide-react";
 import FeatureCard from "./FeatureCard";
+import { AnimatedSection } from "@/hooks/use-scroll-animation";
 
 const features = [
   {
@@ -43,29 +44,34 @@ const FeaturesSection = () => {
 
       <div className="container mx-auto px-4 relative z-10">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="inline-block px-4 py-2 rounded-full bg-primary/10 text-primary font-medium text-sm mb-4 animate-fade-up">
+        <AnimatedSection animation="fade-up" className="text-center max-w-3xl mx-auto mb-16">
+          <span className="inline-block px-4 py-2 rounded-full bg-primary/10 text-primary font-medium text-sm mb-4">
             ✦ Our Features
           </span>
-          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6 animate-fade-up delay-100">
+          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">
             Empowering Islamic Education
           </h2>
-          <p className="text-muted-foreground text-lg animate-fade-up delay-200">
+          <p className="text-muted-foreground text-lg">
             Modern digital tools combined with traditional Islamic values to provide 
             a comprehensive learning experience for our students and parents.
           </p>
-        </div>
+        </AnimatedSection>
 
         {/* Features Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {features.map((feature, index) => (
-            <FeatureCard
+            <AnimatedSection
               key={feature.title}
-              icon={feature.icon}
-              title={feature.title}
-              description={feature.description}
+              animation="scale-up"
               delay={index * 100}
-            />
+            >
+              <FeatureCard
+                icon={feature.icon}
+                title={feature.title}
+                description={feature.description}
+                delay={0}
+              />
+            </AnimatedSection>
           ))}
         </div>
       </div>
