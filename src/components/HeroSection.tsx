@@ -1,4 +1,4 @@
-import { ArrowRight, BookOpen, GraduationCap } from "lucide-react";
+import { ArrowRight, BookOpen, GraduationCap, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import madrasaLogo from "@/assets/madrasa-logo.jpg";
@@ -7,110 +7,118 @@ const HeroSection = () => {
   const { t, isRTL } = useLanguage();
 
   return (
-    <section id="home" className="relative min-h-screen flex items-center overflow-hidden">
-      {/* Background with pattern */}
-      <div className="absolute inset-0 hero-gradient"></div>
-      <div className="absolute inset-0 islamic-pattern opacity-30"></div>
+    <section id="home" className="relative min-h-screen flex flex-col overflow-hidden">
+      {/* Background with enhanced gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[hsl(220,55%,22%)] via-[hsl(220,55%,25%)] to-[hsl(220,60%,18%)]"></div>
+      <div className="absolute inset-0 islamic-pattern opacity-20"></div>
       
       {/* Decorative elements */}
       <div className="absolute top-20 right-10 w-72 h-72 bg-secondary/10 rounded-full blur-3xl animate-float"></div>
-      <div className="absolute bottom-20 left-10 w-96 h-96 bg-gold/5 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-40 left-10 w-96 h-96 bg-gold/5 rounded-full blur-3xl"></div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-secondary/5 rounded-full blur-3xl"></div>
 
-      <div className="container mx-auto px-4 pt-24 pb-16 relative z-10">
-        <div className={`grid lg:grid-cols-2 gap-12 items-center ${isRTL ? 'lg:grid-flow-col-dense' : ''}`}>
-          {/* Content Side */}
-          <div className={`text-center lg:text-left space-y-8 ${isRTL ? 'lg:text-right lg:order-2' : ''}`}>
-            {/* Arabic Bismillah */}
-            <div className="animate-fade-up">
-              <span className="font-arabic text-3xl text-secondary/90 block mb-4">
+      <div className="container mx-auto px-4 pt-28 pb-16 relative z-10 flex-1 flex flex-col">
+        {/* Logo at Top Center */}
+        <div className="flex flex-col items-center mb-8 animate-fade-up">
+          <div className="relative">
+            {/* Glow effect behind logo */}
+            <div className="absolute inset-0 bg-secondary/30 rounded-full blur-2xl scale-110"></div>
+            
+            {/* Logo container */}
+            <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-secondary/50 shadow-2xl">
+              <img
+                src={madrasaLogo}
+                alt="Dar-ul-Ulum Al-Qur'an Wa Sunnah Kalyan Logo"
+                className="w-full h-full object-cover"
+              />
+            </div>
+
+            {/* Decorative ring */}
+            <div className="absolute inset-0 rounded-full border-2 border-secondary/30 scale-125 animate-pulse"></div>
+          </div>
+        </div>
+
+        {/* Main Content - Centered */}
+        <div className="flex-1 flex flex-col items-center justify-center text-center max-w-4xl mx-auto">
+          {/* Arabic Bismillah */}
+          <div className="animate-fade-up mb-6">
+            <div className="inline-flex items-center gap-3">
+              <Star className="w-4 h-4 text-secondary" fill="currentColor" />
+              <span className="font-arabic text-2xl md:text-3xl text-secondary/90">
                 {t('bismillah')}
               </span>
-            </div>
-
-            {/* Main Heading */}
-            <div className="space-y-4 animate-fade-up delay-100">
-              <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-primary-foreground leading-tight">
-                {t('instituteName')}
-                <span className="block text-secondary">{t('waSunnah')}</span>
-              </h1>
-              <p className="text-lg md:text-xl text-primary-foreground/80 font-urdu">
-                {t('instituteUrdu')}
-              </p>
-              <p className="text-base text-secondary font-arabic">
-                {t('obeySunnah')}
-              </p>
-              <p className="text-primary-foreground/70">
-                {t('location')}
-              </p>
-            </div>
-
-            {/* Description */}
-            <p className={`text-primary-foreground/70 text-lg max-w-xl mx-auto lg:mx-0 animate-fade-up delay-200 ${isRTL ? 'font-urdu lg:mr-0' : ''}`}>
-              {t('heroDescription')}
-            </p>
-
-            {/* CTA Buttons */}
-            <div className={`flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-fade-up delay-300 ${isRTL ? 'lg:justify-end' : ''}`}>
-              <Button 
-                size="lg" 
-                className="bg-secondary text-secondary-foreground hover:bg-secondary/90 shadow-glow gap-2 text-base px-8"
-              >
-                <GraduationCap className="w-5 h-5" />
-                {t('enrollNow')}
-                <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="border-primary-foreground/50 text-primary-foreground bg-primary-foreground/5 hover:bg-primary-foreground/20 gap-2 text-base px-8"
-              >
-                <BookOpen className="w-5 h-5" />
-                {t('learnMore')}
-              </Button>
-            </div>
-
-            {/* Stats */}
-            <div className={`grid grid-cols-3 gap-6 pt-8 animate-fade-up delay-400 ${isRTL ? 'lg:text-right' : ''}`}>
-              <div className={`text-center ${isRTL ? 'lg:text-right' : 'lg:text-left'}`}>
-                <div className="font-display text-3xl md:text-4xl font-bold text-secondary">17+</div>
-                <div className={`text-primary-foreground/60 text-sm ${isRTL ? 'font-urdu' : ''}`}>{t('yearsLegacy')}</div>
-              </div>
-              <div className={`text-center ${isRTL ? 'lg:text-right' : 'lg:text-left'}`}>
-                <div className="font-display text-3xl md:text-4xl font-bold text-secondary">500+</div>
-                <div className={`text-primary-foreground/60 text-sm ${isRTL ? 'font-urdu' : ''}`}>{t('students')}</div>
-              </div>
-              <div className={`text-center ${isRTL ? 'lg:text-right' : 'lg:text-left'}`}>
-                <div className="font-display text-3xl md:text-4xl font-bold text-secondary">20+</div>
-                <div className={`text-primary-foreground/60 text-sm ${isRTL ? 'font-urdu' : ''}`}>{t('scholars')}</div>
-              </div>
+              <Star className="w-4 h-4 text-secondary" fill="currentColor" />
             </div>
           </div>
 
-          {/* Logo Side */}
-          <div className={`flex justify-center lg:justify-end animate-fade-up delay-200 ${isRTL ? 'lg:justify-start lg:order-1' : ''}`}>
-            <div className="relative">
-              {/* Glow effect behind logo */}
-              <div className="absolute inset-0 bg-secondary/20 rounded-full blur-3xl scale-75"></div>
-              
-              {/* Logo container */}
-              <div className="relative w-72 h-72 md:w-96 md:h-96 rounded-full overflow-hidden border-4 border-secondary/30 shadow-elevated animate-float">
-                <img
-                  src={madrasaLogo}
-                  alt="Idarah Tarjumat-ul-Qur'an Wa Sunnah Kalyan Logo"
-                  className="w-full h-full object-cover"
-                />
-              </div>
+          {/* Main Heading */}
+          <div className="space-y-4 animate-fade-up delay-100 mb-6">
+            <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-primary-foreground leading-tight">
+              {t('instituteName')}
+              <span className="block text-secondary mt-2">{t('waSunnah')}</span>
+            </h1>
+            <p className="text-lg md:text-xl text-primary-foreground/80 font-urdu">
+              {t('instituteUrdu')}
+            </p>
+            <div className="flex items-center justify-center gap-2">
+              <div className="h-px w-12 bg-gradient-to-r from-transparent to-secondary/60"></div>
+              <p className="text-base text-secondary/90 font-arabic">
+                {t('obeySunnah')}
+              </p>
+              <div className="h-px w-12 bg-gradient-to-l from-transparent to-secondary/60"></div>
+            </div>
+            <p className="text-primary-foreground/60 text-sm md:text-base flex items-center justify-center gap-2">
+              <span className="inline-block w-2 h-2 rounded-full bg-secondary/60"></span>
+              {t('location')}
+              <span className="inline-block w-2 h-2 rounded-full bg-secondary/60"></span>
+            </p>
+          </div>
 
-              {/* Decorative rings */}
-              <div className="absolute inset-0 rounded-full border-2 border-secondary/20 scale-110 animate-pulse"></div>
-              <div className="absolute inset-0 rounded-full border border-secondary/10 scale-125"></div>
+          {/* Description */}
+          <p className={`text-primary-foreground/70 text-base md:text-lg max-w-2xl mx-auto animate-fade-up delay-200 mb-8 leading-relaxed ${isRTL ? 'font-urdu' : ''}`}>
+            {t('heroDescription')}
+          </p>
+
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-up delay-300 mb-10">
+            <Button 
+              size="lg" 
+              className="bg-secondary text-secondary-foreground hover:bg-secondary/90 shadow-lg hover:shadow-xl transition-all duration-300 gap-2 text-base px-8 py-6"
+            >
+              <GraduationCap className="w-5 h-5" />
+              {t('enrollNow')}
+              <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
+            </Button>
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="border-2 border-primary-foreground/40 text-primary-foreground bg-primary-foreground/5 hover:bg-primary-foreground/15 hover:border-primary-foreground/60 gap-2 text-base px-8 py-6 transition-all duration-300"
+            >
+              <BookOpen className="w-5 h-5" />
+              {t('learnMore')}
+            </Button>
+          </div>
+
+          {/* Stats - Enhanced Cards */}
+          <div className="grid grid-cols-3 gap-4 md:gap-8 w-full max-w-2xl animate-fade-up delay-400">
+            <div className="bg-primary-foreground/5 backdrop-blur-sm rounded-xl p-4 md:p-6 border border-primary-foreground/10 hover:border-secondary/30 transition-all duration-300">
+              <div className="font-display text-2xl md:text-4xl font-bold text-secondary mb-1">17+</div>
+              <div className={`text-primary-foreground/60 text-xs md:text-sm ${isRTL ? 'font-urdu' : ''}`}>{t('yearsLegacy')}</div>
+            </div>
+            <div className="bg-primary-foreground/5 backdrop-blur-sm rounded-xl p-4 md:p-6 border border-primary-foreground/10 hover:border-secondary/30 transition-all duration-300">
+              <div className="font-display text-2xl md:text-4xl font-bold text-secondary mb-1">500+</div>
+              <div className={`text-primary-foreground/60 text-xs md:text-sm ${isRTL ? 'font-urdu' : ''}`}>{t('students')}</div>
+            </div>
+            <div className="bg-primary-foreground/5 backdrop-blur-sm rounded-xl p-4 md:p-6 border border-primary-foreground/10 hover:border-secondary/30 transition-all duration-300">
+              <div className="font-display text-2xl md:text-4xl font-bold text-secondary mb-1">20+</div>
+              <div className={`text-primary-foreground/60 text-xs md:text-sm ${isRTL ? 'font-urdu' : ''}`}>{t('scholars')}</div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Bottom wave decoration */}
-      <div className="absolute bottom-0 left-0 right-0">
+      <div className="relative z-10">
         <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
           <path 
             d="M0 120L60 105C120 90 240 60 360 45C480 30 600 30 720 37.5C840 45 960 60 1080 67.5C1200 75 1320 75 1380 75L1440 75V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z" 
