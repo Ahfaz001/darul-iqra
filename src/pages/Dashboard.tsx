@@ -2,10 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import ThemeToggle from '@/components/ThemeToggle';
+import LanguageSelector from '@/components/LanguageSelector';
 import madrasaLogo from '@/assets/madrasa-logo.jpg';
 import { 
   BookOpen, 
@@ -40,6 +42,7 @@ interface UpcomingExam {
 
 const Dashboard: React.FC = () => {
   const { user, role, signOut, loading } = useAuth();
+  const { t, isRTL } = useLanguage();
   const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats>({
     attendanceRate: 0,
@@ -138,56 +141,56 @@ const Dashboard: React.FC = () => {
   };
 
   const quickStats = [
-    { label: 'Attendance Rate', value: `${stats.attendanceRate}%`, icon: Calendar, color: 'from-emerald-500 to-teal-500', bgColor: 'bg-emerald-500/10' },
-    { label: 'Exams Completed', value: `${stats.examsCompleted}`, icon: FileText, color: 'from-amber-500 to-orange-500', bgColor: 'bg-amber-500/10' },
-    { label: 'Average Score', value: `${stats.avgScore}%`, icon: TrendingUp, color: 'from-purple-500 to-pink-500', bgColor: 'bg-purple-500/10' },
-    { label: 'Pending Exams', value: `${stats.pendingExams}`, icon: Award, color: 'from-blue-500 to-cyan-500', bgColor: 'bg-blue-500/10' },
+    { label: t('attendanceRate'), value: `${stats.attendanceRate}%`, icon: Calendar, color: 'from-emerald-500 to-teal-500', bgColor: 'bg-emerald-500/10' },
+    { label: t('examsCompleted'), value: `${stats.examsCompleted}`, icon: FileText, color: 'from-amber-500 to-orange-500', bgColor: 'bg-amber-500/10' },
+    { label: t('averageScore'), value: `${stats.avgScore}%`, icon: TrendingUp, color: 'from-purple-500 to-pink-500', bgColor: 'bg-purple-500/10' },
+    { label: t('pendingExams'), value: `${stats.pendingExams}`, icon: Award, color: 'from-blue-500 to-cyan-500', bgColor: 'bg-blue-500/10' },
   ];
 
   const menuItems = [
     { 
-      title: 'My Exams', 
-      description: 'View and take assigned exams', 
+      title: t('myExams'), 
+      description: t('viewTakeExams'), 
       icon: FileText,
       href: '/exams',
       gradient: 'from-primary/20 to-primary/5',
       iconBg: 'bg-primary/20 text-primary'
     },
     { 
-      title: 'My Results', 
-      description: 'View your exam results and grades', 
+      title: t('myResults'), 
+      description: t('viewResults'), 
       icon: GraduationCap,
       href: '/results',
       gradient: 'from-amber-500/20 to-amber-500/5',
       iconBg: 'bg-amber-500/20 text-amber-600 dark:text-amber-400'
     },
     { 
-      title: 'Attendance', 
-      description: 'View your attendance records', 
+      title: t('attendance'), 
+      description: t('viewAttendance'), 
       icon: Calendar,
       href: '/attendance',
       gradient: 'from-emerald-500/20 to-emerald-500/5',
       iconBg: 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
     },
     { 
-      title: 'Daily Hadith', 
-      description: "Read today's Hadith", 
+      title: t('dailyHadith'), 
+      description: t('readTodayHadith'), 
       icon: BookMarked,
       href: '/hadith',
       gradient: 'from-rose-500/20 to-rose-500/5',
       iconBg: 'bg-rose-500/20 text-rose-600 dark:text-rose-400'
     },
     { 
-      title: 'Books Library', 
-      description: 'Read Islamic books', 
+      title: t('booksLibrary'), 
+      description: t('readBooks'), 
       icon: BookOpen,
       href: '/books',
       gradient: 'from-indigo-500/20 to-indigo-500/5',
       iconBg: 'bg-indigo-500/20 text-indigo-600 dark:text-indigo-400'
     },
     { 
-      title: 'My Profile', 
-      description: 'Manage your account settings', 
+      title: t('myProfile'), 
+      description: t('manageAccount'), 
       icon: User,
       href: '/profile',
       gradient: 'from-blue-500/20 to-blue-500/5',
@@ -224,14 +227,14 @@ const Dashboard: React.FC = () => {
                 </div>
                 <div>
                   <h1 className="font-display font-bold text-primary text-lg flex items-center gap-2">
-                    Student Portal
+                    {t('studentPortal')}
                     <Sparkles className="w-4 h-4 text-secondary" />
                   </h1>
                   <p className="text-xs text-muted-foreground">Idarah Tarjumat-ul-Qur'an Wa Sunnah</p>
                 </div>
               </div>
               
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <Button variant="ghost" size="icon" className="relative">
                   <Bell className="h-5 w-5" />
                   {stats.pendingExams > 0 && (
@@ -240,19 +243,16 @@ const Dashboard: React.FC = () => {
                     </span>
                   )}
                 </Button>
+                <LanguageSelector />
                 <ThemeToggle />
-                <div className="hidden sm:block text-right px-3 py-1 rounded-lg bg-muted/50">
-                  <p className="text-sm font-medium text-foreground">{user?.email?.split('@')[0]}</p>
-                  <p className="text-xs text-muted-foreground capitalize">{role || 'Student'}</p>
-                </div>
                 <Button 
                   variant="outline" 
                   size="sm"
                   onClick={handleSignOut}
                   className="border-border hover:bg-destructive hover:text-destructive-foreground hover:border-destructive"
                 >
-                  <LogOut className="h-4 w-4 mr-2" />
-                  <span className="hidden sm:inline">Logout</span>
+                  <LogOut className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">{t('logout')}</span>
                 </Button>
               </div>
             </div>
@@ -263,12 +263,12 @@ const Dashboard: React.FC = () => {
         <main className="container mx-auto px-4 py-8">
           {/* Welcome Section */}
           <div className="mb-8">
-            <h2 className="text-3xl font-display font-bold text-foreground mb-2">
-              Assalamu Alaikum! 
+            <h2 className={`text-3xl font-display font-bold text-foreground mb-2 ${isRTL ? 'font-urdu' : ''}`}>
+              {t('assalamuAlaikum')}
               <span className="inline-block ml-2 animate-pulse">👋</span>
             </h2>
-            <p className="text-muted-foreground text-lg">
-              Welcome back to your learning portal. Here's your overview for today.
+            <p className={`text-muted-foreground text-lg ${isRTL ? 'font-urdu' : ''}`}>
+              {t('welcomePortal')}
             </p>
           </div>
 
@@ -300,7 +300,7 @@ const Dashboard: React.FC = () => {
                 <div className="p-2 rounded-lg bg-primary/10">
                   <BookMarked className="h-5 w-5 text-primary" />
                 </div>
-                <CardTitle className="text-lg font-display">Hadith of the Day</CardTitle>
+                <CardTitle className="text-lg font-display">{t('hadithOfDay')}</CardTitle>
               </div>
             </CardHeader>
             <CardContent>
@@ -316,9 +316,9 @@ const Dashboard: React.FC = () => {
 
           {/* Menu Grid */}
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-semibold text-foreground">Quick Access</h3>
+            <h3 className={`text-xl font-semibold text-foreground ${isRTL ? 'font-urdu' : ''}`}>{t('quickAccess')}</h3>
             <Button variant="ghost" size="sm" className="text-muted-foreground">
-              View All <ChevronRight className="w-4 h-4 ml-1" />
+              {t('viewAll')} <ChevronRight className={`w-4 h-4 ${isRTL ? 'mr-1 rotate-180' : 'ml-1'}`} />
             </Button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
@@ -347,9 +347,9 @@ const Dashboard: React.FC = () => {
                   <div className="p-2 rounded-lg bg-muted">
                     <Clock className="h-5 w-5 text-muted-foreground" />
                   </div>
-                  <CardTitle className="text-lg">Upcoming Exams</CardTitle>
+                  <CardTitle className="text-lg">{t('upcomingExams')}</CardTitle>
                 </div>
-                <Button variant="ghost" size="sm" onClick={() => navigate('/exams')}>View All</Button>
+                <Button variant="ghost" size="sm" onClick={() => navigate('/exams')}>{t('viewAll')}</Button>
               </div>
             </CardHeader>
             <CardContent>
@@ -358,7 +358,7 @@ const Dashboard: React.FC = () => {
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
                 </div>
               ) : upcomingExams.length === 0 ? (
-                <p className="text-muted-foreground text-center py-4">No upcoming exams</p>
+                <p className="text-muted-foreground text-center py-4">{t('noUpcomingExams')}</p>
               ) : (
                 <div className="space-y-3">
                   {upcomingExams.map((exam, index) => (

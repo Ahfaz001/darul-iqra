@@ -25,7 +25,7 @@ export const translations: Translations = {
   
   // Hero Section
   bismillah: { en: 'بِسْمِ اللَّهِ الرَّحْمَـٰنِ الرَّحِيمِ', ur: 'بِسْمِ اللَّهِ الرَّحْمَـٰنِ الرَّحِيمِ', roman: 'Bismillah ir-Rahman ir-Rahim' },
-  instituteName: { en: 'Idarah Tarjumat-ul-Qur\'an', ur: 'ادارہ ترجمۃ القرآن', roman: 'Idarah Tarjumat-ul-Quran' },
+  instituteName: { en: "Idarah Tarjumat-ul-Qur'an", ur: 'ادارہ ترجمۃ القرآن', roman: 'Idarah Tarjumat-ul-Quran' },
   waSunnah: { en: 'Wa Sunnah', ur: 'والسنہ', roman: 'Wa Sunnah' },
   instituteUrdu: { en: 'ادارة ترجمة القرآن والسنة', ur: 'ادارة ترجمة القرآن والسنة', roman: 'Idarah Tarjumat-ul-Quran Wa Sunnah' },
   obeySunnah: { en: 'اطيعوا الله واطيعوا الرسول', ur: 'اطيعوا الله واطيعوا الرسول', roman: 'Atiullah Wa Atiur Rasool' },
@@ -72,6 +72,34 @@ export const translations: Translations = {
   english: { en: 'English', ur: 'انگریزی', roman: 'English' },
   urdu: { en: 'اردو', ur: 'اردو', roman: 'Urdu' },
   romanUrdu: { en: 'Roman Urdu', ur: 'رومن اردو', roman: 'Roman Urdu' },
+
+  // Dashboard
+  assalamuAlaikum: { en: 'Assalamu Alaikum!', ur: 'السلام علیکم!', roman: 'Assalamu Alaikum!' },
+  welcomePortal: { en: "Welcome back to your learning portal. Here's your overview for today.", ur: 'اپنے تعلیمی پورٹل میں خوش آمدید۔ آج کا خلاصہ یہ ہے۔', roman: "Apne taleemi portal mein khush aamdeed. Aaj ka khulasa yeh hai." },
+  attendanceRate: { en: 'Attendance Rate', ur: 'حاضری کی شرح', roman: 'Hazri ki Sharah' },
+  examsCompleted: { en: 'Exams Completed', ur: 'مکمل امتحانات', roman: 'Mukammal Imtehanaat' },
+  averageScore: { en: 'Average Score', ur: 'اوسط سکور', roman: 'Ausat Score' },
+  pendingExams: { en: 'Pending Exams', ur: 'زیر التوا امتحانات', roman: 'Pending Imtehanaat' },
+  hadithOfDay: { en: 'Hadith of the Day', ur: 'آج کی حدیث', roman: 'Aaj ki Hadith' },
+  quickAccess: { en: 'Quick Access', ur: 'فوری رسائی', roman: 'Fori Rasai' },
+  viewAll: { en: 'View All', ur: 'سب دیکھیں', roman: 'Sab Dekhein' },
+  upcomingExams: { en: 'Upcoming Exams', ur: 'آنے والے امتحانات', roman: 'Aane Wale Imtehanaat' },
+  noUpcomingExams: { en: 'No upcoming exams', ur: 'کوئی آنے والا امتحان نہیں', roman: 'Koi aane wala imtehan nahi' },
+  
+  // Menu Items
+  myExams: { en: 'My Exams', ur: 'میرے امتحانات', roman: 'Mere Imtehanaat' },
+  viewTakeExams: { en: 'View and take assigned exams', ur: 'تفویض کردہ امتحانات دیکھیں', roman: 'Assigned imtehanaat dekhein' },
+  myResults: { en: 'My Results', ur: 'میرے نتائج', roman: 'Mere Nataij' },
+  viewResults: { en: 'View your exam results and grades', ur: 'اپنے امتحانی نتائج دیکھیں', roman: 'Apne imtehani nataij dekhein' },
+  attendance: { en: 'Attendance', ur: 'حاضری', roman: 'Hazri' },
+  viewAttendance: { en: 'View your attendance records', ur: 'اپنے حاضری ریکارڈ دیکھیں', roman: 'Apne hazri record dekhein' },
+  dailyHadith: { en: 'Daily Hadith', ur: 'روزانہ حدیث', roman: 'Rozana Hadith' },
+  readTodayHadith: { en: "Read today's Hadith", ur: 'آج کی حدیث پڑھیں', roman: 'Aaj ki hadith parhein' },
+  booksLibrary: { en: 'Books Library', ur: 'کتب خانہ', roman: 'Kutub Khana' },
+  readBooks: { en: 'Read Islamic books', ur: 'اسلامی کتابیں پڑھیں', roman: 'Islami kitabein parhein' },
+  myProfile: { en: 'My Profile', ur: 'میری پروفائل', roman: 'Meri Profile' },
+  manageAccount: { en: 'Manage your account settings', ur: 'اپنی اکاؤنٹ سیٹنگز دیکھیں', roman: 'Apni account settings dekhein' },
+  student: { en: 'Student', ur: 'طالب علم', roman: 'Talib-e-Ilm' },
 };
 
 interface LanguageContextType {
