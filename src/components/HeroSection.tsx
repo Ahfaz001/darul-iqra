@@ -44,17 +44,14 @@ const HeroSection = () => {
       }}></div>
 
       <div className="container mx-auto px-4 pt-28 pb-16 relative z-10 flex-1 flex flex-col">
-        {/* Logo at Top Center - CLEAN, NO round bg */}
+        {/* Logo at Top Center - Circular, bigger, clean */}
         <div className="flex flex-col items-center mb-8 animate-fade-up">
-          <div className="relative">
-            {/* Logo - clean with sharp border only */}
-            <div className="relative w-32 h-32 md:w-40 md:h-40 overflow-hidden border-4 border-white shadow-2xl rounded-2xl">
-              <img
-                src={madrasaLogo}
-                alt="Dar-ul-Ulum Al-Qur'an Wa Sunnah Kalyan Logo"
-                className="w-full h-full object-cover"
-              />
-            </div>
+          <div className="w-40 h-40 md:w-52 md:h-52 rounded-full overflow-hidden border-4 border-white shadow-2xl">
+            <img
+              src={madrasaLogo}
+              alt="Dar-ul-Ulum Al-Qur'an Wa Sunnah Kalyan Logo"
+              className="w-full h-full object-cover"
+            />
           </div>
         </div>
 
