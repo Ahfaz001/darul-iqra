@@ -148,8 +148,35 @@ const AdmissionManagement = () => {
     setViewDialogOpen(true);
   };
 
+  const sendStatusNotification = async (admission: Admission, newStatus: string) => {
+    if (newStatus !== "approved" && newStatus !== "rejected") return;
+    
+    try {
+      const { error } = await supabase.functions.invoke("send-admission-notification", {
+        body: {
+          studentName: admission.full_name,
+          mobileNumber: admission.mobile_number,
+          status: newStatus,
+          notes: formData.notes || null,
+        },
+      });
+
+      if (error) {
+        console.error("Notification error:", error);
+        toast.error("Failed to send notification");
+      } else {
+        toast.success(`Notification sent for ${newStatus} status`);
+      }
+    } catch (error: any) {
+      console.error("Error sending notification:", error);
+    }
+  };
+
   const handleSaveEdit = async () => {
     if (!selectedAdmission) return;
+
+    const statusChanged = selectedAdmission.status !== formData.status;
+    const newStatus = formData.status;
 
     try {
       const { error } = await supabase
@@ -170,6 +197,12 @@ const AdmissionManagement = () => {
       if (error) throw error;
 
       toast.success("Admission updated successfully");
+      
+      // Send notification if status changed to approved/rejected
+      if (statusChanged && (newStatus === "approved" || newStatus === "rejected")) {
+        await sendStatusNotification(selectedAdmission, newStatus);
+      }
+
       setEditDialogOpen(false);
       fetchAdmissions();
     } catch (error: any) {
