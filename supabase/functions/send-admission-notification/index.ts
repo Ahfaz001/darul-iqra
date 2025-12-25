@@ -10,7 +10,7 @@ const corsHeaders = {
 
 interface AdmissionNotificationRequest {
   studentName: string;
-  mobileNumber: string;
+  studentEmail: string;
   status: "approved" | "rejected";
   notes?: string;
 }
@@ -21,9 +21,9 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { studentName, mobileNumber, status, notes }: AdmissionNotificationRequest = await req.json();
+    const { studentName, studentEmail, status, notes }: AdmissionNotificationRequest = await req.json();
 
-    console.log(`Sending ${status} notification to ${studentName}`);
+    console.log(`Sending ${status} notification to ${studentName} at ${studentEmail}`);
 
     const isApproved = status === "approved";
     const subject = isApproved 
@@ -81,7 +81,7 @@ const handler = async (req: Request): Promise<Response> => {
         </div>
       `;
 
-    console.log(`Notification prepared for ${studentName} (${mobileNumber}), status: ${status}`);
+    console.log(`Notification prepared for ${studentName} (${studentEmail}), status: ${status}`);
     
     const emailRes = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -91,7 +91,7 @@ const handler = async (req: Request): Promise<Response> => {
       },
       body: JSON.stringify({
         from: "Idarah <onboarding@resend.dev>",
-        to: ["delivered@resend.dev"],
+        to: [studentEmail],
         subject: subject,
         html: htmlContent,
       }),

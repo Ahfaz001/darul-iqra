@@ -32,6 +32,7 @@ const admissionSchema = z.object({
   father_name: z.string().min(2, "Father's name is required").max(100),
   husband_name: z.string().max(100).optional(),
   age: z.coerce.number().min(10, "Age must be at least 10").max(100, "Age must be less than 100"),
+  email: z.string().email("Please enter a valid email address"),
   mobile_number: z.string().min(10, "Mobile number is required").max(15),
   whatsapp_number: z.string().max(15).optional(),
   education_medium: z.string().min(1, "Please select education medium"),
@@ -52,6 +53,7 @@ const AdmissionForm = () => {
       father_name: "",
       husband_name: "",
       age: undefined,
+      email: "",
       mobile_number: "",
       whatsapp_number: "",
       education_medium: "",
@@ -67,6 +69,7 @@ const AdmissionForm = () => {
         father_name: data.father_name,
         husband_name: data.husband_name || null,
         age: data.age,
+        email: data.email,
         mobile_number: data.mobile_number,
         whatsapp_number: data.whatsapp_number || null,
         education_medium: data.education_medium,
@@ -299,6 +302,20 @@ const AdmissionForm = () => {
                   <h3 className="text-lg font-semibold text-foreground border-b pb-2">
                     2. Contact Details
                   </h3>
+
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email Address *</FormLabel>
+                        <FormControl>
+                          <Input type="email" placeholder="Enter your email address" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                   
                   <FormField
                     control={form.control}
