@@ -62,6 +62,7 @@ interface Admission {
   father_name: string;
   husband_name: string | null;
   age: number;
+  email: string | null;
   mobile_number: string;
   whatsapp_number: string | null;
   education_medium: string;
@@ -83,12 +84,12 @@ const AdmissionManagement = () => {
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
 
-  // Form states for editing/adding
   const [formData, setFormData] = useState({
     full_name: "",
     father_name: "",
     husband_name: "",
     age: "",
+    email: "",
     mobile_number: "",
     whatsapp_number: "",
     education_medium: "",
@@ -134,6 +135,7 @@ const AdmissionManagement = () => {
       father_name: admission.father_name,
       husband_name: admission.husband_name || "",
       age: admission.age.toString(),
+      email: admission.email || "",
       mobile_number: admission.mobile_number,
       whatsapp_number: admission.whatsapp_number || "",
       education_medium: admission.education_medium,
@@ -149,15 +151,20 @@ const AdmissionManagement = () => {
   };
 
   const sendStatusNotification = async (
-    admission: Pick<Admission, "full_name" | "mobile_number">,
+    admission: Pick<Admission, "full_name" | "email">,
     newStatus: "approved" | "rejected",
     notes?: string | null
   ) => {
+    if (!admission.email) {
+      console.log("No email provided, skipping notification");
+      return;
+    }
+
     try {
       const { error } = await supabase.functions.invoke("send-admission-notification", {
         body: {
           studentName: admission.full_name,
-          mobileNumber: admission.mobile_number,
+          studentEmail: admission.email,
           status: newStatus,
           notes: notes ?? null,
         },
@@ -167,7 +174,7 @@ const AdmissionManagement = () => {
         console.error("Notification error:", error);
         toast.error("Failed to send notification");
       } else {
-        toast.success(`Notification sent: ${newStatus}`);
+        toast.success(`Notification sent to ${admission.email}`);
       }
     } catch (error: any) {
       console.error("Error sending notification:", error);
@@ -193,7 +200,7 @@ const AdmissionManagement = () => {
       toast.success(`Status updated: ${display}`);
 
       if (newStatus === "approved" || newStatus === "rejected") {
-        await sendStatusNotification(admission, newStatus, admission.notes);
+        await sendStatusNotification({ full_name: admission.full_name, email: admission.email }, newStatus, admission.notes);
       }
     } catch (error: any) {
       console.error("Error updating status:", error);
@@ -207,10 +214,9 @@ const AdmissionManagement = () => {
     const statusChanged = selectedAdmission.status !== formData.status;
     const newStatus = formData.status;
 
-    const admissionForNotify: Admission = {
-      ...selectedAdmission,
+    const admissionForNotify = {
       full_name: formData.full_name,
-      mobile_number: formData.mobile_number,
+      email: formData.email || null,
     };
 
     try {
@@ -221,6 +227,7 @@ const AdmissionManagement = () => {
           father_name: formData.father_name,
           husband_name: formData.husband_name || null,
           age: parseInt(formData.age),
+          email: formData.email || null,
           mobile_number: formData.mobile_number,
           whatsapp_number: formData.whatsapp_number || null,
           education_medium: formData.education_medium,
@@ -256,6 +263,7 @@ const AdmissionManagement = () => {
         father_name: formData.father_name,
         husband_name: formData.husband_name || null,
         age: parseInt(formData.age),
+        email: formData.email || null,
         mobile_number: formData.mobile_number,
         whatsapp_number: formData.whatsapp_number || null,
         education_medium: formData.education_medium,
@@ -296,6 +304,7 @@ const AdmissionManagement = () => {
       father_name: "",
       husband_name: "",
       age: "",
+      email: "",
       mobile_number: "",
       whatsapp_number: "",
       education_medium: "",
@@ -310,6 +319,7 @@ const AdmissionManagement = () => {
       "Father Name",
       "Husband Name",
       "Age",
+      "Email",
       "Mobile",
       "WhatsApp",
       "Education Medium",
@@ -323,6 +333,7 @@ const AdmissionManagement = () => {
       a.father_name,
       a.husband_name || "",
       a.age,
+      a.email || "",
       a.mobile_number,
       a.whatsapp_number || "",
       a.education_medium,
@@ -377,6 +388,7 @@ const AdmissionManagement = () => {
         <div class="info-row"><span class="label">Age:</span><span class="value">${admission.age}</span></div>
         
         <h2>2. Contact Details</h2>
+        <div class="info-row"><span class="label">Email:</span><span class="value">${admission.email || "N/A"}</span></div>
         <div class="info-row"><span class="label">Mobile Number:</span><span class="value">${admission.mobile_number}</span></div>
         <div class="info-row"><span class="label">WhatsApp Number:</span><span class="value">${admission.whatsapp_number || "N/A"}</span></div>
         
@@ -406,6 +418,7 @@ Admission Application
 Name: ${admission.full_name}
 Father: ${admission.father_name}
 Age: ${admission.age}
+Email: ${admission.email || "N/A"}
 Mobile: ${admission.mobile_number}
 WhatsApp: ${admission.whatsapp_number || "N/A"}
 Education: ${admission.education_medium}
@@ -507,6 +520,14 @@ Date: ${format(new Date(admission.submission_date), "dd MMM yyyy")}
                       type="number"
                       value={formData.age}
                       onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Email</Label>
+                    <Input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     />
                   </div>
                   <div className="space-y-2">
@@ -780,6 +801,10 @@ Date: ${format(new Date(admission.submission_date), "dd MMM yyyy")}
                     <p className="font-medium">{selectedAdmission.age}</p>
                   </div>
                   <div>
+                    <p className="text-sm text-muted-foreground">Email</p>
+                    <p className="font-medium">{selectedAdmission.email || "N/A"}</p>
+                  </div>
+                  <div>
                     <p className="text-sm text-muted-foreground">Mobile</p>
                     <p className="font-medium">{selectedAdmission.mobile_number}</p>
                   </div>
@@ -865,6 +890,14 @@ Date: ${format(new Date(admission.submission_date), "dd MMM yyyy")}
                   type="number"
                   value={formData.age}
                   onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Email</Label>
+                <Input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 />
               </div>
               <div className="space-y-2">

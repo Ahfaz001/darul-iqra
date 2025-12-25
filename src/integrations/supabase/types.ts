@@ -20,6 +20,7 @@ export type Database = {
           created_at: string
           declaration_agreed: boolean
           education_medium: string
+          email: string | null
           father_name: string
           full_name: string
           husband_name: string | null
@@ -36,6 +37,7 @@ export type Database = {
           created_at?: string
           declaration_agreed?: boolean
           education_medium: string
+          email?: string | null
           father_name: string
           full_name: string
           husband_name?: string | null
@@ -52,6 +54,7 @@ export type Database = {
           created_at?: string
           declaration_agreed?: boolean
           education_medium?: string
+          email?: string | null
           father_name?: string
           full_name?: string
           husband_name?: string | null
