@@ -272,6 +272,15 @@ const AdminPanel: React.FC = () => {
       adminOnly: false
     },
     { 
+      title: 'New Admissions', 
+      description: 'View and manage admission applications', 
+      icon: UserPlus,
+      href: '/admin/admissions',
+      gradient: 'from-teal-500/20 to-teal-500/5',
+      iconBg: 'bg-teal-500/20 text-teal-600 dark:text-teal-400',
+      adminOnly: true
+    },
+    { 
       title: 'Reports & Analytics', 
       description: 'View performance reports', 
       icon: BarChart3,

@@ -32,6 +32,8 @@ import Reports from "./pages/admin/Reports";
 import StudentExams from "./pages/StudentExams";
 import TakeExam from "./pages/TakeExam";
 import NotFound from "./pages/NotFound";
+import AdmissionForm from "./pages/AdmissionForm";
+import AdmissionManagement from "./pages/admin/AdmissionManagement";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +49,7 @@ const App = () => (
               <AuthProvider>
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/admission" element={<AdmissionForm />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/admin-login" element={<AdminLogin />} />
               <Route path="/reset-password" element={<ResetPassword />} />
@@ -199,6 +202,14 @@ const App = () => (
                 element={
                   <ProtectedRoute allowedRoles={['admin']}>
                     <Reports />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/admissions" 
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdmissionManagement />
                   </ProtectedRoute>
                 } 
               />

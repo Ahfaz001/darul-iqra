@@ -1,11 +1,13 @@
-import { ArrowRight, BookOpen, GraduationCap, Star, Sparkles } from "lucide-react";
+import { ArrowRight, BookOpen, GraduationCap, Star, Sparkles, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useNavigate } from "react-router-dom";
 import madrasaLogo from "@/assets/madrasa-logo.jpg";
 import { useEffect, useState } from "react";
 
 const HeroSection = () => {
   const { t, isRTL } = useLanguage();
+  const navigate = useNavigate();
   const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
@@ -102,11 +104,20 @@ const HeroSection = () => {
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center animate-fade-up delay-300 mb-8 sm:mb-10 w-full px-4 sm:px-0">
             <Button 
               size="lg" 
+              onClick={() => navigate('/admission')}
+              className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:from-emerald-600 hover:to-teal-700 shadow-xl hover:shadow-2xl transition-all duration-300 gap-2 text-sm sm:text-base px-6 sm:px-8 py-5 sm:py-6 font-bold w-full sm:w-auto"
+            >
+              <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
+              Apply for Admission
+              <ArrowRight className={`w-3 h-3 sm:w-4 sm:h-4 ${isRTL ? 'rotate-180' : ''}`} />
+            </Button>
+            <Button 
+              size="lg" 
+              onClick={() => navigate('/auth')}
               className="bg-gradient-to-r from-amber-500 to-orange-600 text-white hover:from-amber-600 hover:to-orange-700 shadow-xl hover:shadow-2xl transition-all duration-300 gap-2 text-sm sm:text-base px-6 sm:px-8 py-5 sm:py-6 font-bold w-full sm:w-auto"
             >
               <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5" />
               {t('enrollNow')}
-              <ArrowRight className={`w-3 h-3 sm:w-4 sm:h-4 ${isRTL ? 'rotate-180' : ''}`} />
             </Button>
             <Button 
               size="lg" 
