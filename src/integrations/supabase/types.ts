@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      admissions: {
+        Row: {
+          age: number
+          created_at: string
+          declaration_agreed: boolean
+          education_medium: string
+          father_name: string
+          full_name: string
+          husband_name: string | null
+          id: string
+          mobile_number: string
+          notes: string | null
+          status: string
+          submission_date: string
+          updated_at: string
+          whatsapp_number: string | null
+        }
+        Insert: {
+          age: number
+          created_at?: string
+          declaration_agreed?: boolean
+          education_medium: string
+          father_name: string
+          full_name: string
+          husband_name?: string | null
+          id?: string
+          mobile_number: string
+          notes?: string | null
+          status?: string
+          submission_date?: string
+          updated_at?: string
+          whatsapp_number?: string | null
+        }
+        Update: {
+          age?: number
+          created_at?: string
+          declaration_agreed?: boolean
+          education_medium?: string
+          father_name?: string
+          full_name?: string
+          husband_name?: string | null
+          id?: string
+          mobile_number?: string
+          notes?: string | null
+          status?: string
+          submission_date?: string
+          updated_at?: string
+          whatsapp_number?: string | null
+        }
+        Relationships: []
+      }
       attendance: {
         Row: {
           created_at: string
