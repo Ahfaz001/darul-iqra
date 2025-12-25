@@ -148,24 +148,75 @@ const AdmissionForm = () => {
             <h3 className="text-xl font-bold text-primary mt-2">"Uloome Shari'ah Course"</h3>
             <p className="text-amber-600 font-medium mt-2">For Females Only</p>
             
-            <div className="grid grid-cols-3 gap-4 mt-6 text-sm">
-              <div className="bg-muted/50 rounded-lg p-3">
-                <p className="font-semibold text-foreground">Mode</p>
-                <p className="text-muted-foreground">Offline Only</p>
+              <div className="grid grid-cols-3 gap-4 mt-6 text-sm">
+                <div className="bg-muted/50 rounded-lg p-3">
+                  <p className="font-semibold text-foreground">Mode</p>
+                  <p className="text-muted-foreground">Offline Only</p>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-3">
+                  <p className="font-semibold text-foreground">Fee</p>
+                  <p className="text-emerald-600 font-medium">Free</p>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-3">
+                  <p className="font-semibold text-foreground">Duration</p>
+                  <p className="text-muted-foreground">5 Years</p>
+                </div>
               </div>
-              <div className="bg-muted/50 rounded-lg p-3">
-                <p className="font-semibold text-foreground">Fee</p>
-                <p className="text-emerald-600 font-medium">Free</p>
+              
+              <p className="mt-4 text-muted-foreground">
+                Instructor: <span className="font-medium text-foreground">Alimah Aayesha Muneer Khan</span>
+              </p>
+              <p className="text-sm text-muted-foreground">Time: 4:30 to 6:00 PM</p>
+            </CardContent>
+        </Card>
+
+        {/* Course Subjects Card */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-center text-lg text-emerald-600">Course Subjects</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-3 gap-4">
+              {/* Ilm e Qur'an */}
+              <div className="bg-primary/5 rounded-lg p-4 border border-primary/20">
+                <h4 className="font-bold text-primary mb-3 flex items-center gap-2">
+                  📖 Ilm e Qur'an
+                </h4>
+                <ul className="space-y-1 text-sm text-muted-foreground">
+                  <li>• Qur'an word to word Translation & Tafseer</li>
+                  <li>• Arabic Grammar</li>
+                  <li>• Tajweed</li>
+                  <li>• Hifz 30th Parah & Other Selected Surah</li>
+                </ul>
               </div>
-              <div className="bg-muted/50 rounded-lg p-3">
-                <p className="font-semibold text-foreground">Duration</p>
-                <p className="text-muted-foreground">5 Years</p>
+              
+              {/* Ilm e Hadees */}
+              <div className="bg-secondary/5 rounded-lg p-4 border border-secondary/20">
+                <h4 className="font-bold text-secondary mb-3 flex items-center gap-2">
+                  📚 Ilm e Hadees
+                </h4>
+                <ul className="space-y-1 text-sm text-muted-foreground">
+                  <li>• Bulugul Maram</li>
+                  <li>• Riyaz us Sawliheen (Sharah & word to word Translation)</li>
+                  <li>• Hifz e Hadees - 115 with meaning</li>
+                </ul>
+              </div>
+              
+              {/* Other Subjects */}
+              <div className="bg-accent/5 rounded-lg p-4 border border-accent/20">
+                <h4 className="font-bold text-accent-foreground mb-3 flex items-center gap-2">
+                  📜 Other Subjects
+                </h4>
+                <ul className="space-y-1 text-sm text-muted-foreground">
+                  <li>• Aqeeday e Tawheed</li>
+                  <li>• Seerat e Nabwi ﷺ</li>
+                  <li>• Seerat e Sahaba & Sahabiyat</li>
+                  <li>• Hifz e Du'a</li>
+                  <li>• Saheeh Tarikhe Islam</li>
+                  <li>• Minhaaj ul Arbia</li>
+                </ul>
               </div>
             </div>
-            
-            <p className="mt-4 text-muted-foreground">
-              Instructor: <span className="font-medium text-foreground">Alimah Aayesha Muneer Khan</span>
-            </p>
           </CardContent>
         </Card>
 
