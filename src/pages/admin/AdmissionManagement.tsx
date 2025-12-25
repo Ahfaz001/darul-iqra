@@ -363,7 +363,8 @@ Date: ${format(new Date(admission.submission_date), "dd MMM yyyy")}
       approved: "default",
       rejected: "destructive",
     };
-    return <Badge variant={variants[status] || "outline"}>{status}</Badge>;
+    const displayText = status.charAt(0).toUpperCase() + status.slice(1);
+    return <Badge variant={variants[status] || "outline"}>{displayText}</Badge>;
   };
 
   return (
