@@ -148,16 +148,18 @@ const AdmissionManagement = () => {
     setViewDialogOpen(true);
   };
 
-  const sendStatusNotification = async (admission: Admission, newStatus: string) => {
-    if (newStatus !== "approved" && newStatus !== "rejected") return;
-    
+  const sendStatusNotification = async (
+    admission: Pick<Admission, "full_name" | "mobile_number">,
+    newStatus: "approved" | "rejected",
+    notes?: string | null
+  ) => {
     try {
       const { error } = await supabase.functions.invoke("send-admission-notification", {
         body: {
           studentName: admission.full_name,
           mobileNumber: admission.mobile_number,
           status: newStatus,
-          notes: formData.notes || null,
+          notes: notes ?? null,
         },
       });
 
@@ -165,10 +167,37 @@ const AdmissionManagement = () => {
         console.error("Notification error:", error);
         toast.error("Failed to send notification");
       } else {
-        toast.success(`Notification sent for ${newStatus} status`);
+        toast.success(`Notification sent: ${newStatus}`);
       }
     } catch (error: any) {
       console.error("Error sending notification:", error);
+    }
+  };
+
+  const handleQuickStatusChange = async (admission: Admission, newStatus: string) => {
+    if (newStatus === admission.status) return;
+
+    try {
+      const { error } = await supabase
+        .from("admissions")
+        .update({ status: newStatus })
+        .eq("id", admission.id);
+
+      if (error) throw error;
+
+      setAdmissions((prev) =>
+        prev.map((a) => (a.id === admission.id ? { ...a, status: newStatus } : a))
+      );
+
+      const display = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
+      toast.success(`Status updated: ${display}`);
+
+      if (newStatus === "approved" || newStatus === "rejected") {
+        await sendStatusNotification(admission, newStatus, admission.notes);
+      }
+    } catch (error: any) {
+      console.error("Error updating status:", error);
+      toast.error("Failed to update status");
     }
   };
 
@@ -177,6 +206,12 @@ const AdmissionManagement = () => {
 
     const statusChanged = selectedAdmission.status !== formData.status;
     const newStatus = formData.status;
+
+    const admissionForNotify: Admission = {
+      ...selectedAdmission,
+      full_name: formData.full_name,
+      mobile_number: formData.mobile_number,
+    };
 
     try {
       const { error } = await supabase
@@ -197,10 +232,13 @@ const AdmissionManagement = () => {
       if (error) throw error;
 
       toast.success("Admission updated successfully");
-      
-      // Send notification if status changed to approved/rejected
+
       if (statusChanged && (newStatus === "approved" || newStatus === "rejected")) {
-        await sendStatusNotification(selectedAdmission, newStatus);
+        await sendStatusNotification(
+          admissionForNotify,
+          newStatus,
+          formData.notes ? formData.notes : null
+        );
       }
 
       setEditDialogOpen(false);
@@ -631,7 +669,21 @@ Date: ${format(new Date(admission.submission_date), "dd MMM yyyy")}
                         <TableCell>{admission.age}</TableCell>
                         <TableCell>{admission.mobile_number}</TableCell>
                         <TableCell className="capitalize">{admission.education_medium}</TableCell>
-                        <TableCell>{getStatusBadge(admission.status)}</TableCell>
+                        <TableCell>
+                          <Select
+                            value={admission.status}
+                            onValueChange={(value) => handleQuickStatusChange(admission, value)}
+                          >
+                            <SelectTrigger className="h-8 w-[140px]">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="pending">Pending</SelectItem>
+                              <SelectItem value="approved">Approved</SelectItem>
+                              <SelectItem value="rejected">Rejected</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
                         <TableCell>
                           {format(new Date(admission.submission_date), "dd MMM yyyy")}
                         </TableCell>
