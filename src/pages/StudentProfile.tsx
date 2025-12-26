@@ -20,7 +20,9 @@ import {
   TrendingUp,
   Check,
   X,
-  Clock
+  Clock,
+  LogOut,
+  Loader2
 } from 'lucide-react';
 
 interface Profile {
@@ -50,7 +52,7 @@ interface AttendanceRecord {
 }
 
 const StudentProfile: React.FC = () => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
   
@@ -59,6 +61,7 @@ const StudentProfile: React.FC = () => {
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   
   // Form state
   const [fullName, setFullName] = useState('');
@@ -164,6 +167,26 @@ const StudentProfile: React.FC = () => {
       });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    try {
+      await signOut();
+      navigate('/');
+      toast({
+        title: "Success",
+        description: "Logged out successfully"
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to logout",
+        variant: "destructive"
+      });
+    } finally {
+      setLoggingOut(false);
     }
   };
 
@@ -428,6 +451,36 @@ const StudentProfile: React.FC = () => {
                       <div className="w-3 h-3 bg-blue-100 rounded"></div> Excused
                     </span>
                   </div>
+                </CardContent>
+              </Card>
+
+              {/* Logout Section */}
+              <Card className="bg-white border-destructive/30 dark:bg-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-destructive">
+                    <LogOut className="h-5 w-5" />
+                    Logout
+                  </CardTitle>
+                  <CardDescription>
+                    Sign out of your student account
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    This will sign you out of your account. You will need to login again to access the student portal.
+                  </p>
+                  <Button 
+                    variant="destructive"
+                    onClick={handleLogout}
+                    disabled={loggingOut}
+                  >
+                    {loggingOut ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <LogOut className="h-4 w-4 mr-2" />
+                    )}
+                    {loggingOut ? 'Logging out...' : 'Logout'}
+                  </Button>
                 </CardContent>
               </Card>
             </div>
