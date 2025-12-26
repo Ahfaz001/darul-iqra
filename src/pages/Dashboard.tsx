@@ -185,6 +185,14 @@ const Dashboard: React.FC = () => {
       iconBg: 'bg-indigo-500/20 text-indigo-600 dark:text-indigo-400'
     },
     { 
+      title: 'القرآن الكریم', 
+      description: 'Read Holy Quran', 
+      icon: BookOpen,
+      href: '/quran',
+      gradient: 'from-emerald-500/20 to-emerald-500/5',
+      iconBg: 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+    },
+    { 
       title: t('myProfile'), 
       description: t('manageAccount'), 
       icon: User,
