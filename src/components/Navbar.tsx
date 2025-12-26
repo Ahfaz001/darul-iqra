@@ -157,25 +157,14 @@ const Navbar = () => {
                 </Button>
               </>
             ) : (
-              <>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className={`gap-2 ${scrolled ? 'border-border hover:bg-primary hover:text-primary-foreground' : 'border-slate-600 dark:border-white/30 text-slate-800 dark:text-white hover:bg-slate-200/50 dark:hover:bg-white/10'}`}
-                  onClick={() => navigate('/auth')}
-                >
-                  <User className="w-4 h-4" />
-                  {t('login')}
-                </Button>
-                <Button 
-                  size="sm" 
-                  className="gap-2 bg-gradient-to-r from-secondary to-gold hover:from-secondary/90 hover:to-gold/90 text-secondary-foreground shadow-lg"
-                  onClick={() => navigate('/auth')}
-                >
-                  <BookOpen className="w-4 h-4" />
-                  {t('studentPortal')}
-                </Button>
-              </>
+              <Button 
+                size="sm" 
+                className="gap-2 bg-gradient-to-r from-secondary to-gold hover:from-secondary/90 hover:to-gold/90 text-secondary-foreground shadow-lg"
+                onClick={() => navigate('/auth')}
+              >
+                <BookOpen className="w-4 h-4" />
+                {t('studentPortal')}
+              </Button>
             )}
           </div>
 
@@ -256,29 +245,16 @@ const Navbar = () => {
                     </Button>
                   </>
                 ) : (
-                  <>
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-center gap-2"
-                      onClick={() => {
-                        navigate('/auth');
-                        setIsOpen(false);
-                      }}
-                    >
-                      <User className="w-4 h-4" />
-                      {t('login')}
-                    </Button>
-                    <Button 
-                      className="w-full justify-center gap-2 bg-gradient-to-r from-secondary to-gold text-secondary-foreground"
-                      onClick={() => {
-                        navigate('/auth');
-                        setIsOpen(false);
-                      }}
-                    >
-                      <BookOpen className="w-4 h-4" />
-                      {t('studentPortal')}
-                    </Button>
-                  </>
+                  <Button 
+                    className="w-full justify-center gap-2 bg-gradient-to-r from-secondary to-gold text-secondary-foreground"
+                    onClick={() => {
+                      navigate('/auth');
+                      setIsOpen(false);
+                    }}
+                  >
+                    <BookOpen className="w-4 h-4" />
+                    {t('studentPortal')}
+                  </Button>
                 )}
               </div>
             </div>
