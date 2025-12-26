@@ -159,8 +159,8 @@ const Reports: React.FC = () => {
         <meta name="description" content="View performance reports and analytics" />
       </Helmet>
 
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50">
-        <header className="bg-white border-b border-border/50 sticky top-0 z-50">
+      <div className="min-h-screen bg-background">
+        <header className="bg-card border-b border-border/50 sticky top-0 z-50">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -196,7 +196,7 @@ const Reports: React.FC = () => {
         <main className="container mx-auto px-4 py-8">
           {/* Quick Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <Card className="bg-white border-border/30">
+            <Card className="bg-card border-border/30">
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div>
@@ -214,7 +214,7 @@ const Reports: React.FC = () => {
                 </div>
               </CardContent>
             </Card>
-            <Card className="bg-white border-border/30">
+            <Card className="bg-card border-border/30">
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div>
@@ -230,7 +230,7 @@ const Reports: React.FC = () => {
                 </div>
               </CardContent>
             </Card>
-            <Card className="bg-white border-border/30">
+            <Card className="bg-card border-border/30">
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div>
@@ -246,7 +246,7 @@ const Reports: React.FC = () => {
                 </div>
               </CardContent>
             </Card>
-            <Card className="bg-white border-border/30">
+            <Card className="bg-card border-border/30">
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div>
@@ -273,7 +273,7 @@ const Reports: React.FC = () => {
             {reportTypes.map((report) => (
               <Card 
                 key={report.title} 
-                className="bg-white border-border/30 hover:shadow-md transition-shadow cursor-pointer"
+                className="bg-card border-border/30 hover:shadow-md transition-shadow cursor-pointer"
               >
                 <CardContent className="p-6">
                   <div className="flex items-start gap-4">

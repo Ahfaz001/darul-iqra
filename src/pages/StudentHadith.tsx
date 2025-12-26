@@ -168,7 +168,7 @@ const StudentHadith: React.FC = () => {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : filteredBooks.length === 0 ? (
-            <Card className="bg-white border-border/30">
+            <Card className="bg-card border-border/30">
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <BookOpen className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold text-foreground mb-2">
@@ -187,7 +187,7 @@ const StudentHadith: React.FC = () => {
               {filteredBooks.map((book) => (
                 <Card 
                   key={book.id} 
-                  className="bg-white border-border/30 hover:shadow-lg transition-all duration-300 group cursor-pointer"
+                  className="bg-card border-border/30 hover:shadow-lg transition-all duration-300 group cursor-pointer"
                   onClick={() => window.open(book.file_url, '_blank')}
                 >
                   <CardContent className="p-6">
@@ -241,7 +241,7 @@ const StudentHadith: React.FC = () => {
           )}
 
           {/* Info Card */}
-          <Card className="mt-8 bg-gradient-to-r from-primary/5 to-emerald-50 border-primary/20">
+          <Card className="mt-8 bg-gradient-to-r from-primary/5 to-emerald-500/10 dark:from-primary/10 dark:to-emerald-500/5 border-primary/20">
             <CardContent className="p-6">
               <div className="flex items-start gap-4">
                 <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">

@@ -23,8 +23,8 @@ const ContentManagement: React.FC = () => {
         <meta name="description" content="Upload and manage learning materials" />
       </Helmet>
 
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50">
-        <header className="bg-white border-b border-border/50 sticky top-0 z-50">
+      <div className="min-h-screen bg-background">
+        <header className="bg-card border-b border-border/50 sticky top-0 z-50">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -59,7 +59,7 @@ const ContentManagement: React.FC = () => {
 
         <main className="container mx-auto px-4 py-8">
           {/* Upload Area */}
-          <Card className="bg-white border-border/30 mb-8">
+          <Card className="bg-card border-border/30 mb-8">
             <CardContent className="p-8">
               <div className="border-2 border-dashed border-border rounded-xl p-12 text-center hover:border-primary/50 transition-colors cursor-pointer">
                 <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -82,7 +82,7 @@ const ContentManagement: React.FC = () => {
           <h2 className="text-lg font-semibold mb-4">Content Categories</h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             {contentCategories.map((category) => (
-              <Card key={category.name} className="bg-white border-border/30 hover:shadow-md transition-shadow cursor-pointer">
+              <Card key={category.name} className="bg-card border-border/30 hover:shadow-md transition-shadow cursor-pointer">
                 <CardContent className="p-6 text-center">
                   <div className={`w-12 h-12 ${category.color} rounded-xl flex items-center justify-center mx-auto mb-3`}>
                     <category.icon className="h-6 w-6" />
@@ -95,7 +95,7 @@ const ContentManagement: React.FC = () => {
           </div>
 
           {/* Empty State */}
-          <Card className="bg-white border-border/30">
+          <Card className="bg-card border-border/30">
             <CardContent className="flex flex-col items-center justify-center py-12">
               <FolderOpen className="h-16 w-16 text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold text-foreground mb-2">No Content Yet</h3>

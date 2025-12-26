@@ -159,9 +159,9 @@ const ExamManagement: React.FC = () => {
         <meta name="description" content="Create and manage exams for students" />
       </Helmet>
 
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50">
+      <div className="min-h-screen bg-background">
         {/* Header */}
-        <header className="bg-white border-b border-border/50 sticky top-0 z-50">
+        <header className="bg-card border-b border-border/50 sticky top-0 z-50">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -300,7 +300,7 @@ const ExamManagement: React.FC = () => {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : exams.length === 0 ? (
-            <Card className="bg-white border-border/30">
+            <Card className="bg-card border-border/30">
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <FileText className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold text-foreground mb-2">No Exams Yet</h3>
@@ -316,7 +316,7 @@ const ExamManagement: React.FC = () => {
           ) : (
             <div className="grid gap-4">
               {exams.map((exam) => (
-                <Card key={exam.id} className="bg-white border-border/30 hover:shadow-md transition-shadow">
+                <Card key={exam.id} className="bg-card border-border/30 hover:shadow-md transition-shadow">
                   <CardContent className="p-6">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div className="flex-1">

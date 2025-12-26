@@ -133,8 +133,8 @@ const UserManagement: React.FC = () => {
         <meta name="description" content="Manage users and their roles" />
       </Helmet>
 
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50">
-        <header className="bg-white border-b border-border/50 sticky top-0 z-50">
+      <div className="min-h-screen bg-background">
+        <header className="bg-card border-b border-border/50 sticky top-0 z-50">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -165,7 +165,7 @@ const UserManagement: React.FC = () => {
         <main className="container mx-auto px-4 py-8">
           {/* Stats */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-            <Card className="bg-white border-border/30">
+            <Card className="bg-card border-border/30">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-primary/10 rounded-lg">
@@ -178,7 +178,7 @@ const UserManagement: React.FC = () => {
                 </div>
               </CardContent>
             </Card>
-            <Card className="bg-white border-border/30">
+            <Card className="bg-card border-border/30">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-red-100 rounded-lg">
@@ -191,7 +191,7 @@ const UserManagement: React.FC = () => {
                 </div>
               </CardContent>
             </Card>
-            <Card className="bg-white border-border/30">
+            <Card className="bg-card border-border/30">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-blue-100 rounded-lg">
@@ -204,7 +204,7 @@ const UserManagement: React.FC = () => {
                 </div>
               </CardContent>
             </Card>
-            <Card className="bg-white border-border/30">
+            <Card className="bg-card border-border/30">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-green-100 rounded-lg">
@@ -224,7 +224,7 @@ const UserManagement: React.FC = () => {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : (
-            <Card className="bg-white border-border/30">
+            <Card className="bg-card border-border/30">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <UserCog className="h-5 w-5" />

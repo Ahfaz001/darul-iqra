@@ -236,7 +236,7 @@ const StudentProfile: React.FC = () => {
           <div className="grid lg:grid-cols-3 gap-6">
             {/* Profile Form */}
             <div className="lg:col-span-1">
-              <Card className="bg-white border-border/30">
+              <Card className="bg-card border-border/30">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <User className="h-5 w-5" />
@@ -311,7 +311,7 @@ const StudentProfile: React.FC = () => {
             <div className="lg:col-span-2 space-y-6">
               {/* Stats Overview */}
               <div className="grid sm:grid-cols-2 gap-4">
-                <Card className="bg-white border-border/30">
+                <Card className="bg-card border-border/30">
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">
                       <div>
@@ -333,7 +333,7 @@ const StudentProfile: React.FC = () => {
                   </CardContent>
                 </Card>
                 
-                <Card className="bg-white border-border/30">
+                <Card className="bg-card border-border/30">
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">
                       <div>
@@ -352,7 +352,7 @@ const StudentProfile: React.FC = () => {
               </div>
 
               {/* Recent Exam Results */}
-              <Card className="bg-white border-border/30">
+              <Card className="bg-card border-border/30">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <FileText className="h-5 w-5" />
@@ -401,7 +401,7 @@ const StudentProfile: React.FC = () => {
               </Card>
 
               {/* Recent Attendance */}
-              <Card className="bg-white border-border/30">
+              <Card className="bg-card border-border/30">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Calendar className="h-5 w-5" />

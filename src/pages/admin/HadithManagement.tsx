@@ -216,8 +216,8 @@ const HadithManagement: React.FC = () => {
         <meta name="description" content="Upload and manage Hadith books" />
       </Helmet>
 
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50">
-        <header className="bg-white border-b border-border/50 sticky top-0 z-50">
+      <div className="min-h-screen bg-background">
+        <header className="bg-card border-b border-border/50 sticky top-0 z-50">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -386,7 +386,7 @@ const HadithManagement: React.FC = () => {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : filteredBooks.length === 0 ? (
-            <Card className="bg-white border-border/30">
+            <Card className="bg-card border-border/30">
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <BookOpen className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold text-foreground mb-2">No Books Yet</h3>
@@ -402,7 +402,7 @@ const HadithManagement: React.FC = () => {
           ) : (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredBooks.map((book) => (
-                <Card key={book.id} className="bg-white border-border/30 hover:shadow-md transition-shadow">
+                <Card key={book.id} className="bg-card border-border/30 hover:shadow-md transition-shadow">
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between mb-3">
                       <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">

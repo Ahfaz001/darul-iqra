@@ -133,13 +133,13 @@ const StudentAttendance: React.FC = () => {
         <main className="container mx-auto px-4 py-8">
           {/* Stats Overview */}
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-8">
-            <Card className="bg-white border-border/30 col-span-2 sm:col-span-1">
+            <Card className="bg-card border-border/30 col-span-2 sm:col-span-1">
               <CardContent className="p-4 text-center">
                 <p className="text-3xl font-bold text-primary">{stats.percentage}%</p>
                 <p className="text-xs text-muted-foreground">Overall • مجموعی</p>
               </CardContent>
             </Card>
-            <Card className="bg-white border-border/30">
+            <Card className="bg-card border-border/30">
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-green-500"></div>
@@ -148,7 +148,7 @@ const StudentAttendance: React.FC = () => {
                 <p className="text-xs text-muted-foreground">Present • حاضر</p>
               </CardContent>
             </Card>
-            <Card className="bg-white border-border/30">
+            <Card className="bg-card border-border/30">
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-red-500"></div>
@@ -157,7 +157,7 @@ const StudentAttendance: React.FC = () => {
                 <p className="text-xs text-muted-foreground">Absent • غیر حاضر</p>
               </CardContent>
             </Card>
-            <Card className="bg-white border-border/30">
+            <Card className="bg-card border-border/30">
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
@@ -166,7 +166,7 @@ const StudentAttendance: React.FC = () => {
                 <p className="text-xs text-muted-foreground">Late • دیر سے</p>
               </CardContent>
             </Card>
-            <Card className="bg-white border-border/30">
+            <Card className="bg-card border-border/30">
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-blue-500"></div>
@@ -178,7 +178,7 @@ const StudentAttendance: React.FC = () => {
           </div>
 
           {/* Calendar View */}
-          <Card className="bg-white border-border/30 mb-8">
+          <Card className="bg-card border-border/30 mb-8">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
@@ -284,7 +284,7 @@ const StudentAttendance: React.FC = () => {
           </Card>
 
           {/* Recent Records List */}
-          <Card className="bg-white border-border/30">
+          <Card className="bg-card border-border/30">
             <CardHeader>
               <CardTitle className="text-lg">Recent Records • حالیہ ریکارڈ</CardTitle>
             </CardHeader>
