@@ -487,6 +487,95 @@ export type Database = {
         }
         Relationships: []
       }
+      quran_pages: {
+        Row: {
+          ayat_range: string | null
+          created_at: string
+          id: string
+          page_number: number
+          para_number: number | null
+          quran_id: string
+          surah_numbers: string[] | null
+          text_content: string
+        }
+        Insert: {
+          ayat_range?: string | null
+          created_at?: string
+          id?: string
+          page_number: number
+          para_number?: number | null
+          quran_id: string
+          surah_numbers?: string[] | null
+          text_content?: string
+        }
+        Update: {
+          ayat_range?: string | null
+          created_at?: string
+          id?: string
+          page_number?: number
+          para_number?: number | null
+          quran_id?: string
+          surah_numbers?: string[] | null
+          text_content?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quran_pages_quran_id_fkey"
+            columns: ["quran_id"]
+            isOneToOne: false
+            referencedRelation: "quran_uploads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quran_uploads: {
+        Row: {
+          cover_url: string | null
+          created_at: string
+          description: string | null
+          file_path: string
+          file_size: number | null
+          file_url: string
+          id: string
+          is_searchable: boolean | null
+          language: string
+          title: string
+          total_pages: number | null
+          updated_at: string
+          uploaded_by: string
+        }
+        Insert: {
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          file_path: string
+          file_size?: number | null
+          file_url: string
+          id?: string
+          is_searchable?: boolean | null
+          language?: string
+          title: string
+          total_pages?: number | null
+          updated_at?: string
+          uploaded_by: string
+        }
+        Update: {
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          file_path?: string
+          file_size?: number | null
+          file_url?: string
+          id?: string
+          is_searchable?: boolean | null
+          language?: string
+          title?: string
+          total_pages?: number | null
+          updated_at?: string
+          uploaded_by?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string

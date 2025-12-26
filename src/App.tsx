@@ -27,9 +27,11 @@ import AttendanceManagement from "./pages/admin/AttendanceManagement";
 import UserManagement from "./pages/admin/UserManagement";
 import HadithManagement from "./pages/admin/HadithManagement";
 import BookManagement from "./pages/admin/BookManagement";
+import QuranManagement from "./pages/admin/QuranManagement";
 import ContentManagement from "./pages/admin/ContentManagement";
 import Reports from "./pages/admin/Reports";
 import StudentExams from "./pages/StudentExams";
+import StudentQuran from "./pages/StudentQuran";
 import TakeExam from "./pages/TakeExam";
 import NotFound from "./pages/NotFound";
 import AdmissionForm from "./pages/AdmissionForm";
@@ -82,6 +84,14 @@ const App = () => (
                 element={
                   <ProtectedRoute allowedRoles={['student']}>
                     <StudentBooks />
+                  </ProtectedRoute>
+                }
+              />
+              <Route 
+                path="/quran" 
+                element={
+                  <ProtectedRoute allowedRoles={['student']}>
+                    <StudentQuran />
                   </ProtectedRoute>
                 }
               />
@@ -188,6 +198,14 @@ const App = () => (
                     <BookManagement />
                   </ProtectedRoute>
                 }
+              />
+              <Route 
+                path="/admin/quran" 
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <QuranManagement />
+                  </ProtectedRoute>
+                } 
               />
               <Route 
                 path="/admin/content" 

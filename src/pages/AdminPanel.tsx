@@ -263,6 +263,15 @@ const AdminPanel: React.FC = () => {
       adminOnly: true
     },
     { 
+      title: 'Quran Section', 
+      description: 'Upload & manage Quran PDFs', 
+      icon: BookOpen,
+      href: '/admin/quran',
+      gradient: 'from-emerald-500/20 to-emerald-500/5',
+      iconBg: 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400',
+      adminOnly: true
+    },
+    { 
       title: 'Content Uploads', 
       description: 'Upload PDFs and learning materials', 
       icon: Upload,
