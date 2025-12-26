@@ -13,7 +13,6 @@ import {
   BookOpen, 
   Calendar, 
   FileText, 
-  LogOut, 
   User, 
   GraduationCap,
   Clock,
@@ -22,7 +21,8 @@ import {
   Award,
   Bell,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  ArrowLeft
 } from 'lucide-react';
 
 interface DashboardStats {
@@ -41,7 +41,7 @@ interface UpcomingExam {
 }
 
 const Dashboard: React.FC = () => {
-  const { user, role, signOut, loading } = useAuth();
+  const { user, role, loading } = useAuth();
   const { t, isRTL } = useLanguage();
   const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats>({
@@ -135,10 +135,6 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/');
-  };
 
   const quickStats = [
     { label: t('attendanceRate'), value: `${stats.attendanceRate}%`, icon: Calendar, color: 'from-emerald-500 to-teal-500', bgColor: 'bg-emerald-500/10' },
@@ -217,6 +213,14 @@ const Dashboard: React.FC = () => {
           <div className="container mx-auto px-4 py-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => navigate('/')}
+                  className="mr-1"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
                 <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur opacity-30"></div>
                   <img 
@@ -245,15 +249,6 @@ const Dashboard: React.FC = () => {
                 </Button>
                 <LanguageSelector />
                 <ThemeToggle />
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={handleSignOut}
-                  className="border-border hover:bg-destructive hover:text-destructive-foreground hover:border-destructive"
-                >
-                  <LogOut className="h-4 w-4 sm:mr-2" />
-                  <span className="hidden sm:inline">{t('logout')}</span>
-                </Button>
               </div>
             </div>
           </div>

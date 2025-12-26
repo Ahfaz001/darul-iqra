@@ -22,13 +22,22 @@ export const StudentHeader: React.FC<StudentHeaderProps> = ({
   subtitle,
   subtitleKey,
   showBackButton = true,
-  backPath = '/dashboard'
+  backPath
 }) => {
   const navigate = useNavigate();
   const { t, isRTL } = useLanguage();
 
   const displayTitle = titleKey ? t(titleKey) : title;
   const displaySubtitle = subtitleKey ? t(subtitleKey) : subtitle;
+
+  const handleBack = () => {
+    // Use browser history to go back to previous page
+    if (backPath) {
+      navigate(backPath);
+    } else {
+      navigate(-1);
+    }
+  };
 
   return (
     <header className="bg-card/80 backdrop-blur-xl border-b border-border sticky top-0 z-50">
@@ -39,7 +48,7 @@ export const StudentHeader: React.FC<StudentHeaderProps> = ({
               <Button 
                 variant="ghost" 
                 size="icon"
-                onClick={() => navigate(backPath)}
+                onClick={handleBack}
                 className="mr-1"
               >
                 <ArrowLeft className={`h-4 w-4 ${isRTL ? 'rotate-180' : ''}`} />
