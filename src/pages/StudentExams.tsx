@@ -94,13 +94,13 @@ const StudentExams: React.FC = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Pending</Badge>;
+        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800">Pending</Badge>;
       case 'in_progress':
-        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">In Progress</Badge>;
+        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800">In Progress</Badge>;
       case 'completed':
-        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Completed</Badge>;
+        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800">Completed</Badge>;
       case 'expired':
-        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Expired</Badge>;
+        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800">Expired</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -132,7 +132,7 @@ const StudentExams: React.FC = () => {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : assignments.length === 0 ? (
-            <Card className="bg-white border-border/30">
+            <Card className="bg-card border-border/30">
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <FileText className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold text-foreground mb-2">
@@ -152,7 +152,7 @@ const StudentExams: React.FC = () => {
               {assignments.map((assignment) => (
                 <Card 
                   key={assignment.id} 
-                  className="bg-white border-border/30 hover:shadow-md transition-shadow"
+                  className="bg-card border-border/30 hover:shadow-md transition-shadow"
                 >
                   <CardContent className="p-6">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

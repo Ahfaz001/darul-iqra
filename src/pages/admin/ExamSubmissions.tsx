@@ -408,9 +408,9 @@ const ExamSubmissions: React.FC = () => {
         <meta name="description" content="View and grade student submissions" />
       </Helmet>
 
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50">
+      <div className="min-h-screen bg-background">
         {/* Header */}
-        <header className="bg-white border-b border-border/50 sticky top-0 z-50">
+        <header className="bg-card border-b border-border/50 sticky top-0 z-50">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -451,7 +451,7 @@ const ExamSubmissions: React.FC = () => {
         {/* Main Content */}
         <main className="container mx-auto px-4 py-8">
           {submissions.length === 0 ? (
-            <Card className="bg-white border-border/30">
+            <Card className="bg-card border-border/30">
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <Clock className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold text-foreground mb-2">No Submissions Yet</h3>
@@ -477,7 +477,7 @@ const ExamSubmissions: React.FC = () => {
               </div>
 
               {submissions.map((student) => (
-                <Card key={student.student_id} className="bg-white border-border/30">
+                <Card key={student.student_id} className="bg-card border-border/30">
                   <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
@@ -543,10 +543,10 @@ const ExamSubmissions: React.FC = () => {
                                   handleAnswerGrade(student.student_id, answer.question_id, value)
                                 }
                               >
-                                <SelectTrigger className="w-32 h-8 bg-white">
+                                <SelectTrigger className="w-32 h-8 bg-card">
                                   <SelectValue placeholder="Select" />
                                 </SelectTrigger>
-                                <SelectContent className="bg-white z-50">
+                                <SelectContent className="bg-popover z-50">
                                   <SelectItem value="correct" className="cursor-pointer">
                                     <span className="flex items-center gap-2 text-green-600">
                                       <Check className="h-4 w-4" /> Correct
@@ -564,7 +564,7 @@ const ExamSubmissions: React.FC = () => {
                             <p className="text-sm text-foreground font-medium mb-2 text-right font-urdu" dir="rtl">
                               {answer.question_text}
                             </p>
-                            <div className="bg-white p-3 rounded border border-border/50">
+                            <div className="bg-card p-3 rounded border border-border/50">
                               <p className="text-sm text-foreground whitespace-pre-wrap">
                                 {answer.answer_text || <span className="text-muted-foreground italic">No answer provided</span>}
                               </p>

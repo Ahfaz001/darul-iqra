@@ -228,9 +228,9 @@ const ExamResults: React.FC = () => {
         <meta name="description" content="View and manage exam results" />
       </Helmet>
 
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50">
+      <div className="min-h-screen bg-background">
         {/* Header */}
-        <header className="bg-white border-b border-border/50 sticky top-0 z-50">
+        <header className="bg-card border-b border-border/50 sticky top-0 z-50">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -351,7 +351,7 @@ const ExamResults: React.FC = () => {
 
         {/* Main Content */}
         <main className="container mx-auto px-4 py-8">
-          <Card className="bg-white border-border/30">
+          <Card className="bg-card border-border/30">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <User className="h-5 w-5" />

@@ -167,17 +167,17 @@ const StudentResults: React.FC = () => {
     switch (grade) {
       case 'A+':
       case 'A':
-        return 'bg-green-100 text-green-700 border-green-200';
+        return 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800';
       case 'B':
-        return 'bg-blue-100 text-blue-700 border-blue-200';
+        return 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800';
       case 'C':
-        return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+        return 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800';
       case 'D':
-        return 'bg-orange-100 text-orange-700 border-orange-200';
+        return 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800';
       case 'F':
-        return 'bg-red-100 text-red-700 border-red-200';
+        return 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800';
       default:
-        return 'bg-gray-100 text-gray-700 border-gray-200';
+        return 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700';
     }
   };
 
@@ -207,7 +207,7 @@ const StudentResults: React.FC = () => {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : results.length === 0 ? (
-            <Card className="bg-white border-border/30">
+            <Card className="bg-card border-border/30">
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <Trophy className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold text-foreground mb-2">
@@ -225,7 +225,7 @@ const StudentResults: React.FC = () => {
           ) : (
             <div className="space-y-4">
               {/* Summary Card */}
-              <Card className="bg-gradient-to-r from-primary/5 to-emerald-50 border-primary/20">
+              <Card className="bg-gradient-to-r from-primary/5 to-emerald-500/10 dark:from-primary/10 dark:to-emerald-500/5 border-primary/20">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-lg">
                     <Award className="h-5 w-5 text-primary" />
@@ -236,13 +236,13 @@ const StudentResults: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    <div className="text-center p-3 bg-white rounded-lg">
+                    <div className="text-center p-3 bg-card rounded-lg">
                       <p className="text-2xl font-bold text-primary">{results.length}</p>
                       <p className="text-xs text-muted-foreground">
                         {language === 'ur' ? 'کل امتحانات' : 'Total Exams'}
                       </p>
                     </div>
-                    <div className="text-center p-3 bg-white rounded-lg">
+                    <div className="text-center p-3 bg-card rounded-lg">
                       <p className="text-2xl font-bold text-green-600">
                         {results.filter(r => r.grade === 'A+' || r.grade === 'A').length}
                       </p>
@@ -250,7 +250,7 @@ const StudentResults: React.FC = () => {
                         {language === 'ur' ? 'A گریڈز' : 'A Grades'}
                       </p>
                     </div>
-                    <div className="text-center p-3 bg-white rounded-lg">
+                    <div className="text-center p-3 bg-card rounded-lg">
                       <p className="text-2xl font-bold text-gold">
                         {results.length > 0 
                           ? Math.round(results.reduce((acc, r) => acc + getPercentage(r.marks_obtained, r.exam?.total_marks || 100), 0) / results.length)
@@ -260,7 +260,7 @@ const StudentResults: React.FC = () => {
                         {language === 'ur' ? 'اوسط' : 'Average'}
                       </p>
                     </div>
-                    <div className="text-center p-3 bg-white rounded-lg">
+                    <div className="text-center p-3 bg-card rounded-lg">
                       <p className="text-2xl font-bold text-blue-600">
                         {results.length > 0 
                           ? Math.max(...results.map(r => getPercentage(r.marks_obtained, r.exam?.total_marks || 100)))
@@ -278,7 +278,7 @@ const StudentResults: React.FC = () => {
               {results.map((result) => (
                 <Card 
                   key={result.id} 
-                  className="bg-white border-border/30 hover:shadow-md transition-shadow"
+                  className="bg-card border-border/30 hover:shadow-md transition-shadow"
                 >
                   <CardContent className="p-6">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -402,7 +402,7 @@ const StudentResults: React.FC = () => {
                       {answer.question_text}
                     </p>
                     
-                    <div className="bg-white p-3 rounded border border-border/50">
+                    <div className="bg-card p-3 rounded border border-border/50">
                       <p className="text-xs text-muted-foreground mb-1">
                         {language === 'ur' ? 'آپ کا جواب:' : 'Your Answer:'}
                       </p>
@@ -414,7 +414,7 @@ const StudentResults: React.FC = () => {
                 ))}
 
                 {selectedResult?.feedback && (
-                  <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                  <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg dark:bg-amber-900/20 dark:border-amber-900/30">
                     <p className="text-sm font-medium text-amber-800 mb-1">
                       {language === 'ur' ? 'استاد کی رائے:' : "Teacher's Feedback:"}
                     </p>
