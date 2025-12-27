@@ -178,7 +178,7 @@ const AdminPanel: React.FC = () => {
 
   const handleSignOut = async () => {
     await signOut();
-    navigate('/home');
+    navigate('/');
   };
 
   const displayStats = [

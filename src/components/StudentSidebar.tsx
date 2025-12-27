@@ -59,7 +59,7 @@ const StudentSidebar: React.FC = () => {
 
   const handleLogout = async () => {
     await signOut();
-    navigate('/home');
+    navigate('/');
   };
 
   return (
