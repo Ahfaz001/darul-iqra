@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import madrasaLogo from '@/assets/madrasa-logo.jpg';
 
@@ -8,41 +8,53 @@ const SplashPage = () => {
   const [logoVisible, setLogoVisible] = useState(false);
   const [textVisible, setTextVisible] = useState(false);
   const [nameVisible, setNameVisible] = useState(false);
-  const [audioPlayed, setAudioPlayed] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  const playAudio = useCallback(() => {
-    if (audioPlayed || !audioRef.current) return;
-    
-    audioRef.current.play()
-      .then(() => {
-        setAudioPlayed(true);
-      })
-      .catch((error) => {
-        console.log('Audio play failed:', error);
-      });
-  }, [audioPlayed]);
+  const hasPlayedRef = useRef(false);
 
   useEffect(() => {
-    // Preload audio
-    audioRef.current = new Audio('/sounds/bismillah.mp3');
-    audioRef.current.volume = 1.0;
-    audioRef.current.preload = 'auto';
+    // Create and play audio immediately
+    const playBismillah = async () => {
+      if (hasPlayedRef.current) return;
+      
+      try {
+        // Create audio element
+        const audio = new Audio();
+        audio.src = '/sounds/bismillah.mp3';
+        audio.volume = 1.0;
+        audio.preload = 'auto';
+        audioRef.current = audio;
 
-    // Try to play immediately
-    const playPromise = audioRef.current.play();
-    if (playPromise !== undefined) {
-      playPromise
-        .then(() => {
-          setAudioPlayed(true);
-        })
-        .catch(() => {
-          // Autoplay blocked - will play on user interaction
-          console.log('Autoplay blocked, waiting for interaction');
+        // Wait for audio to be ready
+        await new Promise((resolve) => {
+          audio.addEventListener('canplaythrough', resolve, { once: true });
+          audio.load();
         });
-    }
 
-    // Start animations immediately for faster feel
+        // Play audio
+        await audio.play();
+        hasPlayedRef.current = true;
+      } catch (error) {
+        console.log('Audio autoplay:', error);
+        // Fallback: try playing with muted first then unmute (trick for some browsers)
+        try {
+          if (audioRef.current) {
+            audioRef.current.muted = true;
+            await audioRef.current.play();
+            audioRef.current.muted = false;
+            audioRef.current.currentTime = 0;
+            await audioRef.current.play();
+            hasPlayedRef.current = true;
+          }
+        } catch (e) {
+          console.log('Fallback also failed:', e);
+        }
+      }
+    };
+
+    // Play audio immediately
+    playBismillah();
+
+    // Start animations immediately
     setIsVisible(true);
     setTimeout(() => setLogoVisible(true), 150);
     setTimeout(() => setTextVisible(true), 500);
@@ -62,31 +74,12 @@ const SplashPage = () => {
     };
   }, [navigate]);
 
-  // Handle user interaction to play audio if autoplay was blocked
-  useEffect(() => {
-    const handleInteraction = () => {
-      playAudio();
-      // Remove listeners after first interaction
-      document.removeEventListener('touchstart', handleInteraction);
-      document.removeEventListener('click', handleInteraction);
-    };
-
-    document.addEventListener('touchstart', handleInteraction, { passive: true });
-    document.addEventListener('click', handleInteraction);
-
-    return () => {
-      document.removeEventListener('touchstart', handleInteraction);
-      document.removeEventListener('click', handleInteraction);
-    };
-  }, [playAudio]);
-
   return (
     <div 
       className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden"
       style={{ backgroundColor: '#1a1a2e' }}
-      onClick={playAudio}
     >
-      {/* Geometric Islamic Pattern Background - Simplified for performance */}
+      {/* Geometric Islamic Pattern Background */}
       <div className="absolute inset-0 opacity-10">
         <div 
           className="absolute inset-0" 
@@ -189,16 +182,6 @@ const SplashPage = () => {
             ))}
           </div>
         </div>
-
-        {/* Tap to play hint - shows if audio hasn't played */}
-        {!audioPlayed && (
-          <p 
-            className="mt-4 text-xs opacity-60 animate-pulse"
-            style={{ color: '#888888' }}
-          >
-            Tap anywhere for audio
-          </p>
-        )}
       </div>
 
       {/* Bottom Decorative Pattern */}
@@ -207,6 +190,14 @@ const SplashPage = () => {
         style={{ 
           background: 'linear-gradient(90deg, transparent, #c9a227, transparent)'
         }} 
+      />
+      
+      {/* Hidden audio element for better autoplay support */}
+      <audio 
+        src="/sounds/bismillah.mp3" 
+        autoPlay 
+        playsInline
+        style={{ display: 'none' }}
       />
     </div>
   );

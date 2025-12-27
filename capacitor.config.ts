@@ -7,11 +7,16 @@ const config: CapacitorConfig = {
   android: {
     allowMixedContent: true,
     captureInput: true,
-    webContentsDebuggingEnabled: false
+    webContentsDebuggingEnabled: false,
+    // Enable autoplay for media without user gesture
+    overrideUserAgent: 'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36',
+  },
+  server: {
+    androidScheme: 'https'
   },
   plugins: {
     SplashScreen: {
-      launchShowDuration: 0, // We handle splash manually
+      launchShowDuration: 0,
       backgroundColor: '#1a1a2e',
       showSpinner: false,
       splashFullScreen: true,
