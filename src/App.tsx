@@ -34,6 +34,7 @@ import StudentExams from "./pages/StudentExams";
 import StudentQuran from "./pages/StudentQuran";
 import TakeExam from "./pages/TakeExam";
 import NotFound from "./pages/NotFound";
+import SplashPage from "./pages/SplashPage";
 import AdmissionForm from "./pages/AdmissionForm";
 import AdmissionManagement from "./pages/admin/AdmissionManagement";
 
@@ -50,6 +51,7 @@ const App = () => (
             <BrowserRouter>
               <AuthProvider>
             <Routes>
+              <Route path="/splash" element={<SplashPage />} />
               <Route path="/" element={<Index />} />
               <Route path="/admission" element={<AdmissionForm />} />
               <Route path="/auth" element={<Auth />} />
