@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
+import StudentLayout from '@/components/StudentLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { BookOpen, Search, User, FileText, ExternalLink, Globe } from 'lucide-react';
 import { toast } from 'sonner';
 import PDFViewer from '@/components/PDFViewer';
-import StudentHeader from '@/components/StudentHeader';
 
 interface Book {
   id: string;
@@ -100,19 +100,20 @@ const StudentBooks = () => {
   };
 
   return (
-    <>
+    <StudentLayout>
       <Helmet>
         <title>Books Library | Idarah Tarjumat-ul-Qur'an Wa Sunnah</title>
         <meta name="description" content="Browse and read Islamic books from Idarah Tarjumat-ul-Qur'an Wa Sunnah digital library." />
       </Helmet>
 
       <div className="min-h-screen bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-gray-900 dark:to-gray-800">
-        <StudentHeader 
-          title="Books Library"
-          titleKey="booksLibrary"
-          subtitle="Read Islamic books"
-          subtitleKey="readBooks"
-        />
+        {/* Hero Section */}
+        <div className="bg-gradient-to-r from-teal-600 to-teal-700 text-white py-6 px-4">
+          <div className="container mx-auto">
+            <h1 className="text-2xl font-bold mb-1">📚 Books Library</h1>
+            <p className="text-teal-100">Read Islamic books from our digital library</p>
+          </div>
+        </div>
 
         {/* Search and Filter */}
         <div className="bg-gradient-to-r from-teal-600 to-teal-700 text-white py-6 px-4">
@@ -277,7 +278,7 @@ const StudentBooks = () => {
           onClose={handleCloseViewer}
         />
       )}
-    </>
+    </StudentLayout>
   );
 };
 

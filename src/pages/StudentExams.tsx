@@ -4,11 +4,11 @@ import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
+import StudentLayout from '@/components/StudentLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
-import StudentHeader from '@/components/StudentHeader';
 import { 
   FileText, 
   Clock,
@@ -111,19 +111,20 @@ const StudentExams: React.FC = () => {
   };
 
   return (
-    <>
+    <StudentLayout>
       <Helmet>
         <title>My Exams | Idarah Tarjumat-ul-Qur'an Wa Sunnah</title>
         <meta name="description" content="View and take your assigned exams" />
       </Helmet>
 
       <div className="min-h-screen bg-gradient-to-br from-cream via-white to-emerald-50 dark:from-background dark:via-background dark:to-background">
-        <StudentHeader 
-          title="My Exams"
-          titleKey="myExams"
-          subtitle="View and take assigned exams"
-          subtitleKey="viewTakeExams"
-        />
+        {/* Hero Section */}
+        <div className="bg-gradient-to-r from-primary to-emerald-600 text-white py-6 px-4">
+          <div className="container mx-auto">
+            <h1 className="text-2xl font-bold mb-1">📝 My Exams</h1>
+            <p className="text-primary-foreground/80">View and take your assigned exams</p>
+          </div>
+        </div>
 
         {/* Main Content */}
         <main className="container mx-auto px-4 py-8">
@@ -229,7 +230,7 @@ const StudentExams: React.FC = () => {
           )}
         </main>
       </div>
-    </>
+    </StudentLayout>
   );
 };
 

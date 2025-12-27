@@ -4,11 +4,11 @@ import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
+import StudentLayout from '@/components/StudentLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, subMonths, addMonths } from 'date-fns';
-import StudentHeader from '@/components/StudentHeader';
 import { Calendar, Check, X, Clock, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface AttendanceRecord {
@@ -109,26 +109,29 @@ const StudentAttendance: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
+      <StudentLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </StudentLayout>
     );
   }
 
   return (
-    <>
+    <StudentLayout>
       <Helmet>
         <title>My Attendance | Idarah Tarjumat-ul-Qur'an</title>
         <meta name="description" content="View your attendance history" />
       </Helmet>
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50 dark:from-background dark:via-background dark:to-background">
-        <StudentHeader 
-          title="My Attendance"
-          titleKey="attendance"
-          subtitle="View your attendance history"
-          subtitleKey="viewAttendance"
-        />
+        {/* Hero Section */}
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-6 px-4">
+          <div className="container mx-auto">
+            <h1 className="text-2xl font-bold mb-1">📅 My Attendance</h1>
+            <p className="text-blue-100">View your attendance history</p>
+          </div>
+        </div>
 
         <main className="container mx-auto px-4 py-8">
           {/* Stats Overview */}
@@ -329,7 +332,7 @@ const StudentAttendance: React.FC = () => {
           </Card>
         </main>
       </div>
-    </>
+    </StudentLayout>
   );
 };
 

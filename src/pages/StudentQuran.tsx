@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
-import StudentHeader from '@/components/StudentHeader';
+import StudentLayout from '@/components/StudentLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -109,14 +109,13 @@ const StudentQuran: React.FC = () => {
   }
 
   return (
-    <>
+    <StudentLayout>
       <Helmet>
         <title>Quran | Student Portal</title>
         <meta name="description" content="Read and study the Holy Quran with translations" />
       </Helmet>
 
       <div className="min-h-screen bg-background">
-        <StudentHeader title="القرآن الكریم" subtitle="Holy Quran - Read & Study" />
 
         {/* Hero Section */}
         <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-8 px-4">
@@ -258,7 +257,7 @@ const StudentQuran: React.FC = () => {
           )}
         </main>
       </div>
-    </>
+    </StudentLayout>
   );
 };
 

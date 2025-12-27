@@ -3,13 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
+import StudentLayout from '@/components/StudentLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import StudentHeader from '@/components/StudentHeader';
 import { BookOpen, Globe, Search, ExternalLink, FileText } from 'lucide-react';
 
 interface HadithBook {
@@ -92,19 +92,20 @@ const StudentHadith: React.FC = () => {
   };
 
   return (
-    <>
+    <StudentLayout>
       <Helmet>
         <title>Hadith Library | Idarah Tarjumat-ul-Qur'an</title>
         <meta name="description" content="Browse and read Hadith books in multiple languages" />
       </Helmet>
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50 dark:from-background dark:via-background dark:to-background">
-        <StudentHeader 
-          title="Daily Hadith"
-          titleKey="dailyHadith"
-          subtitle="Browse Hadith books"
-          subtitleKey="readTodayHadith"
-        />
+        {/* Hero Section */}
+        <div className="bg-gradient-to-r from-emerald-600 to-green-600 text-white py-6 px-4">
+          <div className="container mx-auto">
+            <h1 className="text-2xl font-bold mb-1">📖 Hadith Library</h1>
+            <p className="text-emerald-100">Browse Hadith books in multiple languages</p>
+          </div>
+        </div>
 
         <main className="container mx-auto px-4 py-8">
           {/* Bismillah Header */}
@@ -265,7 +266,7 @@ const StudentHadith: React.FC = () => {
           </Card>
         </main>
       </div>
-    </>
+    </StudentLayout>
   );
 };
 
