@@ -162,7 +162,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onToggleMode, userType
             title: 'Account Created!',
             description: userType === 'admin' 
               ? 'Account created! Admin access will be enabled after approval.'
-              : 'Welcome to Dar-ul-Ulum! You can now access your dashboard.',
+              : 'Welcome to Idarah Tarjumat-ul-Qur\'an! You can now access your dashboard.',
           });
           navigate(userType === 'admin' ? '/admin-login' : '/dashboard');
         }

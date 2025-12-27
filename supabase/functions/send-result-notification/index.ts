@@ -32,7 +32,7 @@ async function sendEmail(to: string, subject: string, html: string) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: "Madrasa Al-Hidaya <onboarding@resend.dev>",
+      from: "Idarah Tarjumat-ul-Qur'an <onboarding@resend.dev>",
       to: [to],
       subject,
       html,
@@ -144,7 +144,7 @@ const handler = async (req: Request): Promise<Response> => {
             ` : ''}
             
             <p>You can view your complete results by logging into your student portal.</p>
-            <p>Best regards,<br><strong>Madrasa Al-Hidaya</strong></p>
+            <p>Best regards,<br><strong>Idarah Tarjumat-ul-Qur'an Wa Sunnah</strong></p>
           </div>
           <div class="footer">
             <p>This is an automated message. Please do not reply.</p>

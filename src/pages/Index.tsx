@@ -11,16 +11,16 @@ const Index = () => {
   return (
     <>
       <Helmet>
-        <title>Dar-ul-Ulum Al-Qur'an Wa Sunnah Kalyan | Islamic Education Since 2008</title>
+        <title>Idarah Tarjumat-ul-Qur'an Wa Sunnah Kalyan | Islamic Education Since 2008</title>
         <meta 
           name="description" 
-          content="Dar-ul-Ulum Al-Qur'an Wa Sunnah Kalyan offers authentic Islamic education including Hifz-ul-Quran, Alim courses, and Arabic language programs. Established in 2008." 
+          content="Idarah Tarjumat-ul-Qur'an Wa Sunnah Kalyan offers authentic Islamic education including Hifz-ul-Quran, Alim courses, and Arabic language programs. Established in 2008." 
         />
         <meta 
           name="keywords" 
-          content="Islamic education, Madrasa, Quran, Hifz, Kalyan, Maharashtra, Islamic studies, Arabic language" 
+          content="Islamic education, Madrasa, Quran, Hifz, Kalyan, Maharashtra, Islamic studies, Arabic language, Idarah Tarjumat-ul-Qur'an" 
         />
-        <link rel="canonical" href="https://darululum-kalyan.edu" />
+        <link rel="canonical" href="https://idarah-kalyan.edu" />
       </Helmet>
       
       <div className="min-h-screen bg-background">

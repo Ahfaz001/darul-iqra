@@ -129,7 +129,7 @@ const UserManagement: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>User Management | Dar-ul-Ulum</title>
+        <title>User Management | Idarah Tarjumat-ul-Qur'an</title>
         <meta name="description" content="Manage users and their roles" />
       </Helmet>
 

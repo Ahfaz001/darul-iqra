@@ -372,7 +372,7 @@ const CreateExamWithTranslation: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>Create Exam with Translation | Dar-ul-Ulum</title>
+        <title>Create Exam with Translation | Idarah Tarjumat-ul-Qur'an</title>
         <meta name="description" content="Create multilingual exams with AI translation" />
       </Helmet>
 

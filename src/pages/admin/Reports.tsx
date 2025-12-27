@@ -155,7 +155,7 @@ const Reports: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>Reports & Analytics | Dar-ul-Ulum</title>
+        <title>Reports & Analytics | Idarah Tarjumat-ul-Qur'an</title>
         <meta name="description" content="View performance reports and analytics" />
       </Helmet>
 
