@@ -440,7 +440,7 @@ const StudentProfile: React.FC = () => {
                       ))}
                     </div>
                   )}
-                  <div className="flex items-center gap-4 mt-4 text-xs text-foreground">
+                  <div className="flex items-center gap-4 mt-4 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <div className="w-3 h-3 bg-green-100 dark:bg-green-900/50 rounded"></div> Present
                     </span>

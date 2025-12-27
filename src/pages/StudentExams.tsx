@@ -202,7 +202,7 @@ const StudentExams: React.FC = () => {
                           </Button>
                         )}
                         {assignment.status === 'completed' && (
-                          <div className="flex items-center gap-2 text-green-600">
+                          <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
                             <CheckCircle className="h-5 w-5" />
                             <span className="font-medium">
                               {language === 'ur' ? 'مکمل' : 
@@ -212,7 +212,7 @@ const StudentExams: React.FC = () => {
                           </div>
                         )}
                         {assignment.status === 'expired' && (
-                          <div className="flex items-center gap-2 text-red-600">
+                          <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
                             <AlertCircle className="h-5 w-5" />
                             <span className="font-medium">
                               {language === 'ur' ? 'ختم ہو گیا' : 

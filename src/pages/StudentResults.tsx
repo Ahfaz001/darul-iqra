@@ -244,7 +244,7 @@ const StudentResults: React.FC = () => {
                       </p>
                     </div>
                     <div className="text-center p-3 bg-card rounded-lg">
-                      <p className="text-2xl font-bold text-green-600">
+                      <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                         {results.filter(r => r.grade === 'A+' || r.grade === 'A').length}
                       </p>
                       <p className="text-xs text-muted-foreground">
@@ -262,7 +262,7 @@ const StudentResults: React.FC = () => {
                       </p>
                     </div>
                     <div className="text-center p-3 bg-card rounded-lg">
-                      <p className="text-2xl font-bold text-blue-600">
+                      <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                         {results.length > 0 
                           ? Math.max(...results.map(r => getPercentage(r.marks_obtained, r.exam?.total_marks || 100)))
                           : 0}%
@@ -416,10 +416,10 @@ const StudentResults: React.FC = () => {
 
                 {selectedResult?.feedback && (
                   <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg dark:bg-amber-900/20 dark:border-amber-900/30">
-                    <p className="text-sm font-medium text-amber-800 mb-1">
+                    <p className="text-sm font-medium text-amber-800 dark:text-amber-200 mb-1">
                       {language === 'ur' ? 'استاد کی رائے:' : "Teacher's Feedback:"}
                     </p>
-                    <p className="text-sm text-amber-700">{selectedResult.feedback}</p>
+                    <p className="text-sm text-amber-700 dark:text-amber-300">{selectedResult.feedback}</p>
                   </div>
                 )}
               </div>

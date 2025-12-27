@@ -232,10 +232,10 @@ const Dashboard: React.FC = () => {
                 <CardContent className="flex items-center gap-4 p-5">
                   <div className={`p-3 rounded-xl ${stat.bgColor}`}>
                     <IconComponent className={`h-6 w-6 ${
-                      stat.color.includes('emerald') ? 'text-emerald-600' : 
-                      stat.color.includes('amber') ? 'text-amber-600' : 
-                      stat.color.includes('purple') ? 'text-purple-600' : 
-                      'text-blue-600'
+                      stat.color.includes('emerald') ? 'text-emerald-600 dark:text-emerald-400' : 
+                      stat.color.includes('amber') ? 'text-amber-600 dark:text-amber-400' : 
+                      stat.color.includes('purple') ? 'text-purple-600 dark:text-purple-400' : 
+                      'text-blue-600 dark:text-blue-400'
                     }`} />
                   </div>
                   <div>

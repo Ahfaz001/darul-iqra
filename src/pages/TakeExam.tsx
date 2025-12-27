@@ -301,7 +301,7 @@ const TakeExam: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cream via-white to-emerald-50">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -313,9 +313,9 @@ const TakeExam: React.FC = () => {
         <title>{exam?.title || 'Exam'} | Idarah Tarjumat-ul-Qur'an Wa Sunnah</title>
       </Helmet>
 
-      <div className="min-h-screen bg-gradient-to-br from-cream via-white to-emerald-50">
+      <div className="min-h-screen bg-background">
         {/* Fixed Header */}
-        <header className="bg-white border-b border-border/50 sticky top-0 z-50 shadow-sm">
+        <header className="bg-card border-b border-border/50 sticky top-0 z-50 shadow-sm">
           <div className="container mx-auto px-4 py-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -360,9 +360,9 @@ const TakeExam: React.FC = () => {
                 <div className={cn(
                   "flex items-center gap-2 px-3 py-2 rounded-lg font-mono text-sm font-bold",
                   timeRemaining < 300 
-                    ? "bg-red-100 text-red-700 animate-pulse" 
+                    ? "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400 animate-pulse" 
                     : timeRemaining < 600
-                      ? "bg-yellow-100 text-yellow-700"
+                      ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-400"
                       : "bg-primary/10 text-primary"
                 )}>
                   <Clock className="h-4 w-4" />
@@ -390,7 +390,7 @@ const TakeExam: React.FC = () => {
                 <Card 
                   key={q.id} 
                   className={cn(
-                    "bg-white border-border/30 transition-all",
+                    "bg-card border-border/30 transition-all",
                     answers[q.id]?.trim() && "border-l-4 border-l-green-500"
                   )}
                 >
@@ -400,7 +400,7 @@ const TakeExam: React.FC = () => {
                         <span className={cn(
                           "flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold",
                           answers[q.id]?.trim() 
-                            ? "bg-green-100 text-green-700"
+                            ? "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-400"
                             : "bg-primary/10 text-primary"
                         )}>
                           {q.question_number}
@@ -455,12 +455,12 @@ const TakeExam: React.FC = () => {
         </main>
 
         {/* Fixed Submit Bar */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-border/50 shadow-lg z-50">
+        <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border/50 shadow-lg z-50">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between max-w-3xl mx-auto">
               <div className="text-sm">
                 {timeRemaining < 300 && (
-                  <div className="flex items-center gap-2 text-red-600">
+                  <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
                     <AlertTriangle className="h-4 w-4" />
                     <span className="font-medium">
                       {examLanguage === 'ur' ? 'وقت ختم ہونے والا ہے!' : 
