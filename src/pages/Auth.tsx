@@ -6,17 +6,24 @@ import { AuthForm } from '@/components/auth/AuthForm';
 import ThemeToggle from '@/components/ThemeToggle';
 import madrasaLogo from '@/assets/madrasa-logo.jpg';
 import { BookOpen, Sparkles } from 'lucide-react';
+import { toast } from 'sonner';
 
 const Auth: React.FC = () => {
   const [mode, setMode] = useState<'login' | 'signup'>('login');
-  const { user, loading } = useAuth();
+  const { user, role, loading, signOut } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (user && !loading) {
+      // Only allow students in student portal
+      if (role === 'admin' || role === 'teacher') {
+        toast.error('This portal is for students only. Please use the Admin Login.');
+        signOut();
+        return;
+      }
       navigate('/dashboard');
     }
-  }, [user, loading, navigate]);
+  }, [user, role, loading, navigate, signOut]);
 
   const toggleMode = () => {
     setMode(mode === 'login' ? 'signup' : 'login');
