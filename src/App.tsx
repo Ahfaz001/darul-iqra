@@ -37,6 +37,8 @@ import NotFound from "./pages/NotFound";
 import SplashPage from "./pages/SplashPage";
 import AdmissionForm from "./pages/AdmissionForm";
 import AdmissionManagement from "./pages/admin/AdmissionManagement";
+import Support from "./pages/Support";
+import Contact from "./pages/Contact";
 
 const queryClient = new QueryClient();
 
@@ -126,6 +128,22 @@ const App = () => (
                 element={
                   <ProtectedRoute allowedRoles={['student']}>
                     <StudentResults />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/support" 
+                element={
+                  <ProtectedRoute allowedRoles={['student']}>
+                    <Support />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/contact" 
+                element={
+                  <ProtectedRoute allowedRoles={['student']}>
+                    <Contact />
                   </ProtectedRoute>
                 } 
               />
