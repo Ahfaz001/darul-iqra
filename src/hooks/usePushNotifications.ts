@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { Capacitor } from "@capacitor/core";
 import {
   PushNotifications,
@@ -9,6 +9,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDebugState, PushPermission } from "@/contexts/DebugContext";
+import { isSafeMode } from "@/lib/crashGuard";
 
 type Removable = { remove: () => Promise<void> | void };
 
@@ -37,7 +38,8 @@ export const usePushNotifications = () => {
   const dbg = useDebugState();
   const [token, setToken] = useState<string | null>(null);
   const [notification, setNotification] = useState<PushNotificationSchema | null>(null);
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const initRef = useRef(false);
 
   const routesByType = useMemo<Record<NotificationType, string>>(
     () => ({
@@ -48,17 +50,38 @@ export const usePushNotifications = () => {
     []
   );
 
+  // Defer push init until after auth is settled and NOT in safe mode
   useEffect(() => {
+    // Skip if not native
     if (!Capacitor.isNativePlatform()) {
       dbg.setPushPermission("unknown");
       return;
     }
+
+    // Skip if safe mode
+    if (isSafeMode()) {
+      dbg.setPushPermission("unknown");
+      dbg.setPushLastError("Safe mode active - push disabled");
+      return;
+    }
+
+    // Wait for auth to settle
+    if (authLoading) return;
+
+    // Only init once
+    if (initRef.current) return;
+    initRef.current = true;
 
     let cancelled = false;
     const handles: Removable[] = [];
 
     const setup = async () => {
       try {
+        // Small delay to let app stabilize after auth
+        await new Promise((r) => setTimeout(r, 800));
+
+        if (cancelled) return;
+
         const permStatus = await PushNotifications.checkPermissions();
         dbg.setPushPermission(mapPerm((permStatus as any)?.receive));
 
@@ -66,11 +89,18 @@ export const usePushNotifications = () => {
           const result = await PushNotifications.requestPermissions();
           dbg.setPushPermission(mapPerm((result as any)?.receive));
 
+          // Small delay after permission dialog
+          await new Promise((r) => setTimeout(r, 500));
+
+          if (cancelled) return;
+
           // If user denied, do not continue.
           if ((result as any)?.receive !== "granted") {
             return;
           }
         }
+
+        if (cancelled) return;
 
         // IMPORTANT: Add listeners BEFORE register (stability on some Android builds)
         handles.push(
@@ -109,8 +139,12 @@ export const usePushNotifications = () => {
           )
         );
 
-        // Give WebView a moment to settle after permission prompt
-        await new Promise((r) => setTimeout(r, 1200));
+        if (cancelled) return;
+
+        // Give WebView a moment to settle before register
+        await new Promise((r) => setTimeout(r, 600));
+
+        if (cancelled) return;
 
         await PushNotifications.register();
       } catch (error: any) {
@@ -131,7 +165,7 @@ export const usePushNotifications = () => {
       });
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [authLoading]);
 
   useEffect(() => {
     if (!token) return;

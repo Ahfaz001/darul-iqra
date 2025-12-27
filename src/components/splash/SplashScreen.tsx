@@ -106,8 +106,11 @@ const SplashScreen = ({ minDurationMs = 8000, onFinished }: SplashScreenProps) =
       console.log("[splash] AudioContext not supported");
     }
 
-    const base = import.meta.env.BASE_URL || "/";
-    const src = `${base.endsWith("/") ? base : `${base}/`}sounds/bismillah.mp3`;
+    // For Capacitor, use absolute path; for web use BASE_URL
+    const isNative = Capacitor.isNativePlatform();
+    const src = isNative
+      ? "/sounds/bismillah.mp3"
+      : `${(import.meta.env.BASE_URL || "/").replace(/\/$/, "")}/sounds/bismillah.mp3`;
 
     const audio = new Audio(src);
     audio.preload = "auto";
