@@ -58,6 +58,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<SplashGate><Index /></SplashGate>} />
               <Route path="/splash" element={<SplashPage />} />
+              <Route path="/sp" element={<Navigate to="/splash" replace />} />
               <Route path="/home" element={<Navigate to="/" replace />} />
               <Route path="/admission" element={<AdmissionForm />} />
               <Route path="/auth" element={<Auth />} />
