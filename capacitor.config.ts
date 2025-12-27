@@ -1,13 +1,15 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.fbbd097753d649a0b31453502bf2dd53',
-  appName: 'darul-iqra',
+  appId: 'com.daruliqra.madrasa',
+  appName: 'Darul Iqra',
   webDir: 'dist',
-  server: {
-    url: 'https://fbbd0977-53d6-49a0-b314-53502bf2dd53.lovableproject.com?forceHideBadge=true',
-    cleartext: true
-  },
+  // Remove server URL for production - app will use local bundled files
+  // Uncomment below for development/hot-reload only:
+  // server: {
+  //   url: 'https://fbbd0977-53d6-49a0-b314-53502bf2dd53.lovableproject.com?forceHideBadge=true',
+  //   cleartext: true
+  // },
   android: {
     allowMixedContent: true,
     captureInput: true,
