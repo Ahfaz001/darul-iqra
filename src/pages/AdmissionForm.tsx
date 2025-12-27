@@ -103,7 +103,7 @@ const AdmissionForm = () => {
             <p className="text-lg font-arabic text-emerald-600 mb-6">
               جزاك الله خيرا
             </p>
-            <Button onClick={() => navigate("/")} className="w-full">
+            <Button onClick={() => navigate("/home")} className="w-full">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Home
             </Button>
@@ -119,7 +119,7 @@ const AdmissionForm = () => {
         {/* Back Button */}
         <Button 
           variant="ghost" 
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/home")}
           className="mb-6"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
