@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,6 +14,8 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { PushNotificationProvider } from "@/components/PushNotificationProvider";
 import SplashAppGate from "@/components/splash/SplashAppGate";
 import AppErrorBoundary from "@/components/AppErrorBoundary";
+import SafeModeScreen from "@/components/SafeModeScreen";
+import { initCrashGuard, isSafeMode, markBootSuccess } from "@/lib/crashGuard";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AdminLogin from "./pages/AdminLogin";
@@ -48,8 +51,31 @@ import Debug from "./pages/Debug";
 
 const queryClient = new QueryClient();
 
+// Initialize crash guard on load
+initCrashGuard();
+
 const App = () => {
   const Router = Capacitor.isNativePlatform() ? HashRouter : BrowserRouter;
+  const safeMode = isSafeMode();
+
+  // Mark boot success after initial render
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      markBootSuccess();
+    }, 5000); // 5 seconds = app is stable
+    return () => clearTimeout(timer);
+  }, []);
+
+  // If safe mode, show recovery screen
+  if (safeMode) {
+    return (
+      <HelmetProvider>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+          <SafeModeScreen />
+        </ThemeProvider>
+      </HelmetProvider>
+    );
+  }
 
   return (
     <HelmetProvider>
