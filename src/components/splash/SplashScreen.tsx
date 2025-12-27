@@ -14,7 +14,6 @@ const SplashScreen = ({ minDurationMs = 8000, onFinished }: SplashScreenProps) =
   const [audioPlayed, setAudioPlayed] = useState(false);
 
   const [minTimeDone, setMinTimeDone] = useState(false);
-  const [audioDone, setAudioDone] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const finishedRef = useRef(false);
@@ -103,7 +102,10 @@ const SplashScreen = ({ minDurationMs = 8000, onFinished }: SplashScreenProps) =
       console.log("[splash] AudioContext not supported");
     }
 
-    const audio = new Audio("/sounds/bismillah.mp3");
+    const base = import.meta.env.BASE_URL || "/";
+    const src = `${base.endsWith("/") ? base : `${base}/`}sounds/bismillah.mp3`;
+
+    const audio = new Audio(src);
     audio.preload = "auto";
     audio.volume = 1;
     audio.muted = false;
@@ -111,13 +113,10 @@ const SplashScreen = ({ minDurationMs = 8000, onFinished }: SplashScreenProps) =
     (audio as any).webkitPlaysinline = true;
     audioRef.current = audio;
 
-    const handleEnded = () => setAudioDone(true);
     const handleError = (e: Event) => {
       console.log("[splash] audio error:", e);
-      setAudioDone(true);
     };
 
-    audio.addEventListener("ended", handleEnded);
     audio.addEventListener("error", handleError);
 
     // Try autoplay immediately
@@ -150,7 +149,6 @@ const SplashScreen = ({ minDurationMs = 8000, onFinished }: SplashScreenProps) =
       window.clearTimeout(delayedPlay);
       window.clearTimeout(retryPlay);
 
-      audio.removeEventListener("ended", handleEnded);
       audio.removeEventListener("error", handleError);
 
       if (audioRef.current) {
@@ -167,14 +165,8 @@ const SplashScreen = ({ minDurationMs = 8000, onFinished }: SplashScreenProps) =
 
   useEffect(() => {
     if (!minTimeDone) return;
-
-    // Wait minimum time, then:
-    // - if audio never started, finish
-    // - if audio started, wait for it to end
-    if (!audioPlayed || audioDone) {
-      finish();
-    }
-  }, [audioDone, audioPlayed, finish, minTimeDone]);
+    finish();
+  }, [finish, minTimeDone]);
 
   const handleTap = () => {
     if (!audioPlayed) playAudio();
