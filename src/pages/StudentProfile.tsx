@@ -226,12 +226,12 @@ const StudentProfile: React.FC = () => {
         <meta name="description" content="View and update your profile information" />
       </Helmet>
 
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50 dark:from-background dark:via-background dark:to-background">
+      <div className="min-h-screen bg-background">
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-purple-600 to-violet-600 text-white py-6 px-4">
+        <div className="bg-gradient-to-r from-primary to-accent py-6 px-4">
           <div className="container mx-auto">
-            <h1 className="text-2xl font-bold mb-1">👤 My Profile</h1>
-            <p className="text-purple-100">Manage your account settings</p>
+            <h1 className="text-2xl font-bold mb-1 text-primary-foreground">👤 My Profile</h1>
+            <p className="text-primary-foreground/80">Manage your account settings</p>
           </div>
         </div>
 
@@ -329,8 +329,8 @@ const StudentProfile: React.FC = () => {
                           </span>
                         </div>
                       </div>
-                      <div className="p-2 bg-blue-100 rounded-lg">
-                        <Calendar className="h-5 w-5 text-blue-600" />
+                      <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
+                        <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                       </div>
                     </div>
                   </CardContent>
@@ -346,8 +346,8 @@ const StudentProfile: React.FC = () => {
                           Based on {examStats.total} exam(s)
                         </p>
                       </div>
-                      <div className="p-2 bg-green-100 rounded-lg">
-                        <TrendingUp className="h-5 w-5 text-green-600" />
+                      <div className="p-2 bg-green-100 dark:bg-green-900/50 rounded-lg">
+                        <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400" />
                       </div>
                     </div>
                   </CardContent>
@@ -386,12 +386,12 @@ const StudentProfile: React.FC = () => {
                             </p>
                             <span className={`px-2 py-0.5 rounded text-xs font-medium ${
                               result.grade === 'A+' || result.grade === 'A' 
-                                ? 'bg-green-100 text-green-700'
+                                ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300'
                                 : result.grade === 'B' 
-                                  ? 'bg-blue-100 text-blue-700'
+                                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300'
                                   : result.grade === 'C' || result.grade === 'D'
-                                    ? 'bg-yellow-100 text-yellow-700'
-                                    : 'bg-red-100 text-red-700'
+                                    ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300'
+                                    : 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300'
                             }`}>
                               Grade: {result.grade || '-'}
                             </span>
@@ -423,12 +423,12 @@ const StudentProfile: React.FC = () => {
                           key={record.id}
                           className={`w-8 h-8 rounded flex items-center justify-center text-xs font-medium ${
                             record.status === 'present' 
-                              ? 'bg-green-100 text-green-700'
+                              ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300'
                               : record.status === 'absent'
-                                ? 'bg-red-100 text-red-700'
+                                ? 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300'
                                 : record.status === 'late'
-                                  ? 'bg-yellow-100 text-yellow-700'
-                                  : 'bg-blue-100 text-blue-700'
+                                  ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300'
+                                  : 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300'
                           }`}
                           title={`${format(new Date(record.date), 'MMM d')}: ${record.status}`}
                         >
@@ -440,25 +440,25 @@ const StudentProfile: React.FC = () => {
                       ))}
                     </div>
                   )}
-                  <div className="flex items-center gap-4 mt-4 text-xs">
+                  <div className="flex items-center gap-4 mt-4 text-xs text-foreground">
                     <span className="flex items-center gap-1">
-                      <div className="w-3 h-3 bg-green-100 rounded"></div> Present
+                      <div className="w-3 h-3 bg-green-100 dark:bg-green-900/50 rounded"></div> Present
                     </span>
                     <span className="flex items-center gap-1">
-                      <div className="w-3 h-3 bg-red-100 rounded"></div> Absent
+                      <div className="w-3 h-3 bg-red-100 dark:bg-red-900/50 rounded"></div> Absent
                     </span>
                     <span className="flex items-center gap-1">
-                      <div className="w-3 h-3 bg-yellow-100 rounded"></div> Late
+                      <div className="w-3 h-3 bg-yellow-100 dark:bg-yellow-900/50 rounded"></div> Late
                     </span>
                     <span className="flex items-center gap-1">
-                      <div className="w-3 h-3 bg-blue-100 rounded"></div> Excused
+                      <div className="w-3 h-3 bg-blue-100 dark:bg-blue-900/50 rounded"></div> Excused
                     </span>
                   </div>
                 </CardContent>
               </Card>
 
               {/* Logout Section */}
-              <Card className="bg-white border-destructive/30 dark:bg-card">
+              <Card className="bg-card border-destructive/30">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-destructive">
                     <LogOut className="h-5 w-5" />

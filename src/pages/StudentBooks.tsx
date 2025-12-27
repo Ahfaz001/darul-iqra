@@ -106,30 +106,30 @@ const StudentBooks = () => {
         <meta name="description" content="Browse and read Islamic books from Idarah Tarjumat-ul-Qur'an Wa Sunnah digital library." />
       </Helmet>
 
-      <div className="min-h-screen bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-gray-900 dark:to-gray-800">
+      <div className="min-h-screen bg-background">
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-teal-600 to-teal-700 text-white py-6 px-4">
+        <div className="bg-gradient-to-r from-primary to-accent py-6 px-4">
           <div className="container mx-auto">
-            <h1 className="text-2xl font-bold mb-1">📚 Books Library</h1>
-            <p className="text-teal-100">Read Islamic books from our digital library</p>
+            <h1 className="text-2xl font-bold mb-1 text-primary-foreground">📚 Books Library</h1>
+            <p className="text-primary-foreground/80">Read Islamic books from our digital library</p>
           </div>
         </div>
 
         {/* Search and Filter */}
-        <div className="bg-gradient-to-r from-teal-600 to-teal-700 text-white py-6 px-4">
+        <div className="bg-gradient-to-r from-primary to-accent py-6 px-4">
           <div className="container mx-auto">
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-teal-300 h-5 w-5" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary-foreground/70 h-5 w-5" />
                 <Input
                   placeholder="Search books by title or author..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-teal-200 focus:bg-white/20"
+                  className="pl-10 bg-background/20 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/60 focus:bg-background/30"
                 />
               </div>
               <Select value={filterLanguage} onValueChange={setFilterLanguage}>
-                <SelectTrigger className="w-full sm:w-48 bg-white/10 border-white/20 text-white">
+                <SelectTrigger className="w-full sm:w-48 bg-background/20 border-primary-foreground/20 text-primary-foreground">
                   <Globe className="h-4 w-4 mr-2" />
                   <SelectValue />
                 </SelectTrigger>
@@ -154,7 +154,7 @@ const StudentBooks = () => {
                 variant={filterLanguage === lang.value ? "default" : "outline"}
                 size="sm"
                 onClick={() => setFilterLanguage(lang.value)}
-                className={filterLanguage === lang.value ? 'bg-teal-600 hover:bg-teal-700' : ''}
+                className={filterLanguage === lang.value ? 'bg-primary hover:bg-primary/90' : ''}
               >
                 {lang.labelNative}
               </Button>
@@ -166,13 +166,13 @@ const StudentBooks = () => {
         <div className="container mx-auto px-4 pb-8">
           {loading ? (
             <div className="flex justify-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
             </div>
           ) : filteredBooks.length === 0 ? (
             <div className="text-center py-12">
-              <BookOpen className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-300">No books found</h3>
-              <p className="text-gray-500 dark:text-gray-400">
+              <BookOpen className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-xl font-semibold text-foreground">No books found</h3>
+              <p className="text-muted-foreground">
                 {searchQuery || filterLanguage !== 'all' 
                   ? 'Try adjusting your search or filter' 
                   : 'Books will be added soon'}
@@ -183,12 +183,12 @@ const StudentBooks = () => {
               {filteredBooks.map((book) => (
                 <Card 
                   key={book.id} 
-                  className="group hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden border-0 bg-white dark:bg-gray-800"
+                  className="group hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden border-border bg-card"
                   onClick={() => handleOpenBook(book)}
                 >
                   <div className="relative">
                     {/* Book Cover or Placeholder */}
-                    <div className="h-48 bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center">
+                    <div className="h-48 bg-gradient-to-br from-primary to-accent flex items-center justify-center">
                       {book.cover_url ? (
                         <img 
                           src={book.cover_url} 
@@ -207,7 +207,7 @@ const StudentBooks = () => {
 
                     {/* Hover Overlay */}
                     <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <Button className="bg-white text-teal-700 hover:bg-teal-50">
+                      <Button className="bg-background text-primary hover:bg-background/90">
                         <ExternalLink className="h-4 w-4 mr-2" />
                         Read Book
                       </Button>
@@ -215,24 +215,24 @@ const StudentBooks = () => {
                   </div>
 
                   <CardContent className="p-4">
-                    <h3 className="font-bold text-lg mb-1 line-clamp-2 text-gray-900 dark:text-white group-hover:text-teal-600 transition-colors">
+                    <h3 className="font-bold text-lg mb-1 line-clamp-2 text-foreground group-hover:text-primary transition-colors">
                       {book.title}
                     </h3>
                     
                     {book.author && (
-                      <p className="text-gray-600 dark:text-gray-400 text-sm flex items-center gap-1 mb-2">
+                      <p className="text-muted-foreground text-sm flex items-center gap-1 mb-2">
                         <User className="h-3 w-3" />
                         {book.author}
                       </p>
                     )}
 
                     {book.description && (
-                      <p className="text-gray-500 dark:text-gray-400 text-sm line-clamp-2 mb-3">
+                      <p className="text-muted-foreground text-sm line-clamp-2 mb-3">
                         {book.description}
                       </p>
                     )}
 
-                    <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <FileText className="h-3 w-3" />
                         {formatFileSize(book.file_size)}
@@ -250,15 +250,15 @@ const StudentBooks = () => {
 
         {/* Info Card */}
         <div className="container mx-auto px-4 pb-8">
-          <Card className="bg-gradient-to-r from-teal-500 to-emerald-600 text-white border-0">
+          <Card className="bg-gradient-to-r from-primary to-accent text-primary-foreground border-0">
             <CardContent className="p-6">
               <div className="flex items-start gap-4">
-                <div className="bg-white/20 p-3 rounded-full">
+                <div className="bg-primary-foreground/20 p-3 rounded-full">
                   <BookOpen className="h-6 w-6" />
                 </div>
                 <div>
                   <h3 className="font-bold text-lg mb-2">About Our Library</h3>
-                  <p className="text-teal-100 text-sm leading-relaxed">
+                  <p className="text-primary-foreground/80 text-sm leading-relaxed">
                     Our digital library contains a collection of Islamic books including Quran, Hadith, Fiqh, 
                     and other religious texts. Books are available in Urdu, English, and Roman Urdu for 
                     easy access and learning. Click on any book to start reading directly in your browser.

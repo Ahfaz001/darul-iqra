@@ -124,12 +124,12 @@ const StudentAttendance: React.FC = () => {
         <meta name="description" content="View your attendance history" />
       </Helmet>
 
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50 dark:from-background dark:via-background dark:to-background">
+      <div className="min-h-screen bg-background">
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-6 px-4">
+        <div className="bg-gradient-to-r from-primary to-accent py-6 px-4">
           <div className="container mx-auto">
-            <h1 className="text-2xl font-bold mb-1">📅 My Attendance</h1>
-            <p className="text-blue-100">View your attendance history</p>
+            <h1 className="text-2xl font-bold mb-1 text-primary-foreground">📅 My Attendance</h1>
+            <p className="text-primary-foreground/80">View your attendance history</p>
           </div>
         </div>
 
@@ -317,10 +317,10 @@ const StudentAttendance: React.FC = () => {
                         </div>
                       </div>
                       <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        record.status === 'present' ? 'bg-green-100 text-green-700' :
-                        record.status === 'absent' ? 'bg-red-100 text-red-700' :
-                        record.status === 'late' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-blue-100 text-blue-700'
+                        record.status === 'present' ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300' :
+                        record.status === 'absent' ? 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300' :
+                        record.status === 'late' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300' :
+                        'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300'
                       }`}>
                         {getStatusLabel(record.status)}
                       </span>
