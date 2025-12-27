@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
+import StudentLayout from '@/components/StudentLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -11,7 +12,6 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import StudentHeader from '@/components/StudentHeader';
 import { 
   User, 
   Save, 
@@ -211,26 +211,29 @@ const StudentProfile: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
+      <StudentLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </StudentLayout>
     );
   }
 
   return (
-    <>
+    <StudentLayout>
       <Helmet>
         <title>My Profile | Idarah Tarjumat-ul-Qur'an</title>
         <meta name="description" content="View and update your profile information" />
       </Helmet>
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50 dark:from-background dark:via-background dark:to-background">
-        <StudentHeader 
-          title="My Profile"
-          titleKey="myProfile"
-          subtitle="Manage your account settings"
-          subtitleKey="manageAccount"
-        />
+        {/* Hero Section */}
+        <div className="bg-gradient-to-r from-purple-600 to-violet-600 text-white py-6 px-4">
+          <div className="container mx-auto">
+            <h1 className="text-2xl font-bold mb-1">👤 My Profile</h1>
+            <p className="text-purple-100">Manage your account settings</p>
+          </div>
+        </div>
 
         <main className="container mx-auto px-4 py-8">
           <div className="grid lg:grid-cols-3 gap-6">
@@ -487,7 +490,7 @@ const StudentProfile: React.FC = () => {
           </div>
         </main>
       </div>
-    </>
+    </StudentLayout>
   );
 };
 

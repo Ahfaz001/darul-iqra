@@ -4,13 +4,13 @@ import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
+import StudentLayout from '@/components/StudentLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import StudentHeader from '@/components/StudentHeader';
 import { 
   Trophy, 
   FileText,
@@ -186,19 +186,20 @@ const StudentResults: React.FC = () => {
   };
 
   return (
-    <>
+    <StudentLayout>
       <Helmet>
         <title>My Results | Idarah Tarjumat-ul-Qur'an Wa Sunnah</title>
         <meta name="description" content="View your exam results and grades" />
       </Helmet>
 
       <div className="min-h-screen bg-gradient-to-br from-cream via-white to-emerald-50 dark:from-background dark:via-background dark:to-background">
-        <StudentHeader 
-          title="My Results"
-          titleKey="myResults"
-          subtitle="Exam results and grades"
-          subtitleKey="viewResults"
-        />
+        {/* Hero Section */}
+        <div className="bg-gradient-to-r from-amber-500 to-orange-600 text-white py-6 px-4">
+          <div className="container mx-auto">
+            <h1 className="text-2xl font-bold mb-1">🏆 My Results</h1>
+            <p className="text-amber-100">View your exam results and grades</p>
+          </div>
+        </div>
 
         {/* Main Content */}
         <main className="container mx-auto px-4 py-8">
@@ -426,7 +427,7 @@ const StudentResults: React.FC = () => {
           </DialogContent>
         </Dialog>
       </div>
-    </>
+    </StudentLayout>
   );
 };
 
