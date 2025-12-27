@@ -146,7 +146,7 @@ const StudentAttendance: React.FC = () => {
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                  <p className="text-2xl font-bold text-green-600">{stats.present}</p>
+                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.present}</p>
                 </div>
                 <p className="text-xs text-muted-foreground">Present • حاضر</p>
               </CardContent>
@@ -155,7 +155,7 @@ const StudentAttendance: React.FC = () => {
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                  <p className="text-2xl font-bold text-red-600">{stats.absent}</p>
+                  <p className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.absent}</p>
                 </div>
                 <p className="text-xs text-muted-foreground">Absent • غیر حاضر</p>
               </CardContent>
@@ -164,7 +164,7 @@ const StudentAttendance: React.FC = () => {
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                  <p className="text-2xl font-bold text-yellow-600">{stats.late}</p>
+                  <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{stats.late}</p>
                 </div>
                 <p className="text-xs text-muted-foreground">Late • دیر سے</p>
               </CardContent>
@@ -173,7 +173,7 @@ const StudentAttendance: React.FC = () => {
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                  <p className="text-2xl font-bold text-blue-600">{stats.excused}</p>
+                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.excused}</p>
                 </div>
                 <p className="text-xs text-muted-foreground">Excused • معذرت</p>
               </CardContent>
@@ -242,7 +242,7 @@ const StudentAttendance: React.FC = () => {
                         isToday ? 'border-primary border-2' : 'border-border/30'
                       } ${record ? getStatusColor(record.status) : 'bg-muted/20'}`}
                     >
-                      <span className={`text-sm font-medium ${record ? '' : 'text-muted-foreground'}`}>
+                      <span className={`text-sm font-medium ${record ? 'text-inherit' : 'text-foreground'}`}>
                         {format(day, 'd')}
                       </span>
                       {record && (
@@ -308,7 +308,7 @@ const StudentAttendance: React.FC = () => {
                           {getStatusIcon(record.status)}
                         </div>
                         <div>
-                          <p className="font-medium">
+                          <p className="font-medium text-foreground">
                             {format(new Date(record.date), 'EEEE, MMMM d, yyyy')}
                           </p>
                           {record.notes && (

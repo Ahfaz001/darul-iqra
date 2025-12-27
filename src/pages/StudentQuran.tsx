@@ -94,7 +94,7 @@ const StudentQuran: React.FC = () => {
       case 'english':
         return 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300';
       default:
-        return 'bg-gray-100 text-gray-700';
+        return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300';
     }
   };
 
