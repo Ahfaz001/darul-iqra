@@ -9,7 +9,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { PushNotificationProvider } from "@/components/PushNotificationProvider";
-import SplashGate from "@/components/splash/SplashGate";
+import SplashAppGate from "@/components/splash/SplashAppGate";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AdminLogin from "./pages/AdminLogin";
@@ -55,8 +55,9 @@ const App = () => (
             <BrowserRouter>
               <AuthProvider>
                 <PushNotificationProvider>
-            <Routes>
-              <Route path="/" element={<SplashGate><Index /></SplashGate>} />
+            <SplashAppGate>
+              <Routes>
+              <Route path="/" element={<Index />} />
               <Route path="/splash" element={<SplashPage />} />
               <Route path="/sp" element={<Navigate to="/splash" replace />} />
               <Route path="/home" element={<Navigate to="/" replace />} />
@@ -258,7 +259,8 @@ const App = () => (
               />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
-            </Routes>
+              </Routes>
+            </SplashAppGate>
                 </PushNotificationProvider>
               </AuthProvider>
             </BrowserRouter>
