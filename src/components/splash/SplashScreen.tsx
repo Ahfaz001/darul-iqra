@@ -18,6 +18,7 @@ const SplashScreen = ({ minDurationMs = 6000, onFinished }: SplashScreenProps) =
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const finishedRef = useRef(false);
+  const audioContextRef = useRef<AudioContext | null>(null);
 
   const finish = useCallback(() => {
     if (finishedRef.current) return;
@@ -30,40 +31,84 @@ const SplashScreen = ({ minDurationMs = 6000, onFinished }: SplashScreenProps) =
     if (!audio || audioPlayed) return;
 
     try {
+      // Resume AudioContext if suspended (required for mobile)
+      if (audioContextRef.current?.state === 'suspended') {
+        await audioContextRef.current.resume();
+      }
+
+      audio.muted = false;
       audio.currentTime = 0;
       await audio.play();
       setAudioPlayed(true);
-      // eslint-disable-next-line no-console
       console.log("[splash] bismillah playing");
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.log("[splash] play failed:", err);
     }
   }, [audioPlayed]);
 
   useEffect(() => {
+    // Create AudioContext for better mobile support
+    try {
+      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+    } catch (e) {
+      console.log("[splash] AudioContext not supported");
+    }
+
     const audio = new Audio("/sounds/bismillah.mp3");
     audio.preload = "auto";
     audio.volume = 1;
+    audio.muted = false;
+    (audio as any).playsInline = true;
+    (audio as any).webkitPlaysinline = true;
     audioRef.current = audio;
 
     const handleEnded = () => setAudioDone(true);
-    audio.addEventListener("ended", handleEnded);
+    const handleError = (e: Event) => {
+      console.log("[splash] audio error:", e);
+      setAudioDone(true); // Continue even if audio fails
+    };
 
+    audio.addEventListener("ended", handleEnded);
+    audio.addEventListener("error", handleError);
+
+    // Try multiple autoplay approaches
     const tryAutoplay = async () => {
       try {
+        // First, try to resume AudioContext
+        if (audioContextRef.current?.state === 'suspended') {
+          await audioContextRef.current.resume();
+        }
+
+        // Try playing audio
+        audio.muted = false;
         await audio.play();
         setAudioPlayed(true);
-        // eslint-disable-next-line no-console
         console.log("[splash] autoplay success");
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.log("[splash] autoplay blocked, tap to play");
+        
+        // Try with muted first (some browsers allow this)
+        try {
+          audio.muted = true;
+          await audio.play();
+          audio.pause();
+          audio.currentTime = 0;
+          audio.muted = false;
+          await audio.play();
+          setAudioPlayed(true);
+          console.log("[splash] muted trick worked");
+        } catch (e) {
+          console.log("[splash] muted trick failed");
+        }
       }
     };
 
+    // Load and try to play
     audio.addEventListener("canplaythrough", tryAutoplay, { once: true });
     audio.load();
+
+    // Also try on loadeddata
+    audio.addEventListener("loadeddata", tryAutoplay, { once: true });
 
     // Start animations
     setIsVisible(true);
@@ -80,10 +125,16 @@ const SplashScreen = ({ minDurationMs = 6000, onFinished }: SplashScreenProps) =
       window.clearTimeout(a3);
 
       audio.removeEventListener("ended", handleEnded);
+      audio.removeEventListener("error", handleError);
 
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
+      }
+
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+        audioContextRef.current = null;
       }
     };
   }, [minDurationMs]);
@@ -105,10 +156,11 @@ const SplashScreen = ({ minDurationMs = 6000, onFinished }: SplashScreenProps) =
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden cursor-pointer"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden cursor-pointer select-none"
       style={{ backgroundColor: "#1a1a2e" }}
       onClick={handleTap}
       onTouchStart={handleTap}
+      onTouchEnd={(e) => e.preventDefault()}
     >
       {/* Geometric Islamic Pattern Background */}
       <div className="absolute inset-0 opacity-10 pointer-events-none">
@@ -144,7 +196,7 @@ const SplashScreen = ({ minDurationMs = 6000, onFinished }: SplashScreenProps) =
             <img
               src={madrasaLogo}
               alt="Idarah Tarjumat-ul-Qur'an Wa Sunnah"
-              className="relative w-28 h-28 md:w-36 md:h-36 rounded-full object-cover border-4 shadow-2xl"
+              className="relative w-32 h-32 md:w-40 md:h-40 rounded-full object-cover border-4 shadow-2xl"
               style={{ borderColor: "#c9a227" }}
               loading="eager"
             />
@@ -178,7 +230,7 @@ const SplashScreen = ({ minDurationMs = 6000, onFinished }: SplashScreenProps) =
           </div>
         </div>
 
-        {/* Madrasa Name (avoid extra H1; Index page should own the H1) */}
+        {/* Madrasa Name */}
         <div
           className={`text-center transition-all duration-700 ${
             nameVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"
@@ -217,10 +269,10 @@ const SplashScreen = ({ minDurationMs = 6000, onFinished }: SplashScreenProps) =
           </div>
         </div>
 
-        {/* Tap hint - only shows if audio hasn't played */}
+        {/* Tap hint - shows if audio hasn't played */}
         {!audioPlayed && (
-          <p className="mt-6 text-xs animate-pulse" style={{ color: "#666666" }}>
-            Tap anywhere for Bismillah
+          <p className="mt-6 text-sm animate-pulse" style={{ color: "#888888" }}>
+            بسم اللہ سننے کے لیے تھپتھپائیں
           </p>
         )}
       </div>
@@ -230,6 +282,13 @@ const SplashScreen = ({ minDurationMs = 6000, onFinished }: SplashScreenProps) =
         className="absolute bottom-0 left-0 right-0 h-1 pointer-events-none"
         style={{ background: "linear-gradient(90deg, transparent, #c9a227, transparent)" }}
       />
+
+      {/* App Version */}
+      <div className="absolute bottom-6 text-center">
+        <p className="text-xs" style={{ color: "#555555" }}>
+          Version 1.0.0
+        </p>
+      </div>
     </div>
   );
 };
