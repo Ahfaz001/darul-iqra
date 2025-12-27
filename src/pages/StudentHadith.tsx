@@ -83,11 +83,11 @@ const StudentHadith: React.FC = () => {
 
   const getLanguageColor = (lang: string) => {
     switch (lang) {
-      case 'english': return 'bg-blue-100 text-blue-700';
-      case 'urdu': return 'bg-green-100 text-green-700';
-      case 'roman_urdu': return 'bg-purple-100 text-purple-700';
-      case 'arabic': return 'bg-amber-100 text-amber-700';
-      default: return 'bg-gray-100 text-gray-700';
+      case 'english': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300';
+      case 'urdu': return 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300';
+      case 'roman_urdu': return 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300';
+      case 'arabic': return 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -98,12 +98,12 @@ const StudentHadith: React.FC = () => {
         <meta name="description" content="Browse and read Hadith books in multiple languages" />
       </Helmet>
 
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50 dark:from-background dark:via-background dark:to-background">
+      <div className="min-h-screen bg-background">
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-emerald-600 to-green-600 text-white py-6 px-4">
+        <div className="bg-gradient-to-r from-primary to-accent py-6 px-4">
           <div className="container mx-auto">
-            <h1 className="text-2xl font-bold mb-1">📖 Hadith Library</h1>
-            <p className="text-emerald-100">Browse Hadith books in multiple languages</p>
+            <h1 className="text-2xl font-bold mb-1 text-primary-foreground">📖 Hadith Library</h1>
+            <p className="text-primary-foreground/80">Browse Hadith books in multiple languages</p>
           </div>
         </div>
 

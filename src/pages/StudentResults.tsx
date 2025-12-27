@@ -192,12 +192,12 @@ const StudentResults: React.FC = () => {
         <meta name="description" content="View your exam results and grades" />
       </Helmet>
 
-      <div className="min-h-screen bg-gradient-to-br from-cream via-white to-emerald-50 dark:from-background dark:via-background dark:to-background">
+      <div className="min-h-screen bg-background">
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-amber-500 to-orange-600 text-white py-6 px-4">
+        <div className="bg-gradient-to-r from-primary to-accent py-6 px-4">
           <div className="container mx-auto">
-            <h1 className="text-2xl font-bold mb-1">🏆 My Results</h1>
-            <p className="text-amber-100">View your exam results and grades</p>
+            <h1 className="text-2xl font-bold mb-1 text-primary-foreground">🏆 My Results</h1>
+            <p className="text-primary-foreground/80">View your exam results and grades</p>
           </div>
         </div>
 
@@ -372,9 +372,9 @@ const StudentResults: React.FC = () => {
                     key={answer.question_id}
                     className={`p-4 rounded-lg border ${
                       answer.answer_status === 'correct' 
-                        ? 'bg-green-50 border-green-200' 
+                        ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' 
                         : answer.answer_status === 'wrong' 
-                          ? 'bg-red-50 border-red-200' 
+                          ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' 
                           : 'bg-muted/30 border-border/50'
                     }`}
                   >

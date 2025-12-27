@@ -118,33 +118,33 @@ const StudentQuran: React.FC = () => {
       <div className="min-h-screen bg-background">
 
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-8 px-4">
+        <div className="bg-gradient-to-r from-primary to-accent py-8 px-4">
           <div className="container mx-auto">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 rounded-xl bg-white/20">
-                <BookOpen className="h-8 w-8" />
+              <div className="p-3 rounded-xl bg-primary-foreground/20">
+                <BookOpen className="h-8 w-8 text-primary-foreground" />
               </div>
               <div>
-                <h1 className={`text-2xl sm:text-3xl font-bold ${isRTL ? 'font-urdu' : ''}`}>
+                <h1 className={`text-2xl sm:text-3xl font-bold text-primary-foreground ${isRTL ? 'font-urdu' : ''}`}>
                   القرآن الكریم
                 </h1>
-                <p className="text-emerald-100">Holy Quran - Read & Study</p>
+                <p className="text-primary-foreground/80">Holy Quran - Read & Study</p>
               </div>
             </div>
 
             {/* Search & Filter */}
             <div className="flex flex-col sm:flex-row gap-3 mt-6">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-200" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary-foreground/70" />
                 <Input
                   placeholder="Search Quran..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-emerald-200"
+                  className="pl-10 bg-background/20 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/60"
                 />
               </div>
               <Select value={filterLanguage} onValueChange={setFilterLanguage}>
-                <SelectTrigger className="w-full sm:w-48 bg-white/10 border-white/20 text-white">
+                <SelectTrigger className="w-full sm:w-48 bg-background/20 border-primary-foreground/20 text-primary-foreground">
                   <Globe className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Language" />
                 </SelectTrigger>
@@ -165,7 +165,7 @@ const StudentQuran: React.FC = () => {
         <main className="container mx-auto px-4 py-8">
           {loading ? (
             <div className="flex justify-center py-12">
-              <Loader2 className="h-12 w-12 animate-spin text-emerald-600" />
+              <Loader2 className="h-12 w-12 animate-spin text-primary" />
             </div>
           ) : filteredQuranList.length === 0 ? (
             <Card className="text-center py-12">
@@ -186,7 +186,7 @@ const StudentQuran: React.FC = () => {
                   onClick={() => setViewingQuran(quran)}
                 >
                   {/* Cover */}
-                  <div className="h-40 sm:h-48 bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center relative overflow-hidden">
+                  <div className="h-40 sm:h-48 bg-gradient-to-br from-primary to-accent flex items-center justify-center relative overflow-hidden">
                     {quran.cover_url ? (
                       <img 
                         src={quran.cover_url} 
@@ -194,7 +194,7 @@ const StudentQuran: React.FC = () => {
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     ) : (
-                      <div className="text-center text-white">
+                      <div className="text-center text-primary-foreground">
                         <BookOpen className="h-16 w-16 mx-auto mb-2 opacity-50" />
                         <p className="text-lg font-arabic">القرآن</p>
                       </div>
@@ -241,7 +241,7 @@ const StudentQuran: React.FC = () => {
                     </div>
 
                     <Button 
-                      className="w-full mt-4 bg-emerald-600 hover:bg-emerald-700"
+                      className="w-full mt-4"
                       onClick={(e) => {
                         e.stopPropagation();
                         setViewingQuran(quran);

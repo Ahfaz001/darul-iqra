@@ -117,11 +117,11 @@ const StudentExams: React.FC = () => {
         <meta name="description" content="View and take your assigned exams" />
       </Helmet>
 
-      <div className="min-h-screen bg-gradient-to-br from-cream via-white to-emerald-50 dark:from-background dark:via-background dark:to-background">
+      <div className="min-h-screen bg-background">
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-primary to-emerald-600 text-white py-6 px-4">
+        <div className="bg-gradient-to-r from-primary to-accent py-6 px-4">
           <div className="container mx-auto">
-            <h1 className="text-2xl font-bold mb-1">📝 My Exams</h1>
+            <h1 className="text-2xl font-bold mb-1 text-primary-foreground">📝 My Exams</h1>
             <p className="text-primary-foreground/80">View and take your assigned exams</p>
           </div>
         </div>
