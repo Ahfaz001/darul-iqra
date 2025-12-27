@@ -185,8 +185,37 @@ const SplashScreen = ({ minDurationMs = 8000, onFinished }: SplashScreenProps) =
     finish();
   }, [finish, minTimeDone]);
 
-  const handleTap = () => {
-    if (!audioPlayed) playAudio();
+  const handleTap = async () => {
+    const audio = audioRef.current;
+    if (!audio || audioPlayed) return;
+    
+    try {
+      // Resume AudioContext first
+      if (audioContextRef.current?.state === 'suspended') {
+        await audioContextRef.current.resume();
+      }
+      
+      audio.muted = false;
+      audio.volume = 1;
+      audio.currentTime = 0;
+      await audio.play();
+      setAudioPlayed(true);
+      console.log("[splash] tap play success");
+    } catch (err) {
+      console.log("[splash] tap play failed:", err);
+      // Try muted-then-unmute fallback
+      try {
+        audio.muted = true;
+        await audio.play();
+        await new Promise(r => setTimeout(r, 50));
+        audio.muted = false;
+        audio.volume = 1;
+        setAudioPlayed(true);
+        console.log("[splash] tap play fallback success");
+      } catch {
+        console.log("[splash] all tap methods failed");
+      }
+    }
   };
 
   // Hidden: 7 taps opens debug screen (helps APK diagnosis)
