@@ -46,6 +46,55 @@ const SplashScreen = ({ minDurationMs = 6000, onFinished }: SplashScreenProps) =
     }
   }, [audioPlayed]);
 
+  // Aggressive autoplay function - tries multiple methods
+  const forceAutoplay = useCallback(async (audio: HTMLAudioElement) => {
+    if (audioPlayed) return;
+
+    const methods = [
+      // Method 1: Direct play
+      async () => {
+        audio.muted = false;
+        audio.volume = 1;
+        await audio.play();
+        return true;
+      },
+      // Method 2: With AudioContext resume
+      async () => {
+        if (audioContextRef.current?.state === 'suspended') {
+          await audioContextRef.current.resume();
+        }
+        audio.muted = false;
+        await audio.play();
+        return true;
+      },
+      // Method 3: User activation simulation
+      async () => {
+        const unlockAudio = () => {
+          audio.muted = false;
+          audio.play().catch(() => {});
+        };
+        unlockAudio();
+        await new Promise(resolve => setTimeout(resolve, 100));
+        if (!audio.paused) return true;
+        throw new Error("Still paused");
+      }
+    ];
+
+    for (const method of methods) {
+      try {
+        await method();
+        if (!audio.paused) {
+          setAudioPlayed(true);
+          console.log("[splash] autoplay success");
+          return;
+        }
+      } catch (e) {
+        continue;
+      }
+    }
+    console.log("[splash] all autoplay methods failed, waiting for tap");
+  }, [audioPlayed]);
+
   useEffect(() => {
     // Create AudioContext for better mobile support
     try {
@@ -65,50 +114,25 @@ const SplashScreen = ({ minDurationMs = 6000, onFinished }: SplashScreenProps) =
     const handleEnded = () => setAudioDone(true);
     const handleError = (e: Event) => {
       console.log("[splash] audio error:", e);
-      setAudioDone(true); // Continue even if audio fails
+      setAudioDone(true);
     };
 
     audio.addEventListener("ended", handleEnded);
     audio.addEventListener("error", handleError);
 
-    // Try multiple autoplay approaches
-    const tryAutoplay = async () => {
-      try {
-        // First, try to resume AudioContext
-        if (audioContextRef.current?.state === 'suspended') {
-          await audioContextRef.current.resume();
-        }
-
-        // Try playing audio
-        audio.muted = false;
-        await audio.play();
-        setAudioPlayed(true);
-        console.log("[splash] autoplay success");
-      } catch (err) {
-        console.log("[splash] autoplay blocked, tap to play");
-        
-        // Try with muted first (some browsers allow this)
-        try {
-          audio.muted = true;
-          await audio.play();
-          audio.pause();
-          audio.currentTime = 0;
-          audio.muted = false;
-          await audio.play();
-          setAudioPlayed(true);
-          console.log("[splash] muted trick worked");
-        } catch (e) {
-          console.log("[splash] muted trick failed");
-        }
-      }
-    };
-
-    // Load and try to play
-    audio.addEventListener("canplaythrough", tryAutoplay, { once: true });
+    // Try autoplay immediately
+    const immediatePlay = () => forceAutoplay(audio);
+    
+    // Multiple trigger points for autoplay
+    audio.addEventListener("canplaythrough", immediatePlay, { once: true });
+    audio.addEventListener("loadeddata", immediatePlay, { once: true });
+    audio.addEventListener("canplay", immediatePlay, { once: true });
+    
+    // Also try after a short delay (some browsers need this)
+    const delayedPlay = setTimeout(() => forceAutoplay(audio), 300);
+    const retryPlay = setTimeout(() => forceAutoplay(audio), 800);
+    
     audio.load();
-
-    // Also try on loadeddata
-    audio.addEventListener("loadeddata", tryAutoplay, { once: true });
 
     // Start animations
     setIsVisible(true);
@@ -123,6 +147,8 @@ const SplashScreen = ({ minDurationMs = 6000, onFinished }: SplashScreenProps) =
       window.clearTimeout(a1);
       window.clearTimeout(a2);
       window.clearTimeout(a3);
+      window.clearTimeout(delayedPlay);
+      window.clearTimeout(retryPlay);
 
       audio.removeEventListener("ended", handleEnded);
       audio.removeEventListener("error", handleError);
@@ -137,7 +163,7 @@ const SplashScreen = ({ minDurationMs = 6000, onFinished }: SplashScreenProps) =
         audioContextRef.current = null;
       }
     };
-  }, [minDurationMs]);
+  }, [minDurationMs, forceAutoplay]);
 
   useEffect(() => {
     if (!minTimeDone) return;
