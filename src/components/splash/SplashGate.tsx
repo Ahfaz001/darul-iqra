@@ -1,5 +1,6 @@
-import { PropsWithChildren, useCallback, useState } from "react";
+import { PropsWithChildren, useCallback, useEffect, useState } from "react";
 import SplashScreen from "@/components/splash/SplashScreen";
+import { useDebugState } from "@/contexts/DebugContext";
 
 const STORAGE_KEY = "splash_seen";
 
@@ -8,6 +9,8 @@ type SplashGateProps = PropsWithChildren<{
 }>;
 
 const SplashGate = ({ children, onFinished }: SplashGateProps) => {
+  const dbg = useDebugState();
+
   const [show, setShow] = useState(() => {
     try {
       return sessionStorage.getItem(STORAGE_KEY) !== "1";
@@ -15,6 +18,11 @@ const SplashGate = ({ children, onFinished }: SplashGateProps) => {
       return true;
     }
   });
+
+  useEffect(() => {
+    dbg.setSplashShowing(show);
+    if (!show) dbg.markSplashFinished();
+  }, [dbg, show]);
 
   const handleFinished = useCallback(() => {
     try {
@@ -27,8 +35,9 @@ const SplashGate = ({ children, onFinished }: SplashGateProps) => {
     // so protected routes don't redirect to /auth behind the splash.
     onFinished?.();
 
+    dbg.markSplashFinished();
     setShow(false);
-  }, [onFinished]);
+  }, [dbg, onFinished]);
 
   return (
     <>

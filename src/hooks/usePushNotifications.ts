@@ -8,6 +8,7 @@ import {
 } from "@capacitor/push-notifications";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useDebugState, PushPermission } from "@/contexts/DebugContext";
 
 type Removable = { remove: () => Promise<void> | void };
 
@@ -25,7 +26,15 @@ const navigateApp = (path: string) => {
   window.location.assign(to);
 };
 
+const mapPerm = (receive: string | undefined): PushPermission => {
+  if (receive === "granted") return "granted";
+  if (receive === "denied") return "denied";
+  if (receive === "prompt") return "prompt";
+  return "unknown";
+};
+
 export const usePushNotifications = () => {
+  const dbg = useDebugState();
   const [token, setToken] = useState<string | null>(null);
   const [notification, setNotification] = useState<PushNotificationSchema | null>(null);
   const { user } = useAuth();
@@ -41,7 +50,7 @@ export const usePushNotifications = () => {
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) {
-      console.log("Push notifications only work on native platforms");
+      dbg.setPushPermission("unknown");
       return;
     }
 
@@ -51,31 +60,33 @@ export const usePushNotifications = () => {
     const setup = async () => {
       try {
         const permStatus = await PushNotifications.checkPermissions();
+        dbg.setPushPermission(mapPerm((permStatus as any)?.receive));
 
-        if (permStatus.receive !== "granted") {
+        if ((permStatus as any)?.receive !== "granted") {
           const result = await PushNotifications.requestPermissions();
-          if (result.receive !== "granted") {
-            console.log("Push notification permission not granted");
+          dbg.setPushPermission(mapPerm((result as any)?.receive));
+
+          // If user denied, do not continue.
+          if ((result as any)?.receive !== "granted") {
             return;
           }
         }
 
-        // Give WebView a moment to settle before native registration
-        await new Promise((r) => setTimeout(r, 400));
-
-        await PushNotifications.register();
-
+        // IMPORTANT: Add listeners BEFORE register (stability on some Android builds)
         handles.push(
           await PushNotifications.addListener("registration", (t: Token) => {
             if (cancelled) return;
-            console.log("Push registration success");
             setToken(t.value);
+            dbg.setPushToken(t.value);
+            dbg.setPushRegistered(true);
           })
         );
 
         handles.push(
           await PushNotifications.addListener("registrationError", (error) => {
-            console.error("Push registration error:", error);
+            const msg = typeof error === "string" ? error : JSON.stringify(error);
+            dbg.setPushLastError(msg);
+            dbg.setPushRegistered(false);
           })
         );
 
@@ -84,7 +95,6 @@ export const usePushNotifications = () => {
             "pushNotificationReceived",
             (n: PushNotificationSchema) => {
               if (cancelled) return;
-              console.log("Push notification received");
               setNotification(n);
             }
           )
@@ -94,13 +104,17 @@ export const usePushNotifications = () => {
           await PushNotifications.addListener(
             "pushNotificationActionPerformed",
             (action: ActionPerformed) => {
-              console.log("Push notification action performed");
               handleNotificationAction(action);
             }
           )
         );
-      } catch (error) {
-        console.error("Error setting up push notifications:", error);
+
+        // Give WebView a moment to settle after permission prompt
+        await new Promise((r) => setTimeout(r, 1200));
+
+        await PushNotifications.register();
+      } catch (error: any) {
+        dbg.setPushLastError(error?.message ?? String(error));
       }
     };
 
@@ -108,7 +122,6 @@ export const usePushNotifications = () => {
 
     return () => {
       cancelled = true;
-      // Remove only our listeners (avoid global removeAllListeners side effects)
       handles.forEach((h) => {
         try {
           h.remove();
@@ -132,17 +145,15 @@ export const usePushNotifications = () => {
           .eq("user_id", user.id);
 
         if (error) {
-          console.error("Error saving push token:", error);
-        } else {
-          console.log("Push token saved successfully");
+          dbg.setPushLastError(error.message);
         }
-      } catch (error) {
-        console.error("Error saving push token:", error);
+      } catch (error: any) {
+        dbg.setPushLastError(error?.message ?? String(error));
       }
     };
 
     savePushToken(token);
-  }, [token, user?.id]);
+  }, [dbg, token, user?.id]);
 
   const handleNotificationAction = (action: ActionPerformed) => {
     const data = action?.notification?.data as any;
@@ -158,3 +169,4 @@ export const usePushNotifications = () => {
 
   return { token, notification };
 };
+
