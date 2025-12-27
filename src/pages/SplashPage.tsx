@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import madrasaLogo from '@/assets/madrasa-logo.jpg';
 
@@ -8,79 +8,60 @@ const SplashPage = () => {
   const [logoVisible, setLogoVisible] = useState(false);
   const [textVisible, setTextVisible] = useState(false);
   const [nameVisible, setNameVisible] = useState(false);
+  const [audioPlayed, setAudioPlayed] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const hasPlayedRef = useRef(false);
+
+  const playAudio = useCallback(async () => {
+    const audio = audioRef.current;
+    if (!audio || audioPlayed) return;
+
+    try {
+      audio.currentTime = 0;
+      await audio.play();
+      setAudioPlayed(true);
+      console.log('[splash] bismillah playing');
+    } catch (err) {
+      console.log('[splash] play failed:', err);
+    }
+  }, [audioPlayed]);
 
   useEffect(() => {
-    const AUDIO_SRC = '/sounds/bismillah.mp3';
-
-    const tryPlay = async () => {
-      const audio = audioRef.current;
-      if (!audio || hasPlayedRef.current) return;
-
-      try {
-        await audio.play();
-        hasPlayedRef.current = true;
-        console.log('[splash] bismillah playing');
-      } catch (err) {
-        console.log('[splash] autoplay blocked / failed:', err);
-      }
-    };
-
-    // Create audio element
-    const audio = new Audio(AUDIO_SRC);
+    // Create audio element once
+    const audio = new Audio('/sounds/bismillah.mp3');
     audio.preload = 'auto';
     audio.volume = 1;
     audioRef.current = audio;
 
-    // Debug: ensure file is reachable (will show in network)
-    fetch(AUDIO_SRC, { method: 'HEAD' })
-      .then((r) => console.log('[splash] audio HEAD status:', r.status))
-      .catch((e) => console.log('[splash] audio HEAD failed:', e));
-
-    const onCanPlay = () => {
-      console.log('[splash] audio canplay');
-      void tryPlay();
+    // Try autoplay (will likely fail in browser, but works in native APK)
+    const tryAutoplay = async () => {
+      try {
+        await audio.play();
+        setAudioPlayed(true);
+        console.log('[splash] autoplay success');
+      } catch (err) {
+        console.log('[splash] autoplay blocked, tap to play');
+      }
     };
 
-    const onError = () => {
-      console.log('[splash] audio error:', audio.error);
-      // still try once in case the browser delays load
-      void tryPlay();
-    };
-
-    audio.addEventListener('canplay', onCanPlay);
-    audio.addEventListener('error', onError);
-
-    // Kickstart loading
+    audio.addEventListener('canplaythrough', tryAutoplay, { once: true });
     audio.load();
 
-    // Try immediately + retry once (helps on some WebViews)
-    const t1 = window.setTimeout(() => void tryPlay(), 120);
-    const t2 = window.setTimeout(() => void tryPlay(), 700);
-
-    // Start animations immediately
+    // Start animations
     setIsVisible(true);
-    const a1 = window.setTimeout(() => setLogoVisible(true), 150);
-    const a2 = window.setTimeout(() => setTextVisible(true), 500);
-    const a3 = window.setTimeout(() => setNameVisible(true), 900);
+    const a1 = setTimeout(() => setLogoVisible(true), 150);
+    const a2 = setTimeout(() => setTextVisible(true), 500);
+    const a3 = setTimeout(() => setNameVisible(true), 900);
 
     // Navigate to home after 6 seconds
-    const navTimer = window.setTimeout(() => {
+    const navTimer = setTimeout(() => {
       navigate('/', { replace: true });
     }, 6000);
 
     return () => {
-      window.clearTimeout(navTimer);
-      window.clearTimeout(t1);
-      window.clearTimeout(t2);
-      window.clearTimeout(a1);
-      window.clearTimeout(a2);
-      window.clearTimeout(a3);
-
-      audio.removeEventListener('canplay', onCanPlay);
-      audio.removeEventListener('error', onError);
-
+      clearTimeout(navTimer);
+      clearTimeout(a1);
+      clearTimeout(a2);
+      clearTimeout(a3);
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
@@ -88,13 +69,22 @@ const SplashPage = () => {
     };
   }, [navigate]);
 
+  // Handle tap/click to play audio (for browsers that block autoplay)
+  const handleTap = () => {
+    if (!audioPlayed) {
+      playAudio();
+    }
+  };
+
   return (
     <div 
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden cursor-pointer"
       style={{ backgroundColor: '#1a1a2e' }}
+      onClick={handleTap}
+      onTouchStart={handleTap}
     >
       {/* Geometric Islamic Pattern Background */}
-      <div className="absolute inset-0 opacity-10">
+      <div className="absolute inset-0 opacity-10 pointer-events-none">
         <div 
           className="absolute inset-0" 
           style={{
@@ -105,7 +95,7 @@ const SplashPage = () => {
       </div>
 
       {/* Content Container */}
-      <div className={`relative z-10 flex flex-col items-center justify-center px-8 transition-opacity duration-500 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
+      <div className={`relative z-10 flex flex-col items-center justify-center px-8 transition-opacity duration-500 pointer-events-none ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
         
         {/* Logo */}
         <div className={`mb-8 transition-all duration-700 ${logoVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
@@ -196,16 +186,25 @@ const SplashPage = () => {
             ))}
           </div>
         </div>
+
+        {/* Tap hint - only shows if audio hasn't played */}
+        {!audioPlayed && (
+          <p 
+            className="mt-6 text-xs animate-pulse"
+            style={{ color: '#666666' }}
+          >
+            Tap anywhere for Bismillah
+          </p>
+        )}
       </div>
 
       {/* Bottom Decorative Pattern */}
       <div 
-        className="absolute bottom-0 left-0 right-0 h-1"
+        className="absolute bottom-0 left-0 right-0 h-1 pointer-events-none"
         style={{ 
           background: 'linear-gradient(90deg, transparent, #c9a227, transparent)'
         }} 
       />
-      
     </div>
   );
 };
