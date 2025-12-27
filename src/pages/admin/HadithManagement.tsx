@@ -212,7 +212,7 @@ const HadithManagement: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>Hadith Books Management | Dar-ul-Ulum</title>
+        <title>Hadith Books Management | Idarah Tarjumat-ul-Qur'an</title>
         <meta name="description" content="Upload and manage Hadith books" />
       </Helmet>
 

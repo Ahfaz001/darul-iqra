@@ -155,7 +155,7 @@ const ExamManagement: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>Exam Management | Dar-ul-Ulum</title>
+        <title>Exam Management | Idarah Tarjumat-ul-Qur'an</title>
         <meta name="description" content="Create and manage exams for students" />
       </Helmet>
 

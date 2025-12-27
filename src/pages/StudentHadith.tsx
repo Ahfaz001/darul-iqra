@@ -94,7 +94,7 @@ const StudentHadith: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>Hadith Library | Dar-ul-Ulum</title>
+        <title>Hadith Library | Idarah Tarjumat-ul-Qur'an</title>
         <meta name="description" content="Browse and read Hadith books in multiple languages" />
       </Helmet>
 

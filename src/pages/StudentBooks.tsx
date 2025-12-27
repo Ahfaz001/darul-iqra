@@ -102,8 +102,8 @@ const StudentBooks = () => {
   return (
     <>
       <Helmet>
-        <title>Books Library - Jamia Madrasa Arabia Naeemia</title>
-        <meta name="description" content="Browse and read Islamic books from Jamia Madrasa Arabia Naeemia's digital library." />
+        <title>Books Library | Idarah Tarjumat-ul-Qur'an Wa Sunnah</title>
+        <meta name="description" content="Browse and read Islamic books from Idarah Tarjumat-ul-Qur'an Wa Sunnah digital library." />
       </Helmet>
 
       <div className="min-h-screen bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-gray-900 dark:to-gray-800">

@@ -62,7 +62,7 @@ const AdminLogin: React.FC = () => {
             </div>
             <img 
               src={madrasaLogo} 
-              alt="Dar-ul-Ulum Al-Qur'an Wa Sunnah Logo" 
+              alt="Idarah Tarjumat-ul-Qur'an Wa Sunnah Logo" 
               className="w-24 h-24 rounded-full mb-6 shadow-2xl border-4 border-gold/30"
             />
             <h1 className="text-3xl font-display font-bold text-center mb-2">

@@ -220,7 +220,7 @@ const StudentProfile: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>My Profile | Dar-ul-Ulum</title>
+        <title>My Profile | Idarah Tarjumat-ul-Qur'an</title>
         <meta name="description" content="View and update your profile information" />
       </Helmet>
 

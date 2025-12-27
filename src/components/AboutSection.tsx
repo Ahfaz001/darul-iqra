@@ -33,7 +33,7 @@ const AboutSection = () => {
             <AnimatedSection animation="fade-up" delay={100}>
               <div className="space-y-4 text-muted-foreground">
                 <p className="text-lg leading-relaxed">
-                  <strong className="text-foreground">Dar-ul-Ulum Al-Qur'an Wa Sunnah</strong>, 
+                  <strong className="text-foreground">Idarah Tarjumat-ul-Qur'an Wa Sunnah</strong>, 
                   established in 2008 in Kalyan, Maharashtra, is dedicated to providing authentic 
                   Islamic education rooted in the teachings of the Holy Quran and the Sunnah of 
                   Prophet Muhammad (ﷺ).

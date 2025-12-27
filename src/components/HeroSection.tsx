@@ -51,7 +51,7 @@ const HeroSection = () => {
           <div className="w-28 h-28 xs:w-32 xs:h-32 sm:w-40 sm:h-40 md:w-52 md:h-52 rounded-full overflow-hidden border-3 sm:border-4 border-white shadow-2xl">
             <img
               src={madrasaLogo}
-              alt="Dar-ul-Ulum Al-Qur'an Wa Sunnah Kalyan Logo"
+              alt="Idarah Tarjumat-ul-Qur'an Wa Sunnah Kalyan Logo"
               className="w-full h-full object-cover"
             />
           </div>

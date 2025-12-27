@@ -255,7 +255,7 @@ const AttendanceManagement: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>Attendance Management | Dar-ul-Ulum</title>
+        <title>Attendance Management | Idarah Tarjumat-ul-Qur'an</title>
         <meta name="description" content="Mark and manage student attendance" />
       </Helmet>
 

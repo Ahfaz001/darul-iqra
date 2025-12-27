@@ -19,7 +19,7 @@ const ContentManagement: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>Content Management | Dar-ul-Ulum</title>
+        <title>Content Management | Idarah Tarjumat-ul-Qur'an</title>
         <meta name="description" content="Upload and manage learning materials" />
       </Helmet>
 

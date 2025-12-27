@@ -332,7 +332,7 @@ const AdminPanel: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>{role === 'admin' ? 'Admin Panel' : 'Teacher Dashboard'} | Dar-ul-Ulum</title>
+        <title>{role === 'admin' ? 'Admin Panel' : 'Teacher Dashboard'} | Idarah Tarjumat-ul-Qur'an</title>
         <meta name="description" content="Manage students, exams, attendance, and content for Idarah Tarjumat-ul-Qur'an Wa Sunnah." />
       </Helmet>
 

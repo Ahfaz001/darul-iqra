@@ -118,7 +118,7 @@ const StudentAttendance: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>My Attendance | Dar-ul-Ulum</title>
+        <title>My Attendance | Idarah Tarjumat-ul-Qur'an</title>
         <meta name="description" content="View your attendance history" />
       </Helmet>
 
