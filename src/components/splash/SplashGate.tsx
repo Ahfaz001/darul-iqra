@@ -3,7 +3,11 @@ import SplashScreen from "@/components/splash/SplashScreen";
 
 const STORAGE_KEY = "splash_seen";
 
-const SplashGate = ({ children }: PropsWithChildren) => {
+type SplashGateProps = PropsWithChildren<{
+  onFinished?: () => void;
+}>;
+
+const SplashGate = ({ children, onFinished }: SplashGateProps) => {
   const [show, setShow] = useState(() => {
     try {
       return sessionStorage.getItem(STORAGE_KEY) !== "1";
@@ -18,14 +22,17 @@ const SplashGate = ({ children }: PropsWithChildren) => {
     } catch {
       // ignore
     }
+
+    // Important: run navigation/redirect logic BEFORE mounting children,
+    // so protected routes don't redirect to /auth behind the splash.
+    onFinished?.();
+
     setShow(false);
-  }, []);
+  }, [onFinished]);
 
   return (
     <>
-      <div aria-hidden={show} className={show ? "pointer-events-none select-none" : ""}>
-        {children}
-      </div>
+      {!show && <>{children}</>}
       {show && <SplashScreen onFinished={handleFinished} />}
     </>
   );
