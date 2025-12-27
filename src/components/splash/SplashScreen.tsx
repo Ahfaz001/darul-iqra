@@ -6,7 +6,7 @@ type SplashScreenProps = {
   onFinished?: () => void;
 };
 
-const SplashScreen = ({ minDurationMs = 6000, onFinished }: SplashScreenProps) => {
+const SplashScreen = ({ minDurationMs = 8000, onFinished }: SplashScreenProps) => {
   const [isVisible, setIsVisible] = useState(false);
   const [logoVisible, setLogoVisible] = useState(false);
   const [textVisible, setTextVisible] = useState(false);

@@ -52,48 +52,56 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     let isMounted = true;
 
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (!isMounted) return;
+    // Set up auth state listener FIRST (keep callback synchronous to avoid deadlocks)
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      if (!isMounted) return;
 
-        setSession(session);
-        setUser(session?.user ?? null);
+      setSession(nextSession);
+      setUser(nextSession?.user ?? null);
 
-        if (session?.user) {
-          // Use setTimeout to defer but still wait for role
-          setTimeout(async () => {
+      if (nextSession?.user) {
+        // Defer role fetch (never call Supabase directly inside the auth callback)
+        setTimeout(() => {
+          (async () => {
             if (!isMounted) return;
-            const userRole = await fetchUserRole(session.user.id);
-            if (isMounted) {
-              setRole(userRole);
-              setLoading(false);
-            }
-          }, 0);
-        } else {
-          setRole(null);
-          setLoading(false);
-        }
+            const userRole = await fetchUserRole(nextSession.user.id);
+            if (!isMounted) return;
+            setRole(userRole);
+            setLoading(false);
+          })().catch(() => {
+            if (!isMounted) return;
+            setRole(null);
+            setLoading(false);
+          });
+        }, 0);
+      } else {
+        setRole(null);
+        setLoading(false);
       }
-    );
+    });
 
     // THEN check for existing session
     const initSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!isMounted) return;
+      try {
+        const {
+          data: { session: existingSession },
+        } = await supabase.auth.getSession();
 
-      setSession(session);
-      setUser(session?.user ?? null);
+        if (!isMounted) return;
 
-      if (session?.user) {
-        const userRole = await fetchUserRole(session.user.id);
-        if (isMounted) {
-          setRole(userRole);
+        setSession(existingSession);
+        setUser(existingSession?.user ?? null);
+
+        if (existingSession?.user) {
+          const userRole = await fetchUserRole(existingSession.user.id);
+          if (isMounted) setRole(userRole);
         }
-      }
-
-      if (isMounted) {
-        setLoading(false);
+      } catch {
+        // ignore
+      } finally {
+        if (isMounted) setLoading(false);
       }
     };
 
@@ -104,6 +112,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       subscription.unsubscribe();
     };
   }, []);
+
 
   const signUp = async (email: string, password: string, fullName: string) => {
     const redirectUrl = `${window.location.origin}/`;
