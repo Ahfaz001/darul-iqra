@@ -12,61 +12,75 @@ const SplashPage = () => {
   const hasPlayedRef = useRef(false);
 
   useEffect(() => {
-    // Create and play audio immediately
-    const playBismillah = async () => {
-      if (hasPlayedRef.current) return;
-      
+    const AUDIO_SRC = '/sounds/bismillah.mp3';
+
+    const tryPlay = async () => {
+      const audio = audioRef.current;
+      if (!audio || hasPlayedRef.current) return;
+
       try {
-        // Create audio element
-        const audio = new Audio();
-        audio.src = '/sounds/bismillah.mp3';
-        audio.volume = 1.0;
-        audio.preload = 'auto';
-        audioRef.current = audio;
-
-        // Wait for audio to be ready
-        await new Promise((resolve) => {
-          audio.addEventListener('canplaythrough', resolve, { once: true });
-          audio.load();
-        });
-
-        // Play audio
         await audio.play();
         hasPlayedRef.current = true;
-      } catch (error) {
-        console.log('Audio autoplay:', error);
-        // Fallback: try playing with muted first then unmute (trick for some browsers)
-        try {
-          if (audioRef.current) {
-            audioRef.current.muted = true;
-            await audioRef.current.play();
-            audioRef.current.muted = false;
-            audioRef.current.currentTime = 0;
-            await audioRef.current.play();
-            hasPlayedRef.current = true;
-          }
-        } catch (e) {
-          console.log('Fallback also failed:', e);
-        }
+        console.log('[splash] bismillah playing');
+      } catch (err) {
+        console.log('[splash] autoplay blocked / failed:', err);
       }
     };
 
-    // Play audio immediately
-    playBismillah();
+    // Create audio element
+    const audio = new Audio(AUDIO_SRC);
+    audio.preload = 'auto';
+    audio.volume = 1;
+    audioRef.current = audio;
+
+    // Debug: ensure file is reachable (will show in network)
+    fetch(AUDIO_SRC, { method: 'HEAD' })
+      .then((r) => console.log('[splash] audio HEAD status:', r.status))
+      .catch((e) => console.log('[splash] audio HEAD failed:', e));
+
+    const onCanPlay = () => {
+      console.log('[splash] audio canplay');
+      void tryPlay();
+    };
+
+    const onError = () => {
+      console.log('[splash] audio error:', audio.error);
+      // still try once in case the browser delays load
+      void tryPlay();
+    };
+
+    audio.addEventListener('canplay', onCanPlay);
+    audio.addEventListener('error', onError);
+
+    // Kickstart loading
+    audio.load();
+
+    // Try immediately + retry once (helps on some WebViews)
+    const t1 = window.setTimeout(() => void tryPlay(), 120);
+    const t2 = window.setTimeout(() => void tryPlay(), 700);
 
     // Start animations immediately
     setIsVisible(true);
-    setTimeout(() => setLogoVisible(true), 150);
-    setTimeout(() => setTextVisible(true), 500);
-    setTimeout(() => setNameVisible(true), 900);
+    const a1 = window.setTimeout(() => setLogoVisible(true), 150);
+    const a2 = window.setTimeout(() => setTextVisible(true), 500);
+    const a3 = window.setTimeout(() => setNameVisible(true), 900);
 
     // Navigate to home after 6 seconds
-    const timer = setTimeout(() => {
+    const navTimer = window.setTimeout(() => {
       navigate('/', { replace: true });
     }, 6000);
 
     return () => {
-      clearTimeout(timer);
+      window.clearTimeout(navTimer);
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+      window.clearTimeout(a1);
+      window.clearTimeout(a2);
+      window.clearTimeout(a3);
+
+      audio.removeEventListener('canplay', onCanPlay);
+      audio.removeEventListener('error', onError);
+
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
@@ -192,13 +206,6 @@ const SplashPage = () => {
         }} 
       />
       
-      {/* Hidden audio element for better autoplay support */}
-      <audio 
-        src="/sounds/bismillah.mp3" 
-        autoPlay 
-        playsInline
-        style={{ display: 'none' }}
-      />
     </div>
   );
 };
