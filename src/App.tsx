@@ -59,8 +59,8 @@ const App = () => {
               <Sonner />
               <Router>
                 <AuthProvider>
-                  <PushNotificationProvider>
-                    <SplashAppGate>
+                  <SplashAppGate>
+                    <PushNotificationProvider>
                       <AppErrorBoundary>
                         <Routes>
                           <Route path="/" element={<Index />} />
@@ -266,8 +266,8 @@ const App = () => {
                           <Route path="*" element={<NotFound />} />
                         </Routes>
                       </AppErrorBoundary>
-                    </SplashAppGate>
-                  </PushNotificationProvider>
+                    </PushNotificationProvider>
+                  </SplashAppGate>
                 </AuthProvider>
               </Router>
             </TooltipProvider>
