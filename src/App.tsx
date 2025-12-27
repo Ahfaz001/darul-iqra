@@ -8,6 +8,7 @@ import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { PushNotificationProvider } from "@/components/PushNotificationProvider";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AdminLogin from "./pages/AdminLogin";
@@ -52,6 +53,7 @@ const App = () => (
             <Sonner />
             <BrowserRouter>
               <AuthProvider>
+                <PushNotificationProvider>
             <Routes>
               <Route path="/splash" element={<SplashPage />} />
               <Route path="/" element={<Index />} />
@@ -254,6 +256,7 @@ const App = () => (
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+                </PushNotificationProvider>
               </AuthProvider>
             </BrowserRouter>
           </TooltipProvider>
