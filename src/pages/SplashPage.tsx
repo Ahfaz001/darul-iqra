@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import madrasaLogo from '@/assets/madrasa-logo.jpg';
 
@@ -8,127 +8,206 @@ const SplashPage = () => {
   const [logoVisible, setLogoVisible] = useState(false);
   const [textVisible, setTextVisible] = useState(false);
   const [nameVisible, setNameVisible] = useState(false);
+  const [audioPlayed, setAudioPlayed] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const playAudio = useCallback(() => {
+    if (audioPlayed || !audioRef.current) return;
+    
+    audioRef.current.play()
+      .then(() => {
+        setAudioPlayed(true);
+      })
+      .catch((error) => {
+        console.log('Audio play failed:', error);
+      });
+  }, [audioPlayed]);
 
   useEffect(() => {
-    // Start animations
-    setTimeout(() => setIsVisible(true), 100);
-    setTimeout(() => setLogoVisible(true), 300);
-    setTimeout(() => setTextVisible(true), 800);
-    setTimeout(() => setNameVisible(true), 1200);
+    // Preload audio
+    audioRef.current = new Audio('/sounds/bismillah.mp3');
+    audioRef.current.volume = 1.0;
+    audioRef.current.preload = 'auto';
 
-    // Play Bismillah audio
-    const audio = new Audio('/sounds/bismillah.mp3');
-    audio.volume = 0.8;
-    audio.play().catch(() => {
-      // Audio autoplay might be blocked, continue anyway
-      console.log('Audio autoplay blocked');
-    });
+    // Try to play immediately
+    const playPromise = audioRef.current.play();
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          setAudioPlayed(true);
+        })
+        .catch(() => {
+          // Autoplay blocked - will play on user interaction
+          console.log('Autoplay blocked, waiting for interaction');
+        });
+    }
 
-    // Navigate to home after splash
+    // Start animations immediately for faster feel
+    setIsVisible(true);
+    setTimeout(() => setLogoVisible(true), 150);
+    setTimeout(() => setTextVisible(true), 500);
+    setTimeout(() => setNameVisible(true), 900);
+
+    // Navigate to home after 6 seconds
     const timer = setTimeout(() => {
       navigate('/', { replace: true });
-    }, 4000);
+    }, 6000);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
   }, [navigate]);
 
+  // Handle user interaction to play audio if autoplay was blocked
+  useEffect(() => {
+    const handleInteraction = () => {
+      playAudio();
+      // Remove listeners after first interaction
+      document.removeEventListener('touchstart', handleInteraction);
+      document.removeEventListener('click', handleInteraction);
+    };
+
+    document.addEventListener('touchstart', handleInteraction, { passive: true });
+    document.addEventListener('click', handleInteraction);
+
+    return () => {
+      document.removeEventListener('touchstart', handleInteraction);
+      document.removeEventListener('click', handleInteraction);
+    };
+  }, [playAudio]);
+
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden"
-      style={{ backgroundColor: '#1a1a2e' }}>
-      
-      {/* Geometric Islamic Pattern Background */}
+    <div 
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden"
+      style={{ backgroundColor: '#1a1a2e' }}
+      onClick={playAudio}
+    >
+      {/* Geometric Islamic Pattern Background - Simplified for performance */}
       <div className="absolute inset-0 opacity-10">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c9a227' fill-opacity='0.4'%3E%3Cpath d='M30 0l30 30-30 30L0 30z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-          backgroundSize: '60px 60px'
-        }} />
+        <div 
+          className="absolute inset-0" 
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l30 30-30 30L0 30z' fill='%23c9a227' fill-opacity='0.4'/%3E%3C/svg%3E")`,
+            backgroundSize: '60px 60px'
+          }} 
+        />
       </div>
 
-      {/* Radial Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-radial from-transparent via-transparent to-black/40" />
-
       {/* Content Container */}
-      <div className={`relative z-10 flex flex-col items-center justify-center px-8 transition-all duration-1000 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
+      <div className={`relative z-10 flex flex-col items-center justify-center px-8 transition-opacity duration-500 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
         
         {/* Logo */}
-        <div className={`mb-8 transition-all duration-1000 ${logoVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`}>
+        <div className={`mb-8 transition-all duration-700 ${logoVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
           <div className="relative">
             {/* Glow Effect */}
-            <div className="absolute inset-0 rounded-full blur-2xl opacity-50"
-              style={{ backgroundColor: '#c9a227', transform: 'scale(1.2)' }} />
+            <div 
+              className="absolute inset-0 rounded-full blur-xl opacity-40"
+              style={{ backgroundColor: '#c9a227', transform: 'scale(1.3)' }} 
+            />
             
             {/* Logo Image */}
             <img 
               src={madrasaLogo} 
               alt="Idarah Tarjumat-ul-Qur'an Wa Sunnah"
-              className="relative w-32 h-32 md:w-40 md:h-40 rounded-full object-cover border-4 shadow-2xl"
+              className="relative w-28 h-28 md:w-36 md:h-36 rounded-full object-cover border-4 shadow-2xl"
               style={{ borderColor: '#c9a227' }}
+              loading="eager"
             />
           </div>
         </div>
 
         {/* Bismillah Arabic Text */}
-        <div className={`mb-6 transition-all duration-1000 delay-200 ${textVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-          <p className="text-3xl md:text-4xl lg:text-5xl font-bold text-center leading-relaxed"
+        <div className={`mb-5 transition-all duration-700 ${textVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'}`}>
+          <p 
+            className="text-2xl md:text-3xl lg:text-4xl font-bold text-center leading-relaxed"
             style={{ 
               color: '#c9a227',
               fontFamily: "'Amiri', 'Traditional Arabic', serif",
-              textShadow: '0 0 30px rgba(201, 162, 39, 0.4)'
-            }}>
+              textShadow: '0 0 20px rgba(201, 162, 39, 0.3)'
+            }}
+          >
             بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
           </p>
         </div>
 
         {/* Decorative Line */}
-        <div className={`mb-6 transition-all duration-1000 delay-300 ${textVisible ? 'opacity-100 scale-x-100' : 'opacity-0 scale-x-0'}`}>
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-px" style={{ backgroundColor: '#c9a227' }} />
+        <div className={`mb-5 transition-all duration-500 ${textVisible ? 'opacity-100' : 'opacity-0'}`}>
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-px" style={{ backgroundColor: '#c9a227' }} />
             <div className="w-2 h-2 rotate-45" style={{ backgroundColor: '#c9a227' }} />
-            <div className="w-16 h-px" style={{ backgroundColor: '#c9a227' }} />
+            <div className="w-12 h-px" style={{ backgroundColor: '#c9a227' }} />
           </div>
         </div>
 
         {/* Madrasa Name */}
-        <div className={`text-center transition-all duration-1000 delay-500 ${nameVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-          <h1 className="text-2xl md:text-3xl font-bold mb-2 tracking-wide"
+        <div className={`text-center transition-all duration-700 ${nameVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'}`}>
+          <h1 
+            className="text-xl md:text-2xl font-bold mb-2 tracking-wide"
             style={{ 
               color: '#ffffff',
-              textShadow: '0 2px 10px rgba(0,0,0,0.5)'
-            }}>
+              textShadow: '0 2px 8px rgba(0,0,0,0.4)'
+            }}
+          >
             إِدَارَةُ تَرْجُمَةِ الْقُرْآنِ وَالسُّنَّةِ
           </h1>
-          <h2 className="text-xl md:text-2xl font-semibold mb-1"
-            style={{ color: '#c9a227' }}>
+          <h2 
+            className="text-lg md:text-xl font-semibold mb-1"
+            style={{ color: '#c9a227' }}
+          >
             Idarah Tarjumat-ul-Qur'an
           </h2>
-          <h3 className="text-lg md:text-xl font-medium mb-2"
-            style={{ color: '#e5d5a8' }}>
+          <h3 
+            className="text-base md:text-lg font-medium mb-2"
+            style={{ color: '#e5d5a8' }}
+          >
             Wa Sunnah
           </h3>
-          <p className="text-base md:text-lg tracking-widest uppercase"
-            style={{ color: '#888888' }}>
+          <p 
+            className="text-sm md:text-base tracking-widest uppercase"
+            style={{ color: '#888888' }}
+          >
             KALYAN
           </p>
         </div>
 
         {/* Loading Indicator */}
-        <div className={`mt-12 transition-all duration-1000 delay-700 ${nameVisible ? 'opacity-100' : 'opacity-0'}`}>
+        <div className={`mt-10 transition-opacity duration-500 ${nameVisible ? 'opacity-100' : 'opacity-0'}`}>
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full animate-bounce" 
-              style={{ backgroundColor: '#c9a227', animationDelay: '0ms' }} />
-            <div className="w-2 h-2 rounded-full animate-bounce" 
-              style={{ backgroundColor: '#c9a227', animationDelay: '150ms' }} />
-            <div className="w-2 h-2 rounded-full animate-bounce" 
-              style={{ backgroundColor: '#c9a227', animationDelay: '300ms' }} />
+            {[0, 150, 300].map((delay, i) => (
+              <div 
+                key={i}
+                className="w-2 h-2 rounded-full animate-bounce" 
+                style={{ 
+                  backgroundColor: '#c9a227', 
+                  animationDelay: `${delay}ms` 
+                }} 
+              />
+            ))}
           </div>
         </div>
+
+        {/* Tap to play hint - shows if audio hasn't played */}
+        {!audioPlayed && (
+          <p 
+            className="mt-4 text-xs opacity-60 animate-pulse"
+            style={{ color: '#888888' }}
+          >
+            Tap anywhere for audio
+          </p>
+        )}
       </div>
 
       {/* Bottom Decorative Pattern */}
-      <div className="absolute bottom-0 left-0 right-0 h-1"
+      <div 
+        className="absolute bottom-0 left-0 right-0 h-1"
         style={{ 
           background: 'linear-gradient(90deg, transparent, #c9a227, transparent)'
-        }} />
+        }} 
+      />
     </div>
   );
 };
