@@ -8,6 +8,7 @@ import { ThemeProvider } from "next-themes";
 import { Capacitor } from "@capacitor/core";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { DebugProvider } from "@/contexts/DebugContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { PushNotificationProvider } from "@/components/PushNotificationProvider";
 import SplashAppGate from "@/components/splash/SplashAppGate";
@@ -43,6 +44,7 @@ import AdmissionForm from "./pages/AdmissionForm";
 import AdmissionManagement from "./pages/admin/AdmissionManagement";
 import Support from "./pages/Support";
 import Contact from "./pages/Contact";
+import Debug from "./pages/Debug";
 
 const queryClient = new QueryClient();
 
@@ -58,12 +60,14 @@ const App = () => {
               <Toaster />
               <Sonner />
               <Router>
-                <AuthProvider>
-                  <SplashAppGate>
-                    <PushNotificationProvider>
-                      <AppErrorBoundary>
-                        <Routes>
-                          <Route path="/" element={<Index />} />
+                <DebugProvider>
+                  <AuthProvider>
+                    <SplashAppGate>
+                      <PushNotificationProvider>
+                        <AppErrorBoundary>
+                          <Routes>
+                            <Route path="/debug" element={<Debug />} />
+                            <Route path="/" element={<Index />} />
                           <Route path="/splash" element={<SplashPage />} />
                           <Route path="/sp" element={<Navigate to="/splash" replace />} />
                           <Route path="/home" element={<Navigate to="/" replace />} />
@@ -269,7 +273,8 @@ const App = () => {
                     </PushNotificationProvider>
                   </SplashAppGate>
                 </AuthProvider>
-              </Router>
+              </DebugProvider>
+            </Router>
             </TooltipProvider>
           </LanguageProvider>
         </ThemeProvider>

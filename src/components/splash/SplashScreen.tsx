@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Capacitor } from "@capacitor/core";
 import madrasaLogo from "@/assets/madrasa-logo.jpg";
 
 type SplashScreenProps = {
@@ -46,59 +47,62 @@ const SplashScreen = ({ minDurationMs = 8000, onFinished }: SplashScreenProps) =
   }, [audioPlayed]);
 
   // Aggressive autoplay function - tries multiple methods
-  const forceAutoplay = useCallback(async (audio: HTMLAudioElement) => {
-    if (audioPlayed) return;
+  const forceAutoplay = useCallback(
+    async (audio: HTMLAudioElement) => {
+      if (audioPlayed) return;
 
-    const methods = [
-      // Method 1: Direct play
-      async () => {
-        audio.muted = false;
-        audio.volume = 1;
-        await audio.play();
-        return true;
-      },
-      // Method 2: With AudioContext resume
-      async () => {
-        if (audioContextRef.current?.state === 'suspended') {
-          await audioContextRef.current.resume();
-        }
-        audio.muted = false;
-        await audio.play();
-        return true;
-      },
-      // Method 3: User activation simulation
-      async () => {
-        const unlockAudio = () => {
+      const methods = [
+        // Method 1: Direct play
+        async () => {
           audio.muted = false;
-          audio.play().catch(() => {});
-        };
-        unlockAudio();
-        await new Promise(resolve => setTimeout(resolve, 100));
-        if (!audio.paused) return true;
-        throw new Error("Still paused");
-      }
-    ];
+          audio.volume = 1;
+          await audio.play();
+          return true;
+        },
+        // Method 2: Start muted (often allowed), then unmute
+        async () => {
+          audio.muted = true;
+          audio.volume = 0;
+          await audio.play();
+          // Let playback start
+          await new Promise((r) => setTimeout(r, 80));
+          audio.muted = false;
+          audio.volume = 1;
+          return true;
+        },
+        // Method 3: With AudioContext resume
+        async () => {
+          if (audioContextRef.current?.state === "suspended") {
+            await audioContextRef.current.resume();
+          }
+          audio.muted = false;
+          await audio.play();
+          return true;
+        },
+      ];
 
-    for (const method of methods) {
-      try {
-        await method();
-        if (!audio.paused) {
-          setAudioPlayed(true);
-          console.log("[splash] autoplay success");
-          return;
+      for (const method of methods) {
+        try {
+          await method();
+          if (!audio.paused) {
+            setAudioPlayed(true);
+            console.log("[splash] autoplay success");
+            return;
+          }
+        } catch {
+          // continue
         }
-      } catch (e) {
-        continue;
       }
-    }
-    console.log("[splash] all autoplay methods failed, waiting for tap");
-  }, [audioPlayed]);
+      console.log("[splash] all autoplay methods failed, waiting for tap");
+    },
+    [audioPlayed]
+  );
 
   useEffect(() => {
     // Create AudioContext for better mobile support
     try {
       audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-    } catch (e) {
+    } catch {
       console.log("[splash] AudioContext not supported");
     }
 
@@ -121,16 +125,23 @@ const SplashScreen = ({ minDurationMs = 8000, onFinished }: SplashScreenProps) =
 
     // Try autoplay immediately
     const immediatePlay = () => forceAutoplay(audio);
-    
-    // Multiple trigger points for autoplay
+
     audio.addEventListener("canplaythrough", immediatePlay, { once: true });
     audio.addEventListener("loadeddata", immediatePlay, { once: true });
     audio.addEventListener("canplay", immediatePlay, { once: true });
-    
-    // Also try after a short delay (some browsers need this)
-    const delayedPlay = setTimeout(() => forceAutoplay(audio), 300);
-    const retryPlay = setTimeout(() => forceAutoplay(audio), 800);
-    
+
+    const delayedPlay = setTimeout(() => forceAutoplay(audio), 250);
+    const retryPlay = setTimeout(() => forceAutoplay(audio), 900);
+
+    // Also attempt on first user interaction anywhere (most reliable on mobile)
+    const unlockOnce = () => {
+      forceAutoplay(audio);
+      window.removeEventListener("touchstart", unlockOnce);
+      window.removeEventListener("click", unlockOnce);
+    };
+    window.addEventListener("touchstart", unlockOnce, { passive: true });
+    window.addEventListener("click", unlockOnce);
+
     audio.load();
 
     // Start animations
@@ -148,6 +159,9 @@ const SplashScreen = ({ minDurationMs = 8000, onFinished }: SplashScreenProps) =
       window.clearTimeout(a3);
       window.clearTimeout(delayedPlay);
       window.clearTimeout(retryPlay);
+
+      window.removeEventListener("touchstart", unlockOnce);
+      window.removeEventListener("click", unlockOnce);
 
       audio.removeEventListener("error", handleError);
 
@@ -172,13 +186,36 @@ const SplashScreen = ({ minDurationMs = 8000, onFinished }: SplashScreenProps) =
     if (!audioPlayed) playAudio();
   };
 
+  // Hidden: 7 taps opens debug screen (helps APK diagnosis)
+  const tapCountRef = useRef(0);
+  const tapTimerRef = useRef<number | null>(null);
+  const handleSecretDebugTap = () => {
+    tapCountRef.current += 1;
+    if (tapTimerRef.current) window.clearTimeout(tapTimerRef.current);
+    tapTimerRef.current = window.setTimeout(() => {
+      tapCountRef.current = 0;
+    }, 1200);
+
+    if (tapCountRef.current >= 7) {
+      const to = "/debug";
+      if (Capacitor.isNativePlatform()) window.location.hash = `#${to}`;
+      else window.location.assign(to);
+      tapCountRef.current = 0;
+    }
+  };
+
   return (
     <div
       className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden cursor-pointer select-none"
       style={{ backgroundColor: "#1a1a2e" }}
-      onClick={handleTap}
-      onTouchStart={handleTap}
-      onTouchEnd={(e) => e.preventDefault()}
+      onClick={() => {
+        handleTap();
+        handleSecretDebugTap();
+      }}
+      onTouchStart={() => {
+        handleTap();
+        handleSecretDebugTap();
+      }}
     >
       {/* Geometric Islamic Pattern Background */}
       <div className="absolute inset-0 opacity-10 pointer-events-none">
