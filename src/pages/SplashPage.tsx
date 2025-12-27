@@ -54,7 +54,7 @@ const SplashPage = () => {
 
     // Navigate to home after 6 seconds
     const navTimer = setTimeout(() => {
-      navigate('/', { replace: true });
+      navigate('/home', { replace: true });
     }, 6000);
 
     return () => {

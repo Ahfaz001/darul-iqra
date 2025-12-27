@@ -174,7 +174,7 @@ const StudentProfile: React.FC = () => {
     setLoggingOut(true);
     try {
       await signOut();
-      navigate('/');
+      navigate('/home');
       toast({
         title: "Success",
         description: "Logged out successfully"

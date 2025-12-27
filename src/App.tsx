@@ -55,8 +55,8 @@ const App = () => (
               <AuthProvider>
                 <PushNotificationProvider>
             <Routes>
-              <Route path="/splash" element={<SplashPage />} />
-              <Route path="/" element={<Index />} />
+              <Route path="/" element={<SplashPage />} />
+              <Route path="/home" element={<Index />} />
               <Route path="/admission" element={<AdmissionForm />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/admin-login" element={<AdminLogin />} />
