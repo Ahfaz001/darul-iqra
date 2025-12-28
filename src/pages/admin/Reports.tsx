@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import madrasaLogo from '@/assets/madrasa-logo.jpg';
 import { ArrowLeft, BarChart3, TrendingUp, Users, Calendar, FileText, Download } from 'lucide-react';
+import AdminMobileNav from '@/components/admin/AdminMobileNav';
 
 interface ReportStats {
   avgAttendance: number;
@@ -161,103 +162,104 @@ const Reports: React.FC = () => {
 
       <div className="min-h-screen bg-background">
         <header className="bg-card border-b border-border/50 sticky top-0 z-50">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
+          <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                <AdminMobileNav />
                 <Button 
                   variant="ghost" 
                   size="sm" 
                   onClick={() => navigate('/admin')}
-                  className="mr-2"
+                  className="hidden md:flex mr-2"
                 >
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
                 <img 
                   src={madrasaLogo} 
                   alt="Madrasa Logo" 
-                  className="w-10 h-10 rounded-full"
+                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-full shrink-0"
                 />
-                <div>
-                  <h1 className="font-display font-bold text-primary text-lg">
+                <div className="min-w-0">
+                  <h1 className="font-display font-bold text-primary text-sm sm:text-lg truncate">
                     Reports & Analytics
                   </h1>
-                  <p className="text-xs text-muted-foreground">View performance reports</p>
+                  <p className="text-xs text-muted-foreground hidden sm:block">View performance reports</p>
                 </div>
               </div>
               
-              <Button variant="outline">
-                <Download className="h-4 w-4 mr-2" />
-                Export All
+              <Button variant="outline" size="sm" className="shrink-0">
+                <Download className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Export All</span>
               </Button>
             </div>
           </div>
         </header>
 
-        <main className="container mx-auto px-4 py-8">
+        <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
           {/* Quick Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
             <Card className="bg-card border-border/30">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Avg Attendance</p>
-                    <p className="text-3xl font-bold text-foreground mt-1">
+              <CardContent className="p-3 sm:p-6">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">Avg Attendance</p>
+                    <p className="text-xl sm:text-3xl font-bold text-foreground mt-1">
                       {loading ? '...' : `${stats.avgAttendance}%`}
                     </p>
                     <p className={`text-xs mt-1 ${stats.attendanceChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {stats.attendanceChange >= 0 ? '↑' : '↓'} {Math.abs(stats.attendanceChange)}% from last month
+                      {stats.attendanceChange >= 0 ? '↑' : '↓'} {Math.abs(stats.attendanceChange)}%
                     </p>
                   </div>
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <Calendar className="h-5 w-5 text-blue-600" />
+                  <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg shrink-0">
+                    <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
                   </div>
                 </div>
               </CardContent>
             </Card>
             <Card className="bg-card border-border/30">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Avg Exam Score</p>
-                    <p className="text-3xl font-bold text-foreground mt-1">
+              <CardContent className="p-3 sm:p-6">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">Avg Score</p>
+                    <p className="text-xl sm:text-3xl font-bold text-foreground mt-1">
                       {loading ? '...' : `${stats.avgExamScore}%`}
                     </p>
-                    <p className="text-xs text-green-600 mt-1">Overall average</p>
+                    <p className="text-xs text-green-600 mt-1">Overall</p>
                   </div>
-                  <div className="p-2 bg-green-100 rounded-lg">
-                    <TrendingUp className="h-5 w-5 text-green-600" />
+                  <div className="p-1.5 sm:p-2 bg-green-100 rounded-lg shrink-0">
+                    <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
                   </div>
                 </div>
               </CardContent>
             </Card>
             <Card className="bg-card border-border/30">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Active Students</p>
-                    <p className="text-3xl font-bold text-foreground mt-1">
+              <CardContent className="p-3 sm:p-6">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">Students</p>
+                    <p className="text-xl sm:text-3xl font-bold text-foreground mt-1">
                       {loading ? '...' : stats.activeStudents}
                     </p>
-                    <p className="text-xs text-primary mt-1">+{stats.newStudents} new this month</p>
+                    <p className="text-xs text-primary mt-1">+{stats.newStudents} new</p>
                   </div>
-                  <div className="p-2 bg-purple-100 rounded-lg">
-                    <Users className="h-5 w-5 text-purple-600" />
+                  <div className="p-1.5 sm:p-2 bg-purple-100 rounded-lg shrink-0">
+                    <Users className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
                   </div>
                 </div>
               </CardContent>
             </Card>
             <Card className="bg-card border-border/30">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Exams Conducted</p>
-                    <p className="text-3xl font-bold text-foreground mt-1">
+              <CardContent className="p-3 sm:p-6">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">Exams</p>
+                    <p className="text-xl sm:text-3xl font-bold text-foreground mt-1">
                       {loading ? '...' : stats.examsConducted}
                     </p>
-                    <p className="text-xs text-muted-foreground mt-1">This semester</p>
+                    <p className="text-xs text-muted-foreground mt-1">Semester</p>
                   </div>
-                  <div className="p-2 bg-amber-100 rounded-lg">
-                    <FileText className="h-5 w-5 text-amber-600" />
+                  <div className="p-1.5 sm:p-2 bg-amber-100 rounded-lg shrink-0">
+                    <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
                   </div>
                 </div>
               </CardContent>
@@ -265,26 +267,26 @@ const Reports: React.FC = () => {
           </div>
 
           {/* Report Types */}
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <BarChart3 className="h-5 w-5" />
+          <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2">
+            <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5" />
             Available Reports
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-6 sm:mb-8">
             {reportTypes.map((report) => (
               <Card 
                 key={report.title} 
                 className="bg-card border-border/30 hover:shadow-md transition-shadow cursor-pointer"
               >
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className={`w-12 h-12 ${report.color} rounded-xl flex items-center justify-center flex-shrink-0`}>
-                      <report.icon className="h-6 w-6" />
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    <div className={`w-10 h-10 sm:w-12 sm:h-12 ${report.color} rounded-xl flex items-center justify-center flex-shrink-0`}>
+                      <report.icon className="h-5 w-5 sm:h-6 sm:w-6" />
                     </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-foreground mb-1">{report.title}</h3>
-                      <p className="text-sm text-muted-foreground">{report.description}</p>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-foreground mb-1 text-sm sm:text-base">{report.title}</h3>
+                      <p className="text-xs sm:text-sm text-muted-foreground">{report.description}</p>
                     </div>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" className="shrink-0">
                       View
                     </Button>
                   </div>
@@ -294,9 +296,9 @@ const Reports: React.FC = () => {
           </div>
 
           <Card className="bg-amber-50 border-amber-200">
-            <CardHeader>
-              <CardTitle className="text-amber-800">Coming Soon</CardTitle>
-              <CardDescription className="text-amber-700">
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-amber-800 text-base sm:text-lg">Coming Soon</CardTitle>
+              <CardDescription className="text-amber-700 text-sm">
                 Detailed analytics with charts and exportable reports are coming soon. 
                 You'll be able to generate comprehensive performance insights.
               </CardDescription>
