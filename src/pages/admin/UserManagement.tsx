@@ -13,6 +13,7 @@ import { format } from 'date-fns';
 import madrasaLogo from '@/assets/madrasa-logo.jpg';
 import { ArrowLeft, Users, UserCog, Shield, GraduationCap, BookOpen } from 'lucide-react';
 import { Database } from '@/integrations/supabase/types';
+import AdminMobileNav from '@/components/admin/AdminMobileNav';
 
 type AppRole = Database['public']['Enums']['app_role'];
 
@@ -138,6 +139,7 @@ const UserManagement: React.FC = () => {
         <header className="bg-card border-b border-border/50 sticky top-0 z-50">
           <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
             <div className="flex items-center gap-2 sm:gap-3">
+              <AdminMobileNav />
               <Button 
                 variant="ghost" 
                 size="icon"

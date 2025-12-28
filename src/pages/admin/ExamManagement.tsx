@@ -27,6 +27,7 @@ import {
   Eye
 } from 'lucide-react';
 import { notifyNewExam } from '@/hooks/useSendNotification';
+import AdminMobileNav from '@/components/admin/AdminMobileNav';
 
 interface Exam {
   id: string;
@@ -169,6 +170,7 @@ const ExamManagement: React.FC = () => {
           <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                <AdminMobileNav />
                 <Button 
                   variant="ghost" 
                   size="icon"

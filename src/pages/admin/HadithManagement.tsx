@@ -15,6 +15,7 @@ import { format } from 'date-fns';
 import madrasaLogo from '@/assets/madrasa-logo.jpg';
 import { ArrowLeft, BookOpen, Plus, Upload, Trash2, FileText, Globe, Eye } from 'lucide-react';
 import { notifyNewHadith } from '@/hooks/useSendNotification';
+import AdminMobileNav from '@/components/admin/AdminMobileNav';
 
 interface HadithBook {
   id: string;
@@ -225,6 +226,7 @@ const HadithManagement: React.FC = () => {
           <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                <AdminMobileNav />
                 <Button 
                   variant="ghost" 
                   size="icon"

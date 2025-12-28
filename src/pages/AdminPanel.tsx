@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import ThemeToggle from '@/components/ThemeToggle';
+import AdminMobileNav from '@/components/admin/AdminMobileNav';
 import madrasaLogo from '@/assets/madrasa-logo.jpg';
 import { 
   Users, 
@@ -348,6 +349,7 @@ const AdminPanel: React.FC = () => {
           <div className="container mx-auto px-3 sm:px-4 py-2 sm:py-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 sm:gap-3">
+                <AdminMobileNav />
                 <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur opacity-30"></div>
                   <img 

@@ -55,6 +55,7 @@ import {
   Users,
 } from "lucide-react";
 import { format } from "date-fns";
+import AdminMobileNav from '@/components/admin/AdminMobileNav';
 
 interface Admission {
   id: string;
@@ -452,40 +453,41 @@ Date: ${format(new Date(admission.submission_date), "dd MMM yyyy")}
   };
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-6">
+    <div className="min-h-screen bg-background p-3 sm:p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={() => navigate("/admin")}>
+        <div className="flex flex-col gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <AdminMobileNav />
+            <Button variant="ghost" size="sm" onClick={() => navigate("/admin")} className="hidden md:flex">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
             </Button>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-                <Users className="h-6 w-6 text-emerald-600" />
-                New Admissions
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-2xl font-bold text-foreground flex items-center gap-2">
+                <Users className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-600 shrink-0" />
+                <span className="truncate">Admissions</span>
               </h1>
-              <p className="text-muted-foreground">
-                Manage admission applications
+              <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                Manage applications
               </p>
             </div>
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={fetchAdmissions}>
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh
+            <Button variant="outline" size="sm" onClick={fetchAdmissions}>
+              <RefreshCw className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Refresh</span>
             </Button>
-            <Button variant="outline" onClick={downloadCSV}>
-              <Download className="h-4 w-4 mr-2" />
-              Export CSV
+            <Button variant="outline" size="sm" onClick={downloadCSV}>
+              <Download className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Export CSV</span>
             </Button>
             <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
               <DialogTrigger asChild>
-                <Button onClick={resetForm}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add New
+                <Button size="sm" onClick={resetForm}>
+                  <Plus className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Add New</span>
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
