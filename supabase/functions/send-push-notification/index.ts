@@ -9,7 +9,7 @@ const corsHeaders = {
 interface PushNotificationRequest {
   title: string;
   body: string;
-  type: 'book' | 'quran' | 'exam' | 'result' | 'hadith' | 'general';
+  type: 'book' | 'quran' | 'exam' | 'result' | 'hadith' | 'attendance' | 'general';
   data?: Record<string, string>;
   targetUserIds?: string[]; // Optional: specific users, otherwise send to all
 }
