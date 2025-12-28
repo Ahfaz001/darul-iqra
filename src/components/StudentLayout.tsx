@@ -48,10 +48,10 @@ const StudentLayout: React.FC<StudentLayoutProps> = ({ children, pendingCount = 
                     variant="ghost"
                     size="icon"
                     onClick={handleBack}
-                    className="h-9 w-9"
+                    className="h-9 w-9 text-foreground"
                     aria-label="Back"
                   >
-                    <ArrowLeft className={`h-4 w-4 ${isRTL ? 'rotate-180' : ''}`} />
+                    <ArrowLeft className={`h-5 w-5 ${isRTL ? 'rotate-180' : ''}`} />
                   </Button>
                 )}
                 <SidebarTrigger className="h-9 w-9" />
