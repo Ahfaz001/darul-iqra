@@ -5,7 +5,7 @@ import { App } from '@capacitor/app';
 import { toast } from 'sonner';
 
 // Pages where back button should allow exiting the app (only when there is NO history)
-const EXIT_PAGES = ['/', '/splash', '/dashboard', '/admin'];
+const EXIT_PAGES = ['/', '/dashboard', '/admin'];
 const EXIT_CONFIRM_MS = 1800;
 
 export const useBackButton = () => {
@@ -36,23 +36,41 @@ export const useBackButton = () => {
         listenerRef.current = null;
       }
 
-      const getHistoryIndex = () => {
-        const state = window.history.state as any;
-        return typeof state?.idx === 'number' ? state.idx : 0;
-      };
+      // Disable Capacitor's default back handler so Android doesn't close the app
+      // before our listener runs.
+      try {
+        await App.toggleBackButtonHandler({ enabled: false });
+      } catch {
+        // ignore
+      }
 
-      const listener = await App.addListener('backButton', () => {
+      const listener = await App.addListener('backButton', (ev) => {
         const currentPath = pathnameRef.current;
-        const canGoBackInApp = getHistoryIndex() > 0;
 
-        // Only go back when React Router actually has a previous entry.
-        // (window.history.length can be misleading in Android WebView and can cause app-close)
-        if (canGoBackInApp) {
-          navigate(-1);
+        // If WebView has history, go back in browser history (recommended by Capacitor)
+        if (ev?.canGoBack) {
+          window.history.back();
           return;
         }
 
-        // No history: allow exit on specific pages, but confirm with double-press
+        // Don't allow a single back-press to close the app on splash
+        if (currentPath === '/splash') {
+          navigate('/', { replace: true });
+          return;
+        }
+
+        // No history: route back to the section home first
+        if (currentPath.startsWith('/admin') && currentPath !== '/admin') {
+          navigate('/admin', { replace: true });
+          return;
+        }
+
+        if (!currentPath.startsWith('/admin') && currentPath !== '/dashboard' && currentPath !== '/') {
+          navigate('/dashboard', { replace: true });
+          return;
+        }
+
+        // Still no history: allow exit on specific pages, but confirm with double-press
         if (EXIT_PAGES.includes(currentPath)) {
           const now = Date.now();
           if (now - lastExitAttemptRef.current < EXIT_CONFIRM_MS) {
@@ -65,13 +83,7 @@ export const useBackButton = () => {
           return;
         }
 
-        // No history and not an exit page: go to section home
-        if (currentPath.startsWith('/admin')) {
-          navigate('/admin', { replace: true });
-          return;
-        }
-
-        // Default to student dashboard instead of landing page
+        // Final fallback
         navigate('/dashboard', { replace: true });
       });
 

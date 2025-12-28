@@ -322,8 +322,17 @@ const TakeExam: React.FC = () => {
                 <Button 
                   variant="ghost" 
                   size="icon"
-                  onClick={() => navigate(-1)}
-                  className="mr-1"
+                  onClick={() => {
+                    const state = window.history.state as any;
+                    const idx = typeof state?.idx === 'number' ? state.idx : 0;
+                    if (idx > 0) {
+                      navigate(-1);
+                    } else {
+                      navigate('/exams', { replace: true });
+                    }
+                  }}
+                  className="mr-1 text-foreground"
+                  aria-label="Back"
                 >
                   <ArrowLeft className="h-4 w-4" />
                 </Button>

@@ -151,7 +151,7 @@ const AdminMobileNav = () => {
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 sm:h-9 sm:w-9"
+          className="h-8 w-8 sm:h-9 sm:w-9 text-foreground"
           onClick={handleBack}
           aria-label="Back"
         >
