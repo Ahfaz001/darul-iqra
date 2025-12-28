@@ -28,9 +28,9 @@ const config: CapacitorConfig = {
     : undefined,
   plugins: {
     App: {
-      // Ensures Android back button doesn't close the app by default
-      // (we handle it in src/hooks/useBackButton.ts)
-      disableBackButtonHandler: true,
+      // Keep this ENABLED so the JS `backButton` event can be intercepted.
+      // (Disabling it causes Android to close the app by default.)
+      disableBackButtonHandler: false,
     },
     SplashScreen: {
       launchShowDuration: 0,

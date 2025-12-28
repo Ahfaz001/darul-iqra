@@ -111,6 +111,58 @@ const BackButtonDebug: React.FC = () => {
         </CardContent>
       </Card>
 
+      {/* Back Handler Controls */}
+      <Card className="mb-4">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">Android Back Handler</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-wrap gap-2">
+          <Button
+            size="sm"
+            variant="default"
+            onClick={async () => {
+              if (!Capacitor.isNativePlatform()) {
+                addLog('toggleBackButtonHandler', 'Web: not supported');
+                return;
+              }
+              try {
+                await App.toggleBackButtonHandler({ enabled: true });
+                addLog('toggleBackButtonHandler', { enabled: true, ok: true });
+              } catch (e) {
+                addLog('toggleBackButtonHandler', { enabled: true, ok: false, error: String(e) });
+              }
+            }}
+          >
+            Enable handler
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={async () => {
+              if (!Capacitor.isNativePlatform()) {
+                addLog('toggleBackButtonHandler', 'Web: not supported');
+                return;
+              }
+              try {
+                await App.toggleBackButtonHandler({ enabled: false });
+                addLog('toggleBackButtonHandler', { enabled: false, ok: true });
+              } catch (e) {
+                addLog('toggleBackButtonHandler', { enabled: false, ok: false, error: String(e) });
+              }
+            }}
+          >
+            Disable (test)
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => addLog('Hint', 'Now press hardware back and see if backButton logs appear.')}
+          >
+            What to test
+          </Button>
+        </CardContent>
+      </Card>
+
       {/* Navigation Test Buttons */}
       <Card className="mb-4">
         <CardHeader className="pb-2">
@@ -126,7 +178,8 @@ const BackButtonDebug: React.FC = () => {
           <Button size="sm" variant="outline" onClick={() => navigate('/books')}>
             → Books
           </Button>
-          <Button size="sm" variant="outline" onClick={() => navigate('/')}>
+          <Button size="sm" variant="outline" onClick={() => navigate('/')}
+          >
             <Home className="h-4 w-4 mr-1" /> Home
           </Button>
           <Button size="sm" variant="secondary" onClick={() => navigate(-1)}>
