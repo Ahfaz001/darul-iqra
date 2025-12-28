@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Helmet } from "react-helmet-async";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
@@ -71,6 +72,12 @@ const BackButtonDebug: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background p-4">
+      <Helmet>
+        <title>Back Button Debug | Idarah Tarjumat-ul-Qur'an</title>
+        <meta name="robots" content="noindex" />
+        <link rel="canonical" href="/back-debug" />
+      </Helmet>
+
       {/* Header */}
       <div className="flex items-center gap-2 mb-4">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
