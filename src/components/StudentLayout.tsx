@@ -23,14 +23,16 @@ const StudentLayout: React.FC<StudentLayoutProps> = ({ children, pendingCount = 
   const location = useLocation();
   const { isRTL } = useLanguage();
 
-  const showBackButton = location.pathname !== '/dashboard';
+  const showBackButton = true;
 
   const handleBack = () => {
     if (getHistoryIndex() > 0) {
       navigate(-1);
       return;
     }
-    navigate('/dashboard', { replace: true });
+
+    // If there's no in-app history, go to a safe screen instead of doing nothing.
+    navigate(location.pathname === '/dashboard' ? '/' : '/dashboard', { replace: true });
   };
 
   return (
@@ -48,7 +50,7 @@ const StudentLayout: React.FC<StudentLayoutProps> = ({ children, pendingCount = 
                     variant="ghost"
                     size="icon"
                     onClick={handleBack}
-                    className="h-9 w-9"
+                    className="h-9 w-9 text-foreground"
                     aria-label="Back"
                   >
                     <ArrowLeft className={`h-4 w-4 ${isRTL ? 'rotate-180' : ''}`} />
