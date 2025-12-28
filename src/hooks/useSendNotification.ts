@@ -1,6 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 
-type NotificationType = 'book' | 'quran' | 'exam' | 'result' | 'hadith' | 'general';
+type NotificationType = 'book' | 'quran' | 'exam' | 'result' | 'hadith' | 'attendance' | 'general';
 
 interface SendNotificationParams {
   title: string;
@@ -91,5 +91,29 @@ export const notifyNewHadith = async (hadithTitle: string, author: string) => {
     body: `"${hadithTitle}" by ${author || 'Unknown'} is now available`,
     type: 'hadith',
     data: { hadithTitle, author: author || '' },
+  });
+};
+
+export const notifyAttendance = async (
+  studentId: string,
+  studentName: string,
+  status: 'present' | 'absent' | 'late' | 'excused',
+  date: string
+) => {
+  const statusMessages: Record<string, { emoji: string; message: string }> = {
+    present: { emoji: '✅', message: 'marked present' },
+    absent: { emoji: '❌', message: 'marked absent' },
+    late: { emoji: '⏰', message: 'marked late' },
+    excused: { emoji: '📋', message: 'excused from attendance' },
+  };
+
+  const { emoji, message } = statusMessages[status];
+
+  return sendPushNotification({
+    title: `${emoji} Attendance Update`,
+    body: `${studentName} has been ${message} on ${date}`,
+    type: 'attendance',
+    data: { studentName, status, date },
+    targetUserIds: [studentId],
   });
 };

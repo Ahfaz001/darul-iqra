@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import madrasaLogo from '@/assets/madrasa-logo.jpg';
 import { ArrowLeft, Calendar as CalendarIcon, Check, X, Clock, AlertCircle, Save, Download, FileSpreadsheet } from 'lucide-react';
 import { Database } from '@/integrations/supabase/types';
+import { notifyAttendance } from '@/hooks/useSendNotification';
 
 type AttendanceStatus = Database['public']['Enums']['attendance_status'];
 
@@ -200,6 +201,7 @@ const AttendanceManagement: React.FC = () => {
     setSaving(true);
     try {
       const dateStr = format(selectedDate, 'yyyy-MM-dd');
+      const displayDate = format(selectedDate, 'dd MMM yyyy');
       const records = Array.from(attendance.values()).map(record => ({
         student_id: record.student_id,
         date: dateStr,
@@ -217,9 +219,27 @@ const AttendanceManagement: React.FC = () => {
 
       if (error) throw error;
 
+      // Send push notifications to students for non-present statuses
+      const notificationPromises = records
+        .filter(record => record.status !== 'present')
+        .map(record => {
+          const student = students.find(s => s.user_id === record.student_id);
+          if (student) {
+            return notifyAttendance(
+              record.student_id,
+              student.full_name,
+              record.status as 'present' | 'absent' | 'late' | 'excused',
+              displayDate
+            );
+          }
+          return Promise.resolve();
+        });
+
+      await Promise.allSettled(notificationPromises);
+
       toast({
         title: "Success",
-        description: "Attendance saved successfully"
+        description: "Attendance saved and notifications sent"
       });
       
       fetchAttendance();
