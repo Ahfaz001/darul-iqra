@@ -49,8 +49,11 @@ export const useBackButton = () => {
       if (hasExitLock()) return;
 
       try {
+        const currentIdx = (window.history.state as any)?.idx;
+        const nextIdx = typeof currentIdx === 'number' ? currentIdx + 1 : 1;
+
         window.history.pushState(
-          { ...(window.history.state ?? {}), __exitLock: true },
+          { ...(window.history.state ?? {}), __exitLock: true, idx: nextIdx },
           document.title,
           window.location.href
         );
@@ -59,16 +62,30 @@ export const useBackButton = () => {
       }
     };
 
-    const ensureExitLockIfNeeded = (path: string) => {
-      if (EXIT_PAGES.includes(path)) pushExitLock();
+    const ensureBackLock = () => {
+      // Ensure there's always at least one WebView history entry so Android back
+      // doesn't immediately close the Activity when navigation used "replace".
+      pushExitLock();
     };
 
     const onWebHistoryBack = () => {
       const path = getUrlPath();
-      if (!EXIT_PAGES.includes(path)) return;
 
       // If we are not on the root history entry, let normal back navigation happen.
       if (!isRootHistoryEntry()) return;
+
+      // No history: route back to the section home first
+      if (path.startsWith('/admin') && path !== '/admin') {
+        navigate('/admin', { replace: true });
+        setTimeout(ensureBackLock, 0);
+        return;
+      }
+
+      if (!path.startsWith('/admin') && path !== '/dashboard' && path !== '/') {
+        navigate('/dashboard', { replace: true });
+        setTimeout(ensureBackLock, 0);
+        return;
+      }
 
       const now = Date.now();
       if (now - lastExitAttemptRef.current < EXIT_CONFIRM_MS) {
@@ -78,15 +95,15 @@ export const useBackButton = () => {
 
       lastExitAttemptRef.current = now;
       toast('Exit app', { description: 'Press back again to close.' });
-      pushExitLock();
+      ensureBackLock();
     };
 
     // Fallback for cases where the native backButton event doesn't fire.
     window.addEventListener('popstate', onWebHistoryBack);
     window.addEventListener('hashchange', onWebHistoryBack);
 
-    // Ensure lock at startup if we launched directly into an exit page.
-    ensureExitLockIfNeeded(pathnameRef.current);
+    // Ensure lock at startup for ANY route (important on Android)
+    ensureBackLock();
 
     const setupListener = async () => {
       // Avoid stacking multiple listeners
@@ -144,7 +161,7 @@ export const useBackButton = () => {
           lastExitAttemptRef.current = now;
           toast('Exit app', { description: 'Press back again to close.' });
           // Also add the web-history lock so even default WebView back won't instantly close.
-          ensureExitLockIfNeeded(currentPath);
+          ensureBackLock();
           return;
         }
 
