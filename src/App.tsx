@@ -69,8 +69,22 @@ const App = () => {
                         <AppProviders>
                           <AppErrorBoundary>
                           <Routes>
-                            <Route path="/debug" element={<Debug />} />
-                            <Route path="/back-debug" element={<BackButtonDebug />} />
+                            <Route
+                              path="/debug"
+                              element={
+                                <ProtectedRoute allowedRoles={["admin", "teacher", "student"]}>
+                                  <Debug />
+                                </ProtectedRoute>
+                              }
+                            />
+                            <Route
+                              path="/back-debug"
+                              element={
+                                <ProtectedRoute allowedRoles={["admin", "teacher", "student"]}>
+                                  <BackButtonDebug />
+                                </ProtectedRoute>
+                              }
+                            />
                             <Route path="/" element={<Index />} />
                             <Route path="/splash" element={<SplashPage />} />
                             <Route path="/sp" element={<Navigate to="/splash" replace />} />

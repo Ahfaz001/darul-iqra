@@ -74,6 +74,10 @@ const BackButtonDebug: React.FC = () => {
     <div className="min-h-screen bg-background p-4">
       <Helmet>
         <title>Back Button Debug | Idarah Tarjumat-ul-Qur'an</title>
+        <meta
+          name="description"
+          content="Back button test screen to capture Android back events and navigation history."
+        />
         <meta name="robots" content="noindex" />
         <link rel="canonical" href="/back-debug" />
       </Helmet>
