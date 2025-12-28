@@ -13,6 +13,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { PushNotificationProvider } from "@/components/PushNotificationProvider";
 import SplashAppGate from "@/components/splash/SplashAppGate";
 import AppErrorBoundary from "@/components/AppErrorBoundary";
+import AppProviders from "@/components/AppProviders";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AdminLogin from "./pages/AdminLogin";
@@ -64,7 +65,8 @@ const App = () => {
                   <AuthProvider>
                     <SplashAppGate>
                       <PushNotificationProvider>
-                        <AppErrorBoundary>
+                        <AppProviders>
+                          <AppErrorBoundary>
                           <Routes>
                             <Route path="/debug" element={<Debug />} />
                             <Route path="/" element={<Index />} />
@@ -269,7 +271,8 @@ const App = () => {
                             />
                             <Route path="*" element={<NotFound />} />
                           </Routes>
-                        </AppErrorBoundary>
+                          </AppErrorBoundary>
+                        </AppProviders>
                       </PushNotificationProvider>
                     </SplashAppGate>
                   </AuthProvider>

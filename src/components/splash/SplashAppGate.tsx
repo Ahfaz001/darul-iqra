@@ -45,26 +45,28 @@ const SplashAppGate = ({ children }: PropsWithChildren) => {
     if (pathname === "/splash") return;
 
     if (!user) {
-      // Avoid getting stuck on auth pages when opening the native app.
+      // Avoid getting stuck on auth pages when opening the native app - go to landing page
       if (isAuthPage(pathname) || isProtectedPage(pathname)) {
         navigate("/", { replace: true });
       }
       return;
     }
 
-    // User exists
+    // User exists - always redirect to appropriate dashboard
     const effectiveRole: AppRole = (role ?? "student") as AppRole;
     const isAdmin = effectiveRole === "admin" || effectiveRole === "teacher";
 
     if (isAdmin) {
-      if (!pathname.startsWith("/admin")) {
+      // Admin/teacher should always go to admin panel
+      if (!pathname.startsWith("/admin") || pathname === "/admin-login") {
         navigate("/admin", { replace: true });
       }
       return;
     }
 
-    // Student
-    if (pathname.startsWith("/admin") || isAuthPage(pathname) || pathname === "/") {
+    // Student - always go to dashboard (not landing page)
+    // This ensures after login, splash, or app reopen, student goes to dashboard
+    if (pathname === "/" || pathname.startsWith("/admin") || isAuthPage(pathname)) {
       navigate("/dashboard", { replace: true });
     }
   }, [location.pathname, navigate, role, user]);

@@ -463,6 +463,8 @@ export type Database = {
           full_name: string
           id: string
           language_preference: string | null
+          session_token: string | null
+          session_updated_at: string | null
           updated_at: string
           user_id: string
         }
@@ -474,6 +476,8 @@ export type Database = {
           full_name: string
           id?: string
           language_preference?: string | null
+          session_token?: string | null
+          session_updated_at?: string | null
           updated_at?: string
           user_id: string
         }
@@ -485,6 +489,8 @@ export type Database = {
           full_name?: string
           id?: string
           language_preference?: string | null
+          session_token?: string | null
+          session_updated_at?: string | null
           updated_at?: string
           user_id?: string
         }
