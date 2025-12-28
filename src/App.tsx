@@ -46,6 +46,7 @@ import AdmissionManagement from "./pages/admin/AdmissionManagement";
 import Support from "./pages/Support";
 import Contact from "./pages/Contact";
 import Debug from "./pages/Debug";
+import BackButtonDebug from "./pages/BackButtonDebug";
 
 const queryClient = new QueryClient();
 
@@ -69,6 +70,7 @@ const App = () => {
                           <AppErrorBoundary>
                           <Routes>
                             <Route path="/debug" element={<Debug />} />
+                            <Route path="/back-debug" element={<BackButtonDebug />} />
                             <Route path="/" element={<Index />} />
                             <Route path="/splash" element={<SplashPage />} />
                             <Route path="/sp" element={<Navigate to="/splash" replace />} />
