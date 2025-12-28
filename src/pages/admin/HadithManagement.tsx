@@ -14,6 +14,7 @@ import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import madrasaLogo from '@/assets/madrasa-logo.jpg';
 import { ArrowLeft, BookOpen, Plus, Upload, Trash2, FileText, Globe, Eye } from 'lucide-react';
+import { notifyNewHadith } from '@/hooks/useSendNotification';
 
 interface HadithBook {
   id: string;
@@ -142,6 +143,9 @@ const HadithManagement: React.FC = () => {
         title: "Success",
         description: "Book uploaded successfully"
       });
+
+      // Send push notification to all students
+      notifyNewHadith(title.trim(), author.trim());
 
       // Reset form
       setTitle('');
