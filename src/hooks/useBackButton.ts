@@ -36,10 +36,10 @@ export const useBackButton = () => {
         listenerRef.current = null;
       }
 
-      // Disable Capacitor's default back handler so Android doesn't close the app
-      // before our listener runs.
+      // Ensure Capacitor's back button handler is ENABLED so the JS `backButton`
+      // event fires (our listener will override the default back behavior).
       try {
-        await App.toggleBackButtonHandler({ enabled: false });
+        await App.toggleBackButtonHandler({ enabled: true });
       } catch {
         // ignore
       }
