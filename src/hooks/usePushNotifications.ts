@@ -9,7 +9,6 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDebugState, PushPermission } from "@/contexts/DebugContext";
-import { isSafeMode } from "@/lib/crashGuard";
 
 type Removable = { remove: () => Promise<void> | void };
 
@@ -20,7 +19,6 @@ const toAppPath = (path: string) => (path.startsWith("/") ? path : `/${path}`);
 const navigateApp = (path: string) => {
   const to = toAppPath(path);
   if (Capacitor.isNativePlatform()) {
-    // HashRouter on native (do not reload)
     window.location.hash = `#${to}`;
     return;
   }
@@ -50,18 +48,10 @@ export const usePushNotifications = () => {
     []
   );
 
-  // Defer push init until after auth is settled and NOT in safe mode
   useEffect(() => {
     // Skip if not native
     if (!Capacitor.isNativePlatform()) {
       dbg.setPushPermission("unknown");
-      return;
-    }
-
-    // Skip if safe mode
-    if (isSafeMode()) {
-      dbg.setPushPermission("unknown");
-      dbg.setPushLastError("Safe mode active - push disabled");
       return;
     }
 
@@ -77,78 +67,103 @@ export const usePushNotifications = () => {
 
     const setup = async () => {
       try {
-        // Small delay to let app stabilize after auth
-        await new Promise((r) => setTimeout(r, 800));
+        // Delay to let app stabilize
+        await new Promise((r) => setTimeout(r, 1000));
 
         if (cancelled) return;
 
-        const permStatus = await PushNotifications.checkPermissions();
-        dbg.setPushPermission(mapPerm((permStatus as any)?.receive));
+        // Check permissions first
+        let permStatus;
+        try {
+          permStatus = await PushNotifications.checkPermissions();
+          dbg.setPushPermission(mapPerm((permStatus as any)?.receive));
+        } catch (err: any) {
+          dbg.setPushLastError("checkPermissions failed: " + (err?.message || String(err)));
+          return;
+        }
 
+        if (cancelled) return;
+
+        // Request permission if not granted
         if ((permStatus as any)?.receive !== "granted") {
-          const result = await PushNotifications.requestPermissions();
-          dbg.setPushPermission(mapPerm((result as any)?.receive));
+          try {
+            const result = await PushNotifications.requestPermissions();
+            dbg.setPushPermission(mapPerm((result as any)?.receive));
+            
+            // Delay after permission dialog
+            await new Promise((r) => setTimeout(r, 800));
 
-          // Small delay after permission dialog
-          await new Promise((r) => setTimeout(r, 500));
+            if (cancelled) return;
 
-          if (cancelled) return;
-
-          // If user denied, do not continue.
-          if ((result as any)?.receive !== "granted") {
+            if ((result as any)?.receive !== "granted") {
+              dbg.setPushLastError("Permission denied by user");
+              return;
+            }
+          } catch (err: any) {
+            dbg.setPushLastError("requestPermissions failed: " + (err?.message || String(err)));
             return;
           }
         }
 
         if (cancelled) return;
 
-        // IMPORTANT: Add listeners BEFORE register (stability on some Android builds)
-        handles.push(
-          await PushNotifications.addListener("registration", (t: Token) => {
-            if (cancelled) return;
-            setToken(t.value);
-            dbg.setPushToken(t.value);
-            dbg.setPushRegistered(true);
-          })
-        );
-
-        handles.push(
-          await PushNotifications.addListener("registrationError", (error) => {
-            const msg = typeof error === "string" ? error : JSON.stringify(error);
-            dbg.setPushLastError(msg);
-            dbg.setPushRegistered(false);
-          })
-        );
-
-        handles.push(
-          await PushNotifications.addListener(
-            "pushNotificationReceived",
-            (n: PushNotificationSchema) => {
+        // Add listeners BEFORE register
+        try {
+          handles.push(
+            await PushNotifications.addListener("registration", (t: Token) => {
               if (cancelled) return;
-              setNotification(n);
-            }
-          )
-        );
+              setToken(t.value);
+              dbg.setPushToken(t.value);
+              dbg.setPushRegistered(true);
+            })
+          );
 
-        handles.push(
-          await PushNotifications.addListener(
-            "pushNotificationActionPerformed",
-            (action: ActionPerformed) => {
-              handleNotificationAction(action);
-            }
-          )
-        );
+          handles.push(
+            await PushNotifications.addListener("registrationError", (error) => {
+              const msg = typeof error === "string" ? error : JSON.stringify(error);
+              dbg.setPushLastError("registrationError: " + msg);
+              dbg.setPushRegistered(false);
+            })
+          );
+
+          handles.push(
+            await PushNotifications.addListener(
+              "pushNotificationReceived",
+              (n: PushNotificationSchema) => {
+                if (cancelled) return;
+                setNotification(n);
+              }
+            )
+          );
+
+          handles.push(
+            await PushNotifications.addListener(
+              "pushNotificationActionPerformed",
+              (action: ActionPerformed) => {
+                handleNotificationAction(action);
+              }
+            )
+          );
+        } catch (err: any) {
+          dbg.setPushLastError("addListener failed: " + (err?.message || String(err)));
+          return;
+        }
 
         if (cancelled) return;
 
-        // Give WebView a moment to settle before register
-        await new Promise((r) => setTimeout(r, 600));
+        // Delay before register
+        await new Promise((r) => setTimeout(r, 500));
 
         if (cancelled) return;
 
-        await PushNotifications.register();
+        // Register for push
+        try {
+          await PushNotifications.register();
+        } catch (err: any) {
+          dbg.setPushLastError("register failed: " + (err?.message || String(err)));
+        }
       } catch (error: any) {
-        dbg.setPushLastError(error?.message ?? String(error));
+        dbg.setPushLastError("setup error: " + (error?.message ?? String(error)));
       }
     };
 
@@ -203,4 +218,3 @@ export const usePushNotifications = () => {
 
   return { token, notification };
 };
-
