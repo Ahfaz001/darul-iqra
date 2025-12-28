@@ -222,35 +222,35 @@ const HadithManagement: React.FC = () => {
 
       <div className="min-h-screen bg-background">
         <header className="bg-card border-b border-border/50 sticky top-0 z-50">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
+          <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                 <Button 
                   variant="ghost" 
-                  size="sm" 
+                  size="icon"
                   onClick={() => navigate('/admin')}
-                  className="mr-2"
+                  className="h-8 w-8 sm:h-9 sm:w-9 shrink-0"
                 >
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
                 <img 
                   src={madrasaLogo} 
                   alt="Madrasa Logo" 
-                  className="w-10 h-10 rounded-full"
+                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-full shrink-0"
                 />
-                <div>
-                  <h1 className="font-display font-bold text-primary text-lg">
+                <div className="min-w-0">
+                  <h1 className="font-display font-bold text-primary text-sm sm:text-lg truncate">
                     Hadith Books
                   </h1>
-                  <p className="text-xs text-muted-foreground">Upload and manage Hadith collections</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">Upload and manage Hadith collections</p>
                 </div>
               </div>
               
               <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
                 <DialogTrigger asChild>
-                  <Button className="bg-primary hover:bg-primary/90">
-                    <Upload className="h-4 w-4 mr-2" />
-                    Upload Book
+                  <Button size="sm" className="bg-primary hover:bg-primary/90 text-xs sm:text-sm shrink-0">
+                    <Upload className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Upload Book</span>
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[500px]">
@@ -363,12 +363,12 @@ const HadithManagement: React.FC = () => {
           </div>
         </header>
 
-        <main className="container mx-auto px-4 py-8">
+        <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
           {/* Filter */}
-          <div className="flex items-center gap-4 mb-6">
-            <Globe className="h-5 w-5 text-muted-foreground" />
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4 mb-4 sm:mb-6">
+            <Globe className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
             <Select value={filterLanguage} onValueChange={setFilterLanguage}>
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className="w-[150px] sm:w-[200px] h-8 sm:h-9 text-xs sm:text-sm">
                 <SelectValue placeholder="Filter by language" />
               </SelectTrigger>
               <SelectContent>
@@ -380,7 +380,7 @@ const HadithManagement: React.FC = () => {
                 ))}
               </SelectContent>
             </Select>
-            <span className="text-sm text-muted-foreground">
+            <span className="text-xs sm:text-sm text-muted-foreground">
               {filteredBooks.length} book(s)
             </span>
           </div>
