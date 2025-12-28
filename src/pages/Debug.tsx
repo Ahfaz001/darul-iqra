@@ -69,6 +69,10 @@ const Debug = () => {
     <>
       <Helmet>
         <title>Debug | Idarah Tarjumat-ul-Qur'an</title>
+        <meta
+          name="description"
+          content="In-app diagnostics to check navigation, login state, and back button behavior."
+        />
         <meta name="robots" content="noindex" />
         <link rel="canonical" href="/debug" />
       </Helmet>
