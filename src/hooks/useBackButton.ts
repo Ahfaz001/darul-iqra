@@ -25,6 +25,69 @@ export const useBackButton = () => {
 
     let cancelled = false;
 
+    const getUrlPath = () => {
+      const hash = window.location.hash || '';
+      // HashRouter uses "#/path".
+      if (hash.startsWith('#')) {
+        const p = hash.slice(1) || '/';
+        return p.startsWith('/') ? p : `/${p}`;
+      }
+      return window.location.pathname || '/';
+    };
+
+    const isRootHistoryEntry = () => {
+      const idx = (window.history.state as any)?.idx;
+      return typeof idx === 'number' ? idx === 0 : false;
+    };
+
+    const hasExitLock = () => Boolean((window.history.state as any)?.__exitLock);
+
+    const pushExitLock = () => {
+      // Only add a lock on the first history entry. This prevents trapping users
+      // when they actually have in-app history.
+      if (!isRootHistoryEntry()) return;
+      if (hasExitLock()) return;
+
+      try {
+        window.history.pushState(
+          { ...(window.history.state ?? {}), __exitLock: true },
+          document.title,
+          window.location.href
+        );
+      } catch {
+        // ignore
+      }
+    };
+
+    const ensureExitLockIfNeeded = (path: string) => {
+      if (EXIT_PAGES.includes(path)) pushExitLock();
+    };
+
+    const onWebHistoryBack = () => {
+      const path = getUrlPath();
+      if (!EXIT_PAGES.includes(path)) return;
+
+      // If we are not on the root history entry, let normal back navigation happen.
+      if (!isRootHistoryEntry()) return;
+
+      const now = Date.now();
+      if (now - lastExitAttemptRef.current < EXIT_CONFIRM_MS) {
+        void App.exitApp();
+        return;
+      }
+
+      lastExitAttemptRef.current = now;
+      toast('Exit app', { description: 'Press back again to close.' });
+      pushExitLock();
+    };
+
+    // Fallback for cases where the native backButton event doesn't fire.
+    window.addEventListener('popstate', onWebHistoryBack);
+    window.addEventListener('hashchange', onWebHistoryBack);
+
+    // Ensure lock at startup if we launched directly into an exit page.
+    ensureExitLockIfNeeded(pathnameRef.current);
+
     const setupListener = async () => {
       // Avoid stacking multiple listeners
       if (listenerRef.current) {
@@ -80,6 +143,8 @@ export const useBackButton = () => {
 
           lastExitAttemptRef.current = now;
           toast('Exit app', { description: 'Press back again to close.' });
+          // Also add the web-history lock so even default WebView back won't instantly close.
+          ensureExitLockIfNeeded(currentPath);
           return;
         }
 
@@ -99,6 +164,10 @@ export const useBackButton = () => {
 
     return () => {
       cancelled = true;
+
+      window.removeEventListener('popstate', onWebHistoryBack);
+      window.removeEventListener('hashchange', onWebHistoryBack);
+
       const listener = listenerRef.current;
       listenerRef.current = null;
       if (listener) void listener.remove();
