@@ -26,6 +26,7 @@ import {
   Edit,
   Eye
 } from 'lucide-react';
+import { notifyNewExam } from '@/hooks/useSendNotification';
 
 interface Exam {
   id: string;
@@ -107,6 +108,9 @@ const ExamManagement: React.FC = () => {
         title: "Success",
         description: "Exam created successfully"
       });
+
+      // Send push notification to all students
+      notifyNewExam(title.trim(), subject.trim(), format(examDate, 'PPP'));
 
       // Reset form
       setTitle('');

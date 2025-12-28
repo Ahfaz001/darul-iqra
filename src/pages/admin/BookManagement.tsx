@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import madrasaLogo from '@/assets/madrasa-logo.jpg';
 import PDFViewer from '@/components/PDFViewer';
-
+import { notifyNewBook } from '@/hooks/useSendNotification';
 interface Book {
   id: string;
   title: string;
@@ -171,6 +171,11 @@ const BookManagement = () => {
       if (dbError) throw dbError;
 
       toast.success('Book uploaded successfully!');
+      
+      // Send push notification to all students
+      const langLabel = LANGUAGES.find(l => l.value === language)?.label || language;
+      notifyNewBook(title.trim(), langLabel);
+      
       resetForm();
       setDialogOpen(false);
       fetchBooks();

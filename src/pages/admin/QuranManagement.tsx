@@ -29,6 +29,7 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import madrasaLogo from '@/assets/madrasa-logo.jpg';
 import PDFViewer from '@/components/PDFViewer';
+import { notifyNewQuran } from '@/hooks/useSendNotification';
 
 interface QuranUpload {
   id: string;
@@ -220,6 +221,11 @@ const QuranManagement = () => {
       if (dbError) throw dbError;
 
       toast.success('Quran uploaded successfully!');
+      
+      // Send push notification to all students
+      const langLabel = LANGUAGES.find(l => l.value === language)?.label || language;
+      notifyNewQuran(title.trim(), langLabel);
+      
       resetForm();
       setDialogOpen(false);
       fetchQuranList();

@@ -16,6 +16,7 @@ import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import madrasaLogo from '@/assets/madrasa-logo.jpg';
 import { ArrowLeft, Plus, Save, User } from 'lucide-react';
+import { notifyExamResult } from '@/hooks/useSendNotification';
 
 interface Exam {
   id: string;
@@ -189,6 +190,17 @@ const ExamResults: React.FC = () => {
         title: "Success",
         description: "Result saved successfully"
       });
+
+      // Send push notification to the student
+      if (exam) {
+        notifyExamResult(
+          selectedStudent,
+          exam.title,
+          marks,
+          exam.total_marks,
+          calculatedGrade
+        );
+      }
 
       // Reset form
       setSelectedStudent('');
