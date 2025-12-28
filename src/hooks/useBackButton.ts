@@ -36,12 +36,18 @@ export const useBackButton = () => {
         listenerRef.current = null;
       }
 
-      const listener = await App.addListener('backButton', ({ canGoBack }) => {
-        const currentPath = pathnameRef.current;
-        const hasHistory = canGoBack || window.history.length > 1;
+      const getHistoryIndex = () => {
+        const state = window.history.state as any;
+        return typeof state?.idx === 'number' ? state.idx : 0;
+      };
 
-        // If we can go back, always go back (even on dashboard/splash)
-        if (hasHistory) {
+      const listener = await App.addListener('backButton', () => {
+        const currentPath = pathnameRef.current;
+        const canGoBackInApp = getHistoryIndex() > 0;
+
+        // Only go back when React Router actually has a previous entry.
+        // (window.history.length can be misleading in Android WebView and can cause app-close)
+        if (canGoBackInApp) {
           navigate(-1);
           return;
         }
@@ -59,8 +65,14 @@ export const useBackButton = () => {
           return;
         }
 
-        // No history and not an exit page: go to home
-        navigate('/');
+        // No history and not an exit page: go to section home
+        if (currentPath.startsWith('/admin')) {
+          navigate('/admin', { replace: true });
+          return;
+        }
+
+        // Default to student dashboard instead of landing page
+        navigate('/dashboard', { replace: true });
       });
 
       if (cancelled) {
