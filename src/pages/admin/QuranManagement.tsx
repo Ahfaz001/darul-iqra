@@ -30,6 +30,7 @@ import { useNavigate } from 'react-router-dom';
 import madrasaLogo from '@/assets/madrasa-logo.jpg';
 import PDFViewer from '@/components/PDFViewer';
 import { notifyNewQuran } from '@/hooks/useSendNotification';
+import AdminMobileNav from '@/components/admin/AdminMobileNav';
 
 interface QuranUpload {
   id: string;
@@ -326,11 +327,12 @@ const QuranManagement = () => {
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
               {/* Left side */}
               <div className="flex items-center gap-2 sm:gap-4">
+                <AdminMobileNav />
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => navigate('/admin')}
-                  className="text-white hover:bg-white/20 h-9 w-9 shrink-0"
+                  className="text-white hover:bg-white/20 h-9 w-9 shrink-0 hidden md:flex"
                 >
                   <ArrowLeft className="h-5 w-5" />
                 </Button>

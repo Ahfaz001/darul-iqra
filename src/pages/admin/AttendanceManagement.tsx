@@ -17,6 +17,7 @@ import madrasaLogo from '@/assets/madrasa-logo.jpg';
 import { ArrowLeft, Calendar as CalendarIcon, Check, X, Clock, AlertCircle, Save, Download, FileSpreadsheet } from 'lucide-react';
 import { Database } from '@/integrations/supabase/types';
 import { notifyAttendance } from '@/hooks/useSendNotification';
+import AdminMobileNav from '@/components/admin/AdminMobileNav';
 
 type AttendanceStatus = Database['public']['Enums']['attendance_status'];
 
@@ -286,6 +287,7 @@ const AttendanceManagement: React.FC = () => {
               {/* Top row - Logo and title */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 sm:gap-3">
+                  <AdminMobileNav />
                   <Button 
                     variant="ghost" 
                     size="icon"
