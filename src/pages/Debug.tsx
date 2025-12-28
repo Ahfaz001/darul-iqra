@@ -1,4 +1,5 @@
 import { Helmet } from "react-helmet-async";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDebugState } from "@/contexts/DebugContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,6 +17,7 @@ const mask = (v: string | null) => {
 const formatTs = (ts: number) => new Date(ts).toLocaleString();
 
 const Debug = () => {
+  const navigate = useNavigate();
   const { user, role, loading } = useAuth();
   const dbg = useDebugState();
 
@@ -83,6 +85,9 @@ const Debug = () => {
           <div className="flex flex-wrap gap-2 mb-4">
             <Button size="sm" variant="default" onClick={copyReport}>
               Copy report
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => navigate("/back-debug")}>
+              Back button test
             </Button>
             <Button size="sm" variant="outline" onClick={resetSplash}>
               Reset splash
