@@ -20,83 +20,117 @@ const SplashScreen = ({ minDurationMs = 8000, onFinished }: SplashScreenProps) =
   const finishedRef = useRef(false);
   const audioContextRef = useRef<AudioContext | null>(null);
 
+  // IMPORTANT: Some Android WebViews allow "muted autoplay" but block unmuting
+  // without a real user gesture. If we mark audio as "played" too early, the
+  // user can never recover it by tapping. So we only mark played when it's
+  // actually audible (unmuted + volume > 0).
+  const audioPlayedRef = useRef(false);
+  useEffect(() => {
+    audioPlayedRef.current = audioPlayed;
+  }, [audioPlayed]);
+
+  const isAudible = (audio: HTMLAudioElement) => !audio.muted && audio.volume > 0.05;
+
+  const stopAndReset = (audio: HTMLAudioElement) => {
+    try {
+      audio.pause();
+    } catch {
+      // ignore
+    }
+    try {
+      audio.currentTime = 0;
+    } catch {
+      // ignore
+    }
+  };
+
   const finish = useCallback(() => {
     if (finishedRef.current) return;
     finishedRef.current = true;
     onFinished?.();
   }, [onFinished]);
 
-  const playAudio = useCallback(async () => {
-    const audio = audioRef.current;
-    if (!audio || audioPlayed) return;
-
-    try {
-      // Resume AudioContext if suspended (required for mobile)
-      if (audioContextRef.current?.state === 'suspended') {
-        await audioContextRef.current.resume();
-      }
-
-      audio.muted = false;
-      audio.currentTime = 0;
-      await audio.play();
-      setAudioPlayed(true);
-      console.log("[splash] bismillah playing");
-    } catch (err) {
-      console.log("[splash] play failed:", err);
-    }
-  }, [audioPlayed]);
-
   // Aggressive autoplay function - tries multiple methods
-  const forceAutoplay = useCallback(
-    async (audio: HTMLAudioElement) => {
-      if (audioPlayed) return;
+  const forceAutoplay = useCallback(async (audio: HTMLAudioElement) => {
+    if (audioPlayedRef.current) return;
 
-      const methods = [
-        // Method 1: Direct play
-        async () => {
-          audio.muted = false;
-          audio.volume = 1;
-          await audio.play();
-          return true;
-        },
-        // Method 2: Start muted (often allowed), then unmute
-        async () => {
-          audio.muted = true;
-          audio.volume = 0;
-          await audio.play();
-          // Let playback start
-          await new Promise((r) => setTimeout(r, 80));
-          audio.muted = false;
-          audio.volume = 1;
-          return true;
-        },
-        // Method 3: With AudioContext resume
-        async () => {
-          if (audioContextRef.current?.state === "suspended") {
-            await audioContextRef.current.resume();
-          }
-          audio.muted = false;
-          await audio.play();
-          return true;
-        },
-      ];
-
-      for (const method of methods) {
-        try {
-          await method();
-          if (!audio.paused) {
-            setAudioPlayed(true);
-            console.log("[splash] autoplay success");
-            return;
-          }
-        } catch {
-          // continue
+    const attempt = async (label: string, fn: () => Promise<void>) => {
+      try {
+        // Try to resume AudioContext if it exists (mobile often starts suspended)
+        if (audioContextRef.current?.state === "suspended") {
+          await audioContextRef.current.resume();
         }
+      } catch {
+        // ignore
       }
-      console.log("[splash] all autoplay methods failed, waiting for tap");
-    },
-    [audioPlayed]
-  );
+
+      try {
+        await fn();
+        // Give the WebView a moment to apply mute/volume changes
+        await new Promise((r) => setTimeout(r, 120));
+      } catch (err) {
+        console.log(`[splash] ${label} failed:`, err);
+        stopAndReset(audio);
+        return false;
+      }
+
+      const audible = !audio.paused && isAudible(audio);
+      if (audible) {
+        audioPlayedRef.current = true;
+        setAudioPlayed(true);
+        console.log(`[splash] ${label} success`);
+        return true;
+      }
+
+      // Started but still muted/volume=0 → treat as NOT played (so tap can fix)
+      if (!audio.paused) {
+        console.log(`[splash] ${label} started muted; will require tap`);
+      }
+      stopAndReset(audio);
+      return false;
+    };
+
+    // Method 1: Direct play (audible)
+    if (
+      await attempt("autoplay-direct", async () => {
+        stopAndReset(audio);
+        audio.muted = false;
+        audio.volume = 1;
+        await audio.play();
+      })
+    ) {
+      return;
+    }
+
+    // Method 2: Start muted (often allowed), then unmute
+    if (
+      await attempt("autoplay-muted-then-unmute", async () => {
+        stopAndReset(audio);
+        audio.muted = true;
+        audio.volume = 0;
+        await audio.play();
+        await new Promise((r) => setTimeout(r, 120));
+        audio.muted = false;
+        audio.volume = 1;
+      })
+    ) {
+      return;
+    }
+
+    // Method 3: With AudioContext resume (audible)
+    if (
+      await attempt("autoplay-audiocontext", async () => {
+        stopAndReset(audio);
+        audio.muted = false;
+        audio.volume = 1;
+        await audio.play();
+      })
+    ) {
+      return;
+    }
+
+    console.log("[splash] all autoplay methods failed, waiting for tap");
+  }, []);
 
   useEffect(() => {
     // Create AudioContext for better mobile support
@@ -120,30 +154,35 @@ const SplashScreen = ({ minDurationMs = 8000, onFinished }: SplashScreenProps) =
     (audio as any).webkitPlaysinline = true;
     audioRef.current = audio;
 
-    const handleError = (e: Event) => {
-      console.log("[splash] audio error:", e);
+    const handleError = () => {
+      // MediaError is often only visible on the element
+      console.log("[splash] audio error:", {
+        src: audio.src,
+        code: audio.error?.code,
+      });
     };
 
     audio.addEventListener("error", handleError);
 
     // Try autoplay immediately
-    const immediatePlay = () => forceAutoplay(audio);
+    const immediatePlay = () => {
+      void forceAutoplay(audio);
+    };
 
     audio.addEventListener("canplaythrough", immediatePlay, { once: true });
     audio.addEventListener("loadeddata", immediatePlay, { once: true });
     audio.addEventListener("canplay", immediatePlay, { once: true });
 
-    const delayedPlay = setTimeout(() => forceAutoplay(audio), 250);
-    const retryPlay = setTimeout(() => forceAutoplay(audio), 900);
+    const delayedPlay = window.setTimeout(() => void forceAutoplay(audio), 250);
+    const retryPlay = window.setTimeout(() => void forceAutoplay(audio), 900);
 
-    // Also attempt on first user interaction anywhere (most reliable on mobile)
-    const unlockOnce = () => {
-      forceAutoplay(audio);
-      window.removeEventListener("touchstart", unlockOnce);
-      window.removeEventListener("click", unlockOnce);
+    // Attempt on user interaction anywhere (most reliable on mobile)
+    const unlockOnGesture = () => {
+      // If autoplay previously started muted and we reset, this will recover it.
+      void forceAutoplay(audio);
     };
-    window.addEventListener("touchstart", unlockOnce, { passive: true });
-    window.addEventListener("click", unlockOnce);
+    window.addEventListener("touchstart", unlockOnGesture, { passive: true });
+    window.addEventListener("click", unlockOnGesture);
 
     audio.load();
 
@@ -163,8 +202,8 @@ const SplashScreen = ({ minDurationMs = 8000, onFinished }: SplashScreenProps) =
       window.clearTimeout(delayedPlay);
       window.clearTimeout(retryPlay);
 
-      window.removeEventListener("touchstart", unlockOnce);
-      window.removeEventListener("click", unlockOnce);
+      window.removeEventListener("touchstart", unlockOnGesture);
+      window.removeEventListener("click", unlockOnGesture);
 
       audio.removeEventListener("error", handleError);
 
@@ -185,37 +224,10 @@ const SplashScreen = ({ minDurationMs = 8000, onFinished }: SplashScreenProps) =
     finish();
   }, [finish, minTimeDone]);
 
-  const handleTap = async () => {
+  const handleTap = () => {
     const audio = audioRef.current;
-    if (!audio || audioPlayed) return;
-    
-    try {
-      // Resume AudioContext first
-      if (audioContextRef.current?.state === 'suspended') {
-        await audioContextRef.current.resume();
-      }
-      
-      audio.muted = false;
-      audio.volume = 1;
-      audio.currentTime = 0;
-      await audio.play();
-      setAudioPlayed(true);
-      console.log("[splash] tap play success");
-    } catch (err) {
-      console.log("[splash] tap play failed:", err);
-      // Try muted-then-unmute fallback
-      try {
-        audio.muted = true;
-        await audio.play();
-        await new Promise(r => setTimeout(r, 50));
-        audio.muted = false;
-        audio.volume = 1;
-        setAudioPlayed(true);
-        console.log("[splash] tap play fallback success");
-      } catch {
-        console.log("[splash] all tap methods failed");
-      }
-    }
+    if (!audio) return;
+    void forceAutoplay(audio);
   };
 
   // Hidden: 7 taps opens debug screen (helps APK diagnosis)
