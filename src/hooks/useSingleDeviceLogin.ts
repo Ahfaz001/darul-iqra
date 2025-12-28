@@ -21,7 +21,8 @@ const getSessionToken = () => {
 export const useSingleDeviceLogin = () => {
   const { user, signOut } = useAuth();
   const currentSessionToken = useRef<string | null>(null);
-  const isCheckingSession = useRef(false);
+  const isRegistered = useRef(false);
+  const lastUserId = useRef<string | null>(null);
 
   const updateSessionToken = useCallback(async (userId: string, token: string) => {
     try {
@@ -35,16 +36,16 @@ export const useSingleDeviceLogin = () => {
 
       if (error) {
         console.error('Error updating session token:', error);
+        return false;
       }
+      return true;
     } catch (err) {
       console.error('Failed to update session token:', err);
+      return false;
     }
   }, []);
 
   const checkSessionValidity = useCallback(async (userId: string, myToken: string) => {
-    if (isCheckingSession.current) return true;
-    isCheckingSession.current = true;
-
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -54,57 +55,69 @@ export const useSingleDeviceLogin = () => {
 
       if (error) {
         console.error('Error checking session:', error);
-        isCheckingSession.current = false;
-        return true;
+        return true; // Don't logout on error
       }
 
       // If no profile or no session token stored yet, this is valid
       if (!data || !data.session_token) {
-        isCheckingSession.current = false;
         return true;
       }
 
       // If tokens match, session is valid
-      if (data.session_token === myToken) {
-        isCheckingSession.current = false;
-        return true;
-      }
-
-      // Tokens don't match - another device logged in
-      isCheckingSession.current = false;
-      return false;
+      return data.session_token === myToken;
     } catch (err) {
       console.error('Session check failed:', err);
-      isCheckingSession.current = false;
-      return true;
+      return true; // Don't logout on error
     }
   }, []);
 
   useEffect(() => {
     if (!user) {
       currentSessionToken.current = null;
+      isRegistered.current = false;
+      lastUserId.current = null;
+      return;
+    }
+
+    // If this is the same user, don't re-register (prevents false logouts on re-renders)
+    if (lastUserId.current === user.id && isRegistered.current) {
       return;
     }
 
     const myToken = getSessionToken();
     currentSessionToken.current = myToken;
+    lastUserId.current = user.id;
 
     // Register this session
-    updateSessionToken(user.id, myToken);
-
-    // Periodically check if session is still valid
-    const intervalId = setInterval(async () => {
-      if (!user) return;
-      
-      const isValid = await checkSessionValidity(user.id, myToken);
-      if (!isValid) {
-        toast.error('You have been logged out because your account was accessed from another device.');
-        signOut();
+    const registerSession = async () => {
+      const success = await updateSessionToken(user.id, myToken);
+      if (success) {
+        isRegistered.current = true;
       }
-    }, 30000); // Check every 30 seconds
+    };
+    
+    registerSession();
+
+    // Start checking only after a delay to ensure registration is complete
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+    
+    const startCheckingTimeout = setTimeout(() => {
+      intervalId = setInterval(async () => {
+        if (!user || !isRegistered.current) return;
+        
+        const isValid = await checkSessionValidity(user.id, myToken);
+        if (!isValid) {
+          toast.error('You have been logged out because your account was accessed from another device.');
+          signOut();
+        }
+      }, 30000); // Check every 30 seconds
+    }, 5000); // Wait 5 seconds before first check
 
     return () => {
-      clearInterval(intervalId);
+      clearTimeout(startCheckingTimeout);
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
     };
   }, [user, updateSessionToken, checkSessionValidity, signOut]);
 };

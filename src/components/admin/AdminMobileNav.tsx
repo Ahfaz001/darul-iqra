@@ -18,7 +18,6 @@ import {
   ChevronRight,
   ArrowLeft,
   X,
-  Activity,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -108,14 +107,6 @@ const AdminMobileNav = () => {
       color: 'text-purple-600',
       bgColor: 'bg-purple-500/10',
       adminOnly: true,
-    },
-    {
-      title: 'Diagnostics',
-      icon: Activity,
-      href: '/debug',
-      color: 'text-primary',
-      bgColor: 'bg-primary/10',
-      adminOnly: false,
     },
   ];
 

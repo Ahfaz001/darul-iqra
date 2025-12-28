@@ -28,7 +28,6 @@ import {
   HeadphonesIcon,
   MessageCircle,
   Sparkles,
-  Activity,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -52,7 +51,6 @@ const StudentSidebar: React.FC = () => {
   ];
 
   const supportItems = [
-    { title: 'Diagnostics', icon: Activity, href: '/debug' },
     { title: 'Help & Support', icon: HeadphonesIcon, href: '/support' },
     { title: 'Contact Us', icon: MessageCircle, href: '/contact' },
   ];
