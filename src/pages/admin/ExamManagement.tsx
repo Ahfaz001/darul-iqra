@@ -166,36 +166,37 @@ const ExamManagement: React.FC = () => {
       <div className="min-h-screen bg-background">
         {/* Header */}
         <header className="bg-card border-b border-border/50 sticky top-0 z-50">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
+          <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                 <Button 
                   variant="ghost" 
-                  size="sm" 
+                  size="icon"
                   onClick={() => navigate('/admin')}
-                  className="mr-2"
+                  className="h-8 w-8 sm:h-9 sm:w-9 shrink-0"
                 >
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
                 <img 
                   src={madrasaLogo} 
                   alt="Madrasa Logo" 
-                  className="w-10 h-10 rounded-full"
+                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-full shrink-0"
                 />
-                <div>
-                  <h1 className="font-display font-bold text-primary text-lg">
-                    Exam Management
+                <div className="min-w-0">
+                  <h1 className="font-display font-bold text-primary text-sm sm:text-lg truncate">
+                    Exams
                   </h1>
-                  <p className="text-xs text-muted-foreground">Create and manage exams</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">Create and manage exams</p>
                 </div>
               </div>
               
               <Button 
-                className="bg-primary hover:bg-primary/90"
+                size="sm"
+                className="bg-primary hover:bg-primary/90 text-xs sm:text-sm shrink-0"
                 onClick={() => navigate('/admin/exams/create')}
               >
-                <Plus className="h-4 w-4 mr-2" />
-                Create Exam with Translation
+                <Plus className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Create Exam</span>
               </Button>
               <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
                 <DialogContent className="sm:max-w-[500px]">
@@ -298,74 +299,76 @@ const ExamManagement: React.FC = () => {
         </header>
 
         {/* Main Content */}
-        <main className="container mx-auto px-4 py-8">
+        <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : exams.length === 0 ? (
             <Card className="bg-card border-border/30">
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">No Exams Yet</h3>
-                <p className="text-muted-foreground text-center mb-4">
+              <CardContent className="flex flex-col items-center justify-center py-12 px-4">
+                <FileText className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mb-4" />
+                <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2 text-center">No Exams Yet</h3>
+                <p className="text-sm text-muted-foreground text-center mb-4">
                   Create your first exam to get started
                 </p>
-                <Button onClick={() => setIsCreateOpen(true)}>
+                <Button size="sm" onClick={() => setIsCreateOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Create First Exam
                 </Button>
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-4">
+            <div className="grid gap-3 sm:gap-4">
               {exams.map((exam) => (
                 <Card key={exam.id} className="bg-card border-border/30 hover:shadow-md transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs font-medium rounded">
+                  <CardContent className="p-3 sm:p-6">
+                    <div className="flex flex-col gap-3 sm:gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2 mb-1">
+                          <span className="px-2 py-0.5 bg-primary/10 text-primary text-[10px] sm:text-xs font-medium rounded">
                             {exam.subject}
                           </span>
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-[10px] sm:text-xs text-muted-foreground">
                             {format(new Date(exam.exam_date), 'PPP')}
                           </span>
                         </div>
-                        <h3 className="text-lg font-semibold text-foreground">{exam.title}</h3>
+                        <h3 className="text-sm sm:text-lg font-semibold text-foreground truncate">{exam.title}</h3>
                         {exam.description && (
-                          <p className="text-sm text-muted-foreground mt-1">{exam.description}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground mt-1 line-clamp-2">{exam.description}</p>
                         )}
-                        <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                          <span>Total Marks: {exam.total_marks}</span>
+                        <div className="flex items-center gap-4 mt-2 text-xs sm:text-sm text-muted-foreground">
+                          <span>Marks: {exam.total_marks}</span>
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <Button 
                           variant="outline" 
                           size="sm"
+                          className="text-xs h-8"
                           onClick={() => navigate(`/admin/exams/${exam.id}/submissions`)}
                         >
-                          <Eye className="h-4 w-4 mr-2" />
-                          Submissions
+                          <Eye className="h-3.5 w-3.5 sm:mr-1.5" />
+                          <span className="hidden sm:inline">Submissions</span>
                         </Button>
                         <Button 
                           variant="outline" 
                           size="sm"
+                          className="text-xs h-8"
                           onClick={() => navigate(`/admin/exams/${exam.id}/results`)}
                         >
-                          <Users className="h-4 w-4 mr-2" />
-                          Results
+                          <Users className="h-3.5 w-3.5 sm:mr-1.5" />
+                          <span className="hidden sm:inline">Results</span>
                         </Button>
                         {role === 'admin' && (
                           <Button 
                             variant="outline" 
                             size="sm"
+                            className="text-xs h-8 text-destructive hover:text-destructive"
                             onClick={() => handleDeleteExam(exam.id)}
-                            className="text-destructive hover:text-destructive"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         )}
                       </div>

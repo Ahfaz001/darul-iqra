@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import madrasaLogo from '@/assets/madrasa-logo.jpg';
@@ -135,84 +136,82 @@ const UserManagement: React.FC = () => {
 
       <div className="min-h-screen bg-background">
         <header className="bg-card border-b border-border/50 sticky top-0 z-50">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => navigate('/admin')}
-                  className="mr-2"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-                <img 
-                  src={madrasaLogo} 
-                  alt="Madrasa Logo" 
-                  className="w-10 h-10 rounded-full"
-                />
-                <div>
-                  <h1 className="font-display font-bold text-primary text-lg">
-                    User Management
-                  </h1>
-                  <p className="text-xs text-muted-foreground">Manage users and roles</p>
-                </div>
+          <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => navigate('/admin')}
+                className="h-8 w-8 sm:h-9 sm:w-9 shrink-0"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <img 
+                src={madrasaLogo} 
+                alt="Madrasa Logo" 
+                className="w-8 h-8 sm:w-10 sm:h-10 rounded-full shrink-0"
+              />
+              <div className="min-w-0">
+                <h1 className="font-display font-bold text-primary text-sm sm:text-lg truncate">
+                  User Management
+                </h1>
+                <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">Manage users and roles</p>
               </div>
             </div>
           </div>
         </header>
 
-        <main className="container mx-auto px-4 py-8">
+        <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
           {/* Stats */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-8">
             <Card className="bg-card border-border/30">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 rounded-lg">
-                    <Users className="h-5 w-5 text-primary" />
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="p-1.5 sm:p-2 bg-primary/10 rounded-lg shrink-0">
+                    <Users className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold">{stats.total}</p>
-                    <p className="text-xs text-muted-foreground">Total Users</p>
+                  <div className="min-w-0">
+                    <p className="text-lg sm:text-2xl font-bold">{stats.total}</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground truncate">Total Users</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
             <Card className="bg-card border-border/30">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-red-100 rounded-lg">
-                    <Shield className="h-5 w-5 text-red-600" />
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="p-1.5 sm:p-2 bg-red-100 rounded-lg shrink-0">
+                    <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold">{stats.admins}</p>
-                    <p className="text-xs text-muted-foreground">Admins</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="bg-card border-border/30">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <BookOpen className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{stats.teachers}</p>
-                    <p className="text-xs text-muted-foreground">Teachers</p>
+                  <div className="min-w-0">
+                    <p className="text-lg sm:text-2xl font-bold">{stats.admins}</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground truncate">Admins</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
             <Card className="bg-card border-border/30">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-green-100 rounded-lg">
-                    <GraduationCap className="h-5 w-5 text-green-600" />
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg shrink-0">
+                    <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold">{stats.students}</p>
-                    <p className="text-xs text-muted-foreground">Students</p>
+                  <div className="min-w-0">
+                    <p className="text-lg sm:text-2xl font-bold">{stats.teachers}</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground truncate">Teachers</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="bg-card border-border/30">
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="p-1.5 sm:p-2 bg-green-100 rounded-lg shrink-0">
+                    <GraduationCap className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-lg sm:text-2xl font-bold">{stats.students}</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground truncate">Students</p>
                   </div>
                 </div>
               </CardContent>
@@ -225,39 +224,39 @@ const UserManagement: React.FC = () => {
             </div>
           ) : (
             <Card className="bg-card border-border/30">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <UserCog className="h-5 w-5" />
+              <CardHeader className="px-3 sm:px-6 py-3 sm:py-4">
+                <CardTitle className="text-sm sm:text-lg flex items-center gap-2">
+                  <UserCog className="h-4 w-4 sm:h-5 sm:w-5" />
                   All Users ({users.length})
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-0 sm:px-6">
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-[50px]">#</TableHead>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Joined</TableHead>
+                        <TableHead className="w-[40px] pl-3 sm:pl-4">#</TableHead>
+                        <TableHead className="min-w-[100px]">Name</TableHead>
+                        <TableHead className="hidden md:table-cell">Email</TableHead>
+                        <TableHead className="hidden lg:table-cell">Joined</TableHead>
                         <TableHead className="text-center">Role</TableHead>
-                        <TableHead className="text-center">Actions</TableHead>
+                        <TableHead className="text-center min-w-[100px]">Change</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {users.map((user, index) => (
                         <TableRow key={user.user_id}>
-                          <TableCell className="font-medium">{index + 1}</TableCell>
-                          <TableCell className="font-medium">{user.full_name}</TableCell>
-                          <TableCell className="text-muted-foreground">{user.email || '-'}</TableCell>
-                          <TableCell className="text-muted-foreground">
+                          <TableCell className="font-medium pl-3 sm:pl-4 text-sm">{index + 1}</TableCell>
+                          <TableCell className="font-medium text-sm">{user.full_name}</TableCell>
+                          <TableCell className="text-muted-foreground text-sm hidden md:table-cell">{user.email || '-'}</TableCell>
+                          <TableCell className="text-muted-foreground text-sm hidden lg:table-cell">
                             {format(new Date(user.created_at), 'MMM d, yyyy')}
                           </TableCell>
                           <TableCell className="text-center">
-                            <Badge className={getRoleBadgeColor(user.role)}>
+                            <Badge className={cn("text-[10px] sm:text-xs", getRoleBadgeColor(user.role))}>
                               <span className="flex items-center gap-1">
                                 {getRoleIcon(user.role)}
-                                {user.role}
+                                <span className="hidden sm:inline">{user.role}</span>
                               </span>
                             </Badge>
                           </TableCell>
@@ -268,7 +267,7 @@ const UserManagement: React.FC = () => {
                                 onValueChange={(value) => updateUserRole(user.user_id, value as AppRole)}
                                 disabled={updating === user.user_id}
                               >
-                                <SelectTrigger className="w-[130px]">
+                                <SelectTrigger className="w-[90px] sm:w-[130px] h-8 sm:h-9 text-xs sm:text-sm">
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>

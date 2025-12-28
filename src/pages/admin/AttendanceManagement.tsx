@@ -281,39 +281,55 @@ const AttendanceManagement: React.FC = () => {
 
       <div className="min-h-screen bg-background">
         <header className="bg-card border-b border-border/50 sticky top-0 z-50">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => navigate('/admin')}
-                  className="mr-2"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-                <img 
-                  src={madrasaLogo} 
-                  alt="Madrasa Logo" 
-                  className="w-10 h-10 rounded-full"
-                />
-                <div>
-                  <h1 className="font-display font-bold text-primary text-lg">
-                    Attendance Management
-                  </h1>
-                  <p className="text-xs text-muted-foreground">Mark daily student attendance</p>
+          <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+            <div className="flex flex-col gap-3">
+              {/* Top row - Logo and title */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => navigate('/admin')}
+                    className="h-8 w-8 sm:h-9 sm:w-9 shrink-0"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                  </Button>
+                  <img 
+                    src={madrasaLogo} 
+                    alt="Madrasa Logo" 
+                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-full shrink-0"
+                  />
+                  <div className="min-w-0">
+                    <h1 className="font-display font-bold text-primary text-sm sm:text-lg truncate">
+                      Attendance
+                    </h1>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">Mark daily student attendance</p>
+                  </div>
                 </div>
+                
+                {/* Save button always visible */}
+                <Button 
+                  onClick={saveAttendance} 
+                  disabled={saving || students.length === 0}
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  <Save className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">{saving ? 'Saving...' : 'Save'}</span>
+                </Button>
               </div>
               
-              <div className="flex items-center gap-3">
+              {/* Bottom row - Date picker and download */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-1">
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="gap-2">
-                      <CalendarIcon className="h-4 w-4" />
-                      {format(selectedDate, 'PPP')}
+                    <Button variant="outline" size="sm" className="gap-1.5 text-xs sm:text-sm shrink-0">
+                      <CalendarIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      <span className="hidden xs:inline">{format(selectedDate, 'PPP')}</span>
+                      <span className="xs:hidden">{format(selectedDate, 'dd MMM')}</span>
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="end">
+                  <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
                       selected={selectedDate}
@@ -326,15 +342,16 @@ const AttendanceManagement: React.FC = () => {
                 
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button variant="outline" className="gap-2">
-                      <Download className="h-4 w-4" />
-                      Download Report
+                    <Button variant="outline" size="sm" className="gap-1.5 text-xs sm:text-sm shrink-0">
+                      <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      <span className="hidden sm:inline">Download Report</span>
+                      <span className="sm:hidden">Report</span>
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
+                  <DialogContent className="sm:max-w-md max-w-[95vw]">
                     <DialogHeader>
-                      <DialogTitle className="flex items-center gap-2">
-                        <FileSpreadsheet className="h-5 w-5" />
+                      <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
+                        <FileSpreadsheet className="h-4 w-4 sm:h-5 sm:w-5" />
                         Download Attendance Report
                       </DialogTitle>
                     </DialogHeader>
@@ -343,7 +360,7 @@ const AttendanceManagement: React.FC = () => {
                         <label className="text-sm font-medium">Start Date</label>
                         <Popover>
                           <PopoverTrigger asChild>
-                            <Button variant="outline" className="w-full justify-start gap-2">
+                            <Button variant="outline" className="w-full justify-start gap-2 text-sm">
                               <CalendarIcon className="h-4 w-4" />
                               {format(reportStartDate, 'PPP')}
                             </Button>
@@ -363,7 +380,7 @@ const AttendanceManagement: React.FC = () => {
                         <label className="text-sm font-medium">End Date</label>
                         <Popover>
                           <PopoverTrigger asChild>
-                            <Button variant="outline" className="w-full justify-start gap-2">
+                            <Button variant="outline" className="w-full justify-start gap-2 text-sm">
                               <CalendarIcon className="h-4 w-4" />
                               {format(reportEndDate, 'PPP')}
                             </Button>
@@ -390,52 +407,44 @@ const AttendanceManagement: React.FC = () => {
                     </div>
                   </DialogContent>
                 </Dialog>
-                
-                <Button 
-                  onClick={saveAttendance} 
-                  disabled={saving || students.length === 0}
-                  className="bg-primary hover:bg-primary/90"
-                >
-                  <Save className="h-4 w-4 mr-2" />
-                  {saving ? 'Saving...' : 'Save'}
-                </Button>
               </div>
             </div>
           </div>
         </header>
 
-        <main className="container mx-auto px-4 py-8">
+        <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : students.length === 0 ? (
             <Card className="bg-card border-border/30">
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">No Students Found</h3>
-                <p className="text-muted-foreground text-center">
+              <CardContent className="flex flex-col items-center justify-center py-12 px-4">
+                <AlertCircle className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mb-4" />
+                <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2 text-center">No Students Found</h3>
+                <p className="text-sm text-muted-foreground text-center">
                   There are no students registered in the system yet.
                 </p>
               </CardContent>
             </Card>
           ) : (
             <Card className="bg-card border-border/30">
-              <CardHeader>
-                <CardTitle className="text-lg">
-                  Student Attendance - {format(selectedDate, 'EEEE, MMMM d, yyyy')}
+              <CardHeader className="px-3 sm:px-6 py-3 sm:py-4">
+                <CardTitle className="text-sm sm:text-lg">
+                  <span className="hidden sm:inline">Student Attendance - {format(selectedDate, 'EEEE, MMMM d, yyyy')}</span>
+                  <span className="sm:hidden">Attendance - {format(selectedDate, 'MMM d')}</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
+              <CardContent className="px-0 sm:px-6">
+                <div className="overflow-x-auto -mx-0">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-[50px]">#</TableHead>
-                        <TableHead>Student Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead className="text-center">Status</TableHead>
-                        <TableHead className="text-center">Last Saved</TableHead>
+                        <TableHead className="w-[40px] pl-3 sm:pl-4">#</TableHead>
+                        <TableHead className="min-w-[120px]">Name</TableHead>
+                        <TableHead className="hidden md:table-cell">Email</TableHead>
+                        <TableHead className="text-center min-w-[130px]">Status</TableHead>
+                        <TableHead className="text-center hidden sm:table-cell min-w-[100px]">Saved</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -445,17 +454,17 @@ const AttendanceManagement: React.FC = () => {
                         
                         return (
                           <TableRow key={student.user_id}>
-                            <TableCell className="font-medium">{index + 1}</TableCell>
-                            <TableCell className="font-medium">{student.full_name}</TableCell>
-                            <TableCell className="text-muted-foreground">{student.email || '-'}</TableCell>
+                            <TableCell className="font-medium pl-3 sm:pl-4 text-sm">{index + 1}</TableCell>
+                            <TableCell className="font-medium text-sm">{student.full_name}</TableCell>
+                            <TableCell className="text-muted-foreground text-sm hidden md:table-cell">{student.email || '-'}</TableCell>
                             <TableCell>
                               <div className="flex justify-center">
                                 <Select
                                   value={status}
                                   onValueChange={(value) => updateAttendance(student.user_id, value as AttendanceStatus)}
                                 >
-                                  <SelectTrigger className={cn("w-[130px]", getStatusColor(status))}>
-                                    <div className="flex items-center gap-2">
+                                  <SelectTrigger className={cn("w-[110px] sm:w-[130px] text-xs sm:text-sm h-8 sm:h-9", getStatusColor(status))}>
+                                    <div className="flex items-center gap-1.5 sm:gap-2">
                                       {getStatusIcon(status)}
                                       <SelectValue />
                                     </div>
@@ -489,11 +498,11 @@ const AttendanceManagement: React.FC = () => {
                                 </Select>
                               </div>
                             </TableCell>
-                            <TableCell className="text-center text-sm text-muted-foreground">
+                            <TableCell className="text-center text-xs sm:text-sm text-muted-foreground hidden sm:table-cell">
                               {record?.created_at ? (
                                 <div className="flex flex-col items-center">
-                                  <span>{format(new Date(record.created_at), 'dd/MM/yyyy')}</span>
-                                  <span className="text-xs">{format(new Date(record.created_at), 'hh:mm a')}</span>
+                                  <span>{format(new Date(record.created_at), 'dd/MM/yy')}</span>
+                                  <span className="text-[10px] sm:text-xs">{format(new Date(record.created_at), 'hh:mm a')}</span>
                                 </div>
                               ) : (
                                 <span className="text-xs italic">Not saved</span>
