@@ -47,6 +47,7 @@ import Support from "./pages/Support";
 import Contact from "./pages/Contact";
 import StudentAzkaar from "./pages/StudentAzkaar";
 import PrayerSettings from "./pages/PrayerSettings";
+import PrayerTimesPage from "./pages/PrayerTimesPage";
 import { AzkaarNotificationProvider } from "@/components/AzkaarNotificationProvider";
 
 const queryClient = new QueryClient();
@@ -180,6 +181,14 @@ const App = () => {
                               element={
                                 <ProtectedRoute allowedRoles={["student"]}>
                                   <PrayerSettings />
+                                </ProtectedRoute>
+                              }
+                            />
+                            <Route
+                              path="/prayer-times"
+                              element={
+                                <ProtectedRoute allowedRoles={["student"]}>
+                                  <PrayerTimesPage />
                                 </ProtectedRoute>
                               }
                             />
