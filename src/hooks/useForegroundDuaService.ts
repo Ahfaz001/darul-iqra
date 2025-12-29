@@ -176,6 +176,28 @@ export const useForegroundDuaService = () => {
     saveForegroundDuaSettings(newSettings);
   }, [settings]);
 
+  const testNotification = useCallback(async () => {
+    const plugin = getForegroundDuaPlugin();
+    if (!plugin || !isRunning) return false;
+
+    setLoading(true);
+    try {
+      const dua = getRandomDua();
+      await plugin.updateNotification({
+        arabic: dua.arabic,
+        transliteration: dua.transliteration,
+        translation: dua.translation,
+      });
+      console.log('Notification updated with new dua');
+      return true;
+    } catch (e) {
+      console.error('Error updating notification:', e);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, [isRunning]);
+
   // Auto-start service if it was enabled
   useEffect(() => {
     const autoStart = async () => {
@@ -194,7 +216,8 @@ export const useForegroundDuaService = () => {
     stopService,
     toggleService,
     updateInterval,
+    testNotification,
     checkServiceStatus,
-    isNativePlatform: Capacitor.isNativePlatform()
+    isNativePlatform: Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android',
   };
 };
