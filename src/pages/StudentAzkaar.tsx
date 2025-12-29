@@ -163,13 +163,24 @@ const StudentAzkaar: React.FC = () => {
 
       <div className="container mx-auto px-4 py-6">
         {/* Header */}
-        <div className="mb-6">
-          <h1 className={`text-3xl font-display font-bold text-foreground mb-2 ${isRTL ? 'font-urdu' : ''}`}>
-            أذكار المسلم
-          </h1>
-          <p className="text-muted-foreground">
-            Authentic supplications from Hisnul Muslim (Fortress of the Muslim)
-          </p>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className={`text-3xl font-display font-bold text-foreground mb-2 ${isRTL ? 'font-urdu' : ''}`}>
+              أذكار المسلم
+            </h1>
+            <p className="text-muted-foreground">
+              Authentic supplications from Hisnul Muslim (Fortress of the Muslim)
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate('/prayer-settings')}
+            className="flex items-center gap-2"
+          >
+            <Sunrise className="h-4 w-4" />
+            <span className="hidden sm:inline">إعدادات المواقيت</span>
+          </Button>
         </div>
 
         {/* Tabs */}
