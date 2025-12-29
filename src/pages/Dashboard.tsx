@@ -18,7 +18,8 @@ import {
   TrendingUp,
   Award,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  HandHeart
 } from 'lucide-react';
 
 interface DashboardStats {
@@ -187,7 +188,15 @@ const Dashboard: React.FC = () => {
       iconBg: 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
     },
     { 
-      title: t('myProfile'), 
+      title: 'أذكار المسلم', 
+      description: 'Daily Azkaar & Duas', 
+      icon: HandHeart,
+      href: '/azkaar',
+      gradient: 'from-teal-500/20 to-teal-500/5',
+      iconBg: 'bg-teal-500/20 text-teal-600 dark:text-teal-400'
+    },
+    { 
+      title: t('myProfile'),
       description: t('manageAccount'), 
       icon: User,
       href: '/profile',
