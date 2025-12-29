@@ -64,7 +64,15 @@ interface ForegroundDuaPlugin {
   isRunning(): Promise<{ running: boolean }>;
 }
 
-const ForegroundDua = registerPlugin<ForegroundDuaPlugin>('ForegroundDua');
+// Singleton to avoid double-registration on HMR / multiple imports
+let _foregroundDuaPlugin: ForegroundDuaPlugin | null = null;
+
+const getOrRegisterPlugin = (): ForegroundDuaPlugin => {
+  if (!_foregroundDuaPlugin) {
+    _foregroundDuaPlugin = registerPlugin<ForegroundDuaPlugin>('ForegroundDua');
+  }
+  return _foregroundDuaPlugin;
+};
 
 const ensureAndroidNotificationPermission = async (): Promise<boolean> => {
   if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== 'android') return true;
@@ -81,13 +89,12 @@ const ensureAndroidNotificationPermission = async (): Promise<boolean> => {
   }
 };
 
-// Get the plugin from Capacitor Plugins
+// Get the plugin from Capacitor Plugins (lazy singleton)
 const getForegroundDuaPlugin = (): ForegroundDuaPlugin | null => {
   if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== 'android') {
     return null;
   }
-
-  return ForegroundDua;
+  return getOrRegisterPlugin();
 };
 
 export const useForegroundDuaService = () => {
