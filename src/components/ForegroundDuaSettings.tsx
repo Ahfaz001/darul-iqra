@@ -47,10 +47,10 @@ export const ForegroundDuaSettings = () => {
 
     nativeOnly:
       language === 'ur'
-        ? 'یہ فیچر صرف Android کے انسٹال شدہ ایپ میں کام کرتا ہے۔'
+        ? 'یہ فیچر صرف Android کے انسٹال شدہ ایپ (native setup کے ساتھ) میں کام کرتا ہے۔'
         : language === 'roman'
-          ? 'Yeh feature sirf Android installed app mein kaam karta hai.'
-          : 'This feature works only in the installed Android app.',
+          ? 'Yeh feature sirf Android installed app (native setup ke sath) mein kaam karta hai.'
+          : 'This feature works only in the installed Android app (with native setup).',
 
     feature1: language === 'ur' ? 'مستقل نوٹیفکیشن (Delete نہیں ہوتا)' : language === 'roman' ? 'Persistent notification (delete nahi hota)' : 'Persistent notification (cannot be dismissed)',
     feature2: language === 'ur' ? 'مقررہ وقت کے بعد خودکار تبدیلی' : language === 'roman' ? 'Muqarrar waqt ke baad auto change' : 'Auto changes on interval',

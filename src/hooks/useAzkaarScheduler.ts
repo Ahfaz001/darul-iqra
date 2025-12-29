@@ -5,6 +5,7 @@ import { morningAzkaar, eveningAzkaar, Dhikr, getDhikrTranslation } from '@/data
 import { usePrayerTimes } from './usePrayerTimes';
 
 const AZKAAR_SETTINGS_KEY = 'azkaar_scheduler_settings';
+const AZKAAR_CHANNEL_ID = 'azkaar_channel';
 
 export interface AzkaarSchedulerSettings {
   enabled: boolean;
@@ -43,6 +44,10 @@ const getAzkaarPlugin = (): AzkaarServicePlugin | null => {
   if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== 'android') {
     return null;
   }
+  // If native plugin isn't installed/registered, gracefully fall back to LocalNotifications
+  if (!Capacitor.isPluginAvailable('AzkaarService')) {
+    return null;
+  }
   if (!_azkaarPlugin) {
     _azkaarPlugin = registerPlugin<AzkaarServicePlugin>('AzkaarService');
   }
@@ -77,11 +82,37 @@ const timeToDate = (timeStr: string): Date => {
   return date;
 };
 
+const ensureAzkaarNotificationAccess = async (): Promise<boolean> => {
+  if (!Capacitor.isNativePlatform()) return false;
+
+  try {
+    const perm = await LocalNotifications.requestPermissions();
+    if (perm.display !== 'granted') return false;
+
+    if (Capacitor.getPlatform() === 'android') {
+      await LocalNotifications.createChannel({
+        id: AZKAAR_CHANNEL_ID,
+        name: 'Azkaar',
+        description: 'Morning and evening azkaar notifications',
+        importance: 4, // High
+        visibility: 1, // Public
+        sound: 'default',
+        vibration: true,
+      });
+    }
+
+    return true;
+  } catch (e) {
+    console.error('Error ensuring azkaar notification access:', e);
+    return false;
+  }
+};
+
 export const useAzkaarScheduler = () => {
   const [settings, setSettings] = useState<AzkaarSchedulerSettings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
-  
+
   const { times: prayerTimes } = usePrayerTimes();
 
   // Load settings on mount
@@ -90,153 +121,191 @@ export const useAzkaarScheduler = () => {
   }, []);
 
   // Schedule local notifications for each azkaar (fallback)
-  const scheduleLocalAzkaarNotifications = useCallback(async (language: 'en' | 'ur' | 'roman' = 'en') => {
-    if (!prayerTimes) return;
+  const scheduleLocalAzkaarNotifications = useCallback(
+    async (language: 'en' | 'ur' | 'roman' = 'en') => {
+      if (!prayerTimes) return;
 
-    try {
-      // Cancel existing azkaar notifications (IDs 100-300)
-      const cancelIds = [];
-      for (let i = 100; i <= 300; i++) {
-        cancelIds.push({ id: i });
-      }
-      await LocalNotifications.cancel({ notifications: cancelIds });
-
-      const now = new Date();
-      let notificationId = 100;
-      const delayMs = settings.delayBetweenMinutes * 60 * 1000;
-
-      // Morning Azkaar (after Fajr)
-      if (settings.morningEnabled) {
-        let morningTime = timeToDate(prayerTimes.Fajr);
-        morningTime.setMinutes(morningTime.getMinutes() + 15); // 15 min after Fajr
-        
-        if (morningTime <= now) {
-          morningTime.setDate(morningTime.getDate() + 1);
-        }
-
-        for (let i = 0; i < morningAzkaar.length && i < 50; i++) {
-          const dhikr = morningAzkaar[i];
-          const scheduledTime = new Date(morningTime.getTime() + (i * delayMs));
-          
-          const title = language === 'ur' ? '☀️ صبح کا ذکر' : language === 'roman' ? '☀️ Subah ka Dhikr' : '☀️ Morning Dhikr';
-          const body = getDhikrTranslation(dhikr, language);
-
-          await LocalNotifications.schedule({
-            notifications: [{
-              id: notificationId++,
-              title,
-              body: body.substring(0, 200),
-              schedule: { at: scheduledTime },
-              channelId: 'azkaar_channel',
-            }]
-          });
-        }
+      if (!Capacitor.isNativePlatform()) {
+        setLastError('Azkaar notifications only work in the installed mobile app.');
+        return;
       }
 
-      // Evening Azkaar (after Maghrib)
-      if (settings.eveningEnabled) {
-        let eveningTime = timeToDate(prayerTimes.Maghrib);
-        eveningTime.setMinutes(eveningTime.getMinutes() + 10); // 10 min after Maghrib
-        
-        if (eveningTime <= now) {
-          eveningTime.setDate(eveningTime.getDate() + 1);
+      try {
+        const hasAccess = await ensureAzkaarNotificationAccess();
+        if (!hasAccess) {
+          setLastError('Notification permission not granted. Please enable notifications for this app.');
+          return;
         }
 
-        for (let i = 0; i < eveningAzkaar.length && i < 50; i++) {
-          const dhikr = eveningAzkaar[i];
-          const scheduledTime = new Date(eveningTime.getTime() + (i * delayMs));
-          
-          const title = language === 'ur' ? '🌙 شام کا ذکر' : language === 'roman' ? '🌙 Shaam ka Dhikr' : '🌙 Evening Dhikr';
-          const body = getDhikrTranslation(dhikr, language);
-
-          await LocalNotifications.schedule({
-            notifications: [{
-              id: notificationId++,
-              title,
-              body: body.substring(0, 200),
-              schedule: { at: scheduledTime },
-              channelId: 'azkaar_channel',
-            }]
-          });
+        // Cancel existing azkaar notifications (IDs 100-300)
+        const cancelIds = [];
+        for (let i = 100; i <= 300; i++) {
+          cancelIds.push({ id: i });
         }
+        await LocalNotifications.cancel({ notifications: cancelIds });
+
+        const now = new Date();
+        let notificationId = 100;
+        const delayMs = settings.delayBetweenMinutes * 60 * 1000;
+
+        // Morning Azkaar (after Fajr)
+        if (settings.morningEnabled) {
+          let morningTime = timeToDate(prayerTimes.Fajr);
+          morningTime.setMinutes(morningTime.getMinutes() + 15); // 15 min after Fajr
+
+          if (morningTime <= now) {
+            morningTime.setDate(morningTime.getDate() + 1);
+          }
+
+          for (let i = 0; i < morningAzkaar.length && i < 50; i++) {
+            const dhikr = morningAzkaar[i];
+            const scheduledTime = new Date(morningTime.getTime() + i * delayMs);
+
+            const title =
+              language === 'ur'
+                ? '☀️ صبح کا ذکر'
+                : language === 'roman'
+                  ? '☀️ Subah ka Dhikr'
+                  : '☀️ Morning Dhikr';
+            const body = getDhikrTranslation(dhikr, language);
+
+            await LocalNotifications.schedule({
+              notifications: [
+                {
+                  id: notificationId++,
+                  title,
+                  body: body.substring(0, 200),
+                  schedule: { at: scheduledTime, allowWhileIdle: true },
+                  channelId: AZKAAR_CHANNEL_ID,
+                },
+              ],
+            });
+          }
+        }
+
+        // Evening Azkaar (after Maghrib)
+        if (settings.eveningEnabled) {
+          let eveningTime = timeToDate(prayerTimes.Maghrib);
+          eveningTime.setMinutes(eveningTime.getMinutes() + 10); // 10 min after Maghrib
+
+          if (eveningTime <= now) {
+            eveningTime.setDate(eveningTime.getDate() + 1);
+          }
+
+          for (let i = 0; i < eveningAzkaar.length && i < 50; i++) {
+            const dhikr = eveningAzkaar[i];
+            const scheduledTime = new Date(eveningTime.getTime() + i * delayMs);
+
+            const title =
+              language === 'ur'
+                ? '🌙 شام کا ذکر'
+                : language === 'roman'
+                  ? '🌙 Shaam ka Dhikr'
+                  : '🌙 Evening Dhikr';
+            const body = getDhikrTranslation(dhikr, language);
+
+            await LocalNotifications.schedule({
+              notifications: [
+                {
+                  id: notificationId++,
+                  title,
+                  body: body.substring(0, 200),
+                  schedule: { at: scheduledTime, allowWhileIdle: true },
+                  channelId: AZKAAR_CHANNEL_ID,
+                },
+              ],
+            });
+          }
+        }
+
+        setLastError(null);
+        console.log('Azkaar notifications scheduled:', notificationId - 100);
+      } catch (e) {
+        console.error('Error scheduling azkaar notifications:', e);
+        setLastError(e instanceof Error ? e.message : String(e));
       }
-
-      console.log('Azkaar notifications scheduled:', notificationId - 100);
-    } catch (e) {
-      console.error('Error scheduling azkaar notifications:', e);
-      setLastError(e instanceof Error ? e.message : String(e));
-    }
-  }, [prayerTimes, settings]);
+    },
+    [prayerTimes, settings]
+  );
 
   // Schedule using native service
-  const scheduleNativeAzkaar = useCallback(async (language: 'en' | 'ur' | 'roman' = 'en') => {
-    const plugin = getAzkaarPlugin();
-    if (!plugin || !prayerTimes) {
-      await scheduleLocalAzkaarNotifications(language);
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await plugin.cancelAllAzkaar();
-
-      const now = new Date();
-      const delayMs = settings.delayBetweenMinutes * 60 * 1000;
-
-      // Morning Azkaar
-      if (settings.morningEnabled) {
-        let morningTime = timeToDate(prayerTimes.Fajr);
-        morningTime.setMinutes(morningTime.getMinutes() + 15);
-        
-        if (morningTime <= now) {
-          morningTime.setDate(morningTime.getDate() + 1);
-        }
-
-        const morningList = morningAzkaar.slice(0, 20).map(d => ({
-          arabic: d.arabic,
-          translation: getDhikrTranslation(d, language),
-          repetition: d.repetition || 1,
-        }));
-
-        await plugin.scheduleMorningAzkaar({
-          azkaarList: morningList,
-          startTimeMs: morningTime.getTime(),
-          delayBetweenMs: delayMs,
-        });
+  const scheduleNativeAzkaar = useCallback(
+    async (language: 'en' | 'ur' | 'roman' = 'en') => {
+      const plugin = getAzkaarPlugin();
+      if (!plugin || !prayerTimes) {
+        await scheduleLocalAzkaarNotifications(language);
+        return;
       }
 
-      // Evening Azkaar
-      if (settings.eveningEnabled) {
-        let eveningTime = timeToDate(prayerTimes.Maghrib);
-        eveningTime.setMinutes(eveningTime.getMinutes() + 10);
-        
-        if (eveningTime <= now) {
-          eveningTime.setDate(eveningTime.getDate() + 1);
+      setLoading(true);
+      try {
+        const hasAccess = await ensureAzkaarNotificationAccess();
+        if (!hasAccess) {
+          setLastError('Notification permission not granted. Please enable notifications for this app.');
+          return;
         }
 
-        const eveningList = eveningAzkaar.slice(0, 20).map(d => ({
-          arabic: d.arabic,
-          translation: getDhikrTranslation(d, language),
-          repetition: d.repetition || 1,
-        }));
+        await plugin.cancelAllAzkaar();
 
-        await plugin.scheduleEveningAzkaar({
-          azkaarList: eveningList,
-          startTimeMs: eveningTime.getTime(),
-          delayBetweenMs: delayMs,
-        });
+        const now = new Date();
+        const delayMs = settings.delayBetweenMinutes * 60 * 1000;
+
+        // Morning Azkaar
+        if (settings.morningEnabled) {
+          let morningTime = timeToDate(prayerTimes.Fajr);
+          morningTime.setMinutes(morningTime.getMinutes() + 15);
+
+          if (morningTime <= now) {
+            morningTime.setDate(morningTime.getDate() + 1);
+          }
+
+          const morningList = morningAzkaar.slice(0, 20).map((d) => ({
+            arabic: d.arabic,
+            translation: getDhikrTranslation(d, language),
+            repetition: d.repetition || 1,
+          }));
+
+          await plugin.scheduleMorningAzkaar({
+            azkaarList: morningList,
+            startTimeMs: morningTime.getTime(),
+            delayBetweenMs: delayMs,
+          });
+        }
+
+        // Evening Azkaar
+        if (settings.eveningEnabled) {
+          let eveningTime = timeToDate(prayerTimes.Maghrib);
+          eveningTime.setMinutes(eveningTime.getMinutes() + 10);
+
+          if (eveningTime <= now) {
+            eveningTime.setDate(eveningTime.getDate() + 1);
+          }
+
+          const eveningList = eveningAzkaar.slice(0, 20).map((d) => ({
+            arabic: d.arabic,
+            translation: getDhikrTranslation(d, language),
+            repetition: d.repetition || 1,
+          }));
+
+          await plugin.scheduleEveningAzkaar({
+            azkaarList: eveningList,
+            startTimeMs: eveningTime.getTime(),
+            delayBetweenMs: delayMs,
+          });
+        }
+
+        setLastError(null);
+        console.log('Native azkaar scheduled');
+      } catch (e) {
+        console.error('Error scheduling native azkaar:', e);
+        setLastError(e instanceof Error ? e.message : String(e));
+        await scheduleLocalAzkaarNotifications(language);
+      } finally {
+        setLoading(false);
       }
-
-      setLastError(null);
-      console.log('Native azkaar scheduled');
-    } catch (e) {
-      console.error('Error scheduling native azkaar:', e);
-      setLastError(e instanceof Error ? e.message : String(e));
-      await scheduleLocalAzkaarNotifications(language);
-    } finally {
-      setLoading(false);
-    }
-  }, [prayerTimes, settings, scheduleLocalAzkaarNotifications]);
+    },
+    [prayerTimes, settings, scheduleLocalAzkaarNotifications]
+  );
 
   // Update settings
   const updateSettings = useCallback((newSettings: Partial<AzkaarSchedulerSettings>) => {

@@ -94,6 +94,12 @@ const getForegroundDuaPlugin = (): ForegroundDuaPlugin | null => {
   if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== 'android') {
     return null;
   }
+
+  // If native plugin isn't installed/registered, don't call into it.
+  if (!Capacitor.isPluginAvailable('ForegroundDua')) {
+    return null;
+  }
+
   return getOrRegisterPlugin();
 };
 
@@ -102,6 +108,8 @@ export const useForegroundDuaService = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [loading, setLoading] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
+
+  const isAvailable = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android' && Capacitor.isPluginAvailable('ForegroundDua');
 
   // Load settings on mount
   useEffect(() => {
@@ -126,7 +134,7 @@ export const useForegroundDuaService = () => {
   const startService = useCallback(async () => {
     const plugin = getForegroundDuaPlugin();
     if (!plugin) {
-      const msg = 'Foreground service only works on native Android (installed app).';
+      const msg = 'Foreground service only works on native Android (installed app with native setup).';
       console.log(msg);
       setLastError(msg);
       return false;
@@ -179,7 +187,7 @@ export const useForegroundDuaService = () => {
   const stopService = useCallback(async () => {
     const plugin = getForegroundDuaPlugin();
     if (!plugin) {
-      const msg = 'Foreground service only works on native Android (installed app).';
+      const msg = 'Foreground service only works on native Android (installed app with native setup).';
       setLastError(msg);
       return false;
     }
@@ -269,6 +277,6 @@ export const useForegroundDuaService = () => {
     updateInterval,
     testNotification,
     checkServiceStatus,
-    isNativePlatform: Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android',
+    isNativePlatform: isAvailable,
   };
 };
