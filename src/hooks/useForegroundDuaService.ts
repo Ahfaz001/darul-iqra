@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Capacitor } from '@capacitor/core';
-import { getRandomDua, Dhikr } from '@/data/azkaar';
+import { Capacitor, registerPlugin } from '@capacitor/core';
+import { LocalNotifications } from '@capacitor/local-notifications';
+import { getRandomDua } from '@/data/azkaar';
 
 const STORAGE_KEY = 'foreground_dua_settings';
 
@@ -11,7 +12,7 @@ export interface ForegroundDuaSettings {
 
 const DEFAULT_SETTINGS: ForegroundDuaSettings = {
   enabled: false,
-  intervalHours: 1
+  intervalHours: 1,
 };
 
 export const getForegroundDuaSettings = (): ForegroundDuaSettings => {
@@ -36,35 +37,45 @@ export const saveForegroundDuaSettings = (settings: ForegroundDuaSettings): void
 
 // This interface matches what the native plugin expects
 interface ForegroundDuaPlugin {
-  startService(options: { 
-    arabic: string; 
-    transliteration: string; 
+  startService(options: {
+    arabic: string;
+    transliteration: string;
     translation: string;
     intervalMs: number;
   }): Promise<void>;
   stopService(): Promise<void>;
-  updateNotification(options: { 
-    arabic: string; 
-    transliteration: string; 
+  updateNotification(options: {
+    arabic: string;
+    transliteration: string;
     translation: string;
   }): Promise<void>;
   isRunning(): Promise<{ running: boolean }>;
 }
 
+const ForegroundDua = registerPlugin<ForegroundDuaPlugin>('ForegroundDua');
+
+const ensureAndroidNotificationPermission = async (): Promise<boolean> => {
+  if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== 'android') return true;
+
+  try {
+    const current = await LocalNotifications.checkPermissions();
+    if (current.display === 'granted') return true;
+
+    const requested = await LocalNotifications.requestPermissions();
+    return requested.display === 'granted';
+  } catch (e) {
+    console.error('Error requesting notification permission:', e);
+    return false;
+  }
+};
+
 // Get the plugin from Capacitor Plugins
 const getForegroundDuaPlugin = (): ForegroundDuaPlugin | null => {
-  if (!Capacitor.isNativePlatform()) {
+  if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== 'android') {
     return null;
   }
-  
-  try {
-    // The plugin will be registered as 'ForegroundDua' in native code
-    const plugins = (Capacitor as any).Plugins;
-    return plugins?.ForegroundDua || null;
-  } catch (e) {
-    console.error('ForegroundDua plugin not available:', e);
-    return null;
-  }
+
+  return ForegroundDua;
 };
 
 export const useForegroundDuaService = () => {
@@ -99,6 +110,12 @@ export const useForegroundDuaService = () => {
 
     setLoading(true);
     try {
+      const hasPerm = await ensureAndroidNotificationPermission();
+      if (!hasPerm) {
+        console.error('Notification permission denied (Android 13+).');
+        return false;
+      }
+
       const dua = getRandomDua();
       await plugin.startService({
         arabic: dua.arabic,
@@ -162,12 +179,12 @@ export const useForegroundDuaService = () => {
   // Auto-start service if it was enabled
   useEffect(() => {
     const autoStart = async () => {
-      if (Capacitor.isNativePlatform() && settings.enabled && !isRunning) {
+      if (settings.enabled && !isRunning) {
         await startService();
       }
     };
     autoStart();
-  }, []);
+  }, [settings.enabled, isRunning, startService]);
 
   return {
     settings,
