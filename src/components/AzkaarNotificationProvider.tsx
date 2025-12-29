@@ -12,8 +12,8 @@ export const AzkaarNotificationProvider = ({ children }: AzkaarNotificationProvi
   return (
     <>
       {children}
-      {/* Floating overlay that shows duas on screen every hour */}
-      <FloatingDuaOverlay intervalMinutes={60} autoHideSeconds={30} />
+      {/* Floating overlay - morning duas from Fajr to Maghrib, evening duas from Maghrib to Fajr */}
+      <FloatingDuaOverlay autoHideSeconds={25} />
     </>
   );
 };
