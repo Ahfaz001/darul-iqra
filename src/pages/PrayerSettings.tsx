@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, Calculator, Save, RotateCcw } from 'lucide-react';
 import { ForegroundDuaSettings } from '@/components/ForegroundDuaSettings';
+import { AzanSettings } from '@/components/AzanSettings';
+import { AzkaarSchedulerSettings } from '@/components/AzkaarSchedulerSettings';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,21 +15,22 @@ import StudentLayout from '@/components/StudentLayout';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 // Calculation methods from Aladhan API
+// Calculation methods - Ahl-e-Hadith uses Standard Asr (Method 2 ISNA or similar)
 const CALCULATION_METHODS = [
-  { id: '1', nameEn: 'Umm Al-Qura University, Makkah' },
-  { id: '2', nameEn: 'Islamic Society of North America (ISNA)' },
-  { id: '3', nameEn: 'Muslim World League' },
-  { id: '4', nameEn: 'Umm Al-Qura, Makkah' },
-  { id: '5', nameEn: 'Egyptian General Authority of Survey' },
-  { id: '7', nameEn: 'Institute of Geophysics, Tehran' },
-  { id: '8', nameEn: 'Gulf Region' },
-  { id: '9', nameEn: 'Kuwait' },
-  { id: '10', nameEn: 'Qatar' },
-  { id: '11', nameEn: 'Majlis Ugama Islam Singapura' },
-  { id: '12', nameEn: 'Union Organization Islamic de France' },
-  { id: '13', nameEn: 'Diyanet İşleri Başkanlığı, Turkey' },
-  { id: '14', nameEn: 'Spiritual Administration of Muslims of Russia' },
-  { id: '15', nameEn: 'Dubai (unofficial)' },
+  { id: '2', nameEn: 'Ahl-e-Hadith / ISNA (Standard Asr)', nameUr: 'اہل حدیث / آئی ایس این اے', nameRoman: 'Ahl-e-Hadith / ISNA' },
+  { id: '1', nameEn: 'Umm Al-Qura, Makkah', nameUr: 'ام القریٰ مکہ', nameRoman: 'Umm Al-Qura, Makkah' },
+  { id: '3', nameEn: 'Muslim World League', nameUr: 'مسلم ورلڈ لیگ', nameRoman: 'Muslim World League' },
+  { id: '4', nameEn: 'Umm Al-Qura (Ramadan)', nameUr: 'ام القریٰ رمضان', nameRoman: 'Umm Al-Qura (Ramadan)' },
+  { id: '5', nameEn: 'Egyptian General Authority', nameUr: 'مصری جنرل اتھارٹی', nameRoman: 'Egyptian General Authority' },
+  { id: '7', nameEn: 'Institute of Geophysics, Tehran', nameUr: 'تہران انسٹی ٹیوٹ', nameRoman: 'Institute of Geophysics, Tehran' },
+  { id: '8', nameEn: 'Gulf Region', nameUr: 'خلیجی علاقہ', nameRoman: 'Gulf Region' },
+  { id: '9', nameEn: 'Kuwait', nameUr: 'کویت', nameRoman: 'Kuwait' },
+  { id: '10', nameEn: 'Qatar', nameUr: 'قطر', nameRoman: 'Qatar' },
+  { id: '11', nameEn: 'Singapore', nameUr: 'سنگاپور', nameRoman: 'Singapore' },
+  { id: '12', nameEn: 'France (UOIF)', nameUr: 'فرانس', nameRoman: 'France (UOIF)' },
+  { id: '13', nameEn: 'Turkey (Diyanet)', nameUr: 'ترکی', nameRoman: 'Turkey (Diyanet)' },
+  { id: '14', nameEn: 'Russia', nameUr: 'روس', nameRoman: 'Russia' },
+  { id: '15', nameEn: 'Dubai', nameUr: 'دبئی', nameRoman: 'Dubai' },
 ];
 
 export interface PrayerTimeSettings {
@@ -38,12 +41,13 @@ export interface PrayerTimeSettings {
   cityName: string;
 }
 
+// Default to Mumbai, India with Ahl-e-Hadith method
 const DEFAULT_SETTINGS: PrayerTimeSettings = {
-  useAutoLocation: true,
-  manualLatitude: '',
-  manualLongitude: '',
-  calculationMethod: '2',
-  cityName: ''
+  useAutoLocation: false, // Use Mumbai by default
+  manualLatitude: '19.0760',
+  manualLongitude: '72.8777',
+  calculationMethod: '2', // ISNA / Ahl-e-Hadith (Standard Asr)
+  cityName: 'Mumbai, India'
 };
 
 const STORAGE_KEY = 'prayer_time_settings';
@@ -275,13 +279,19 @@ const PrayerSettings = () => {
                 <SelectContent>
                   {CALCULATION_METHODS.map((method) => (
                     <SelectItem key={method.id} value={method.id} dir={isRTL ? 'rtl' : 'ltr'}>
-                      {method.nameEn}
+                      {language === 'ur' ? method.nameUr : language === 'roman' ? method.nameRoman : method.nameEn}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </CardContent>
           </Card>
+
+          {/* Azan Settings */}
+          <AzanSettings />
+
+          {/* Morning/Evening Azkaar Scheduler */}
+          <AzkaarSchedulerSettings />
 
           {/* Foreground Dua Settings - Persistent Notification */}
           <ForegroundDuaSettings />
