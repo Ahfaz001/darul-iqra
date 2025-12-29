@@ -14,20 +14,20 @@ import { useLanguage } from '@/contexts/LanguageContext';
 
 // Calculation methods from Aladhan API
 const CALCULATION_METHODS = [
-  { id: '1', name: 'جامعة أم القرى', nameEn: 'Umm Al-Qura University, Makkah' },
-  { id: '2', name: 'ISNA (أمريكا الشمالية)', nameEn: 'Islamic Society of North America' },
-  { id: '3', name: 'رابطة العالم الإسلامي', nameEn: 'Muslim World League' },
-  { id: '4', name: 'مكة المكرمة', nameEn: 'Umm Al-Qura, Makkah' },
-  { id: '5', name: 'الاتحاد الإسلامي الهندي', nameEn: 'Egyptian General Authority of Survey' },
-  { id: '7', name: 'معهد الجيوفيزياء (طهران)', nameEn: 'Institute of Geophysics, Tehran' },
-  { id: '8', name: 'منطقة الخليج', nameEn: 'Gulf Region' },
-  { id: '9', name: 'الكويت', nameEn: 'Kuwait' },
-  { id: '10', name: 'قطر', nameEn: 'Qatar' },
-  { id: '11', name: 'سنغافورة', nameEn: 'Majlis Ugama Islam Singapura' },
-  { id: '12', name: 'فرنسا', nameEn: 'Union Organization Islamic de France' },
-  { id: '13', name: 'تركيا', nameEn: 'Diyanet İşleri Başkanlığı, Turkey' },
-  { id: '14', name: 'روسيا', nameEn: 'Spiritual Administration of Muslims of Russia' },
-  { id: '15', name: 'دبي', nameEn: 'Dubai (unofficial)' },
+  { id: '1', nameEn: 'Umm Al-Qura University, Makkah' },
+  { id: '2', nameEn: 'Islamic Society of North America (ISNA)' },
+  { id: '3', nameEn: 'Muslim World League' },
+  { id: '4', nameEn: 'Umm Al-Qura, Makkah' },
+  { id: '5', nameEn: 'Egyptian General Authority of Survey' },
+  { id: '7', nameEn: 'Institute of Geophysics, Tehran' },
+  { id: '8', nameEn: 'Gulf Region' },
+  { id: '9', nameEn: 'Kuwait' },
+  { id: '10', nameEn: 'Qatar' },
+  { id: '11', nameEn: 'Majlis Ugama Islam Singapura' },
+  { id: '12', nameEn: 'Union Organization Islamic de France' },
+  { id: '13', nameEn: 'Diyanet İşleri Başkanlığı, Turkey' },
+  { id: '14', nameEn: 'Spiritual Administration of Muslims of Russia' },
+  { id: '15', nameEn: 'Dubai (unofficial)' },
 ];
 
 export interface PrayerTimeSettings {
@@ -183,26 +183,22 @@ const PrayerSettings = () => {
           {/* Location Settings */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2" dir="rtl">
+              <CardTitle className="flex items-center gap-2" dir={isRTL ? 'rtl' : 'ltr'}>
                 <MapPin className="h-5 w-5 text-primary" />
-                الموقع الجغرافي
+                {t.location}
               </CardTitle>
-              <CardDescription dir="rtl">
-                حدد موقعك لحساب أوقات الصلاة بدقة
-              </CardDescription>
+              <CardDescription dir={isRTL ? 'rtl' : 'ltr'}>{t.locationDesc}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Auto Location Toggle */}
-              <div className="flex items-center justify-between" dir="rtl">
+              <div className="flex items-center justify-between" dir={isRTL ? 'rtl' : 'ltr'}>
                 <div>
-                  <Label>تحديد الموقع تلقائياً</Label>
-                  <p className="text-sm text-muted-foreground">استخدام GPS للحصول على موقعك</p>
+                  <Label>{t.autoLocation}</Label>
+                  <p className="text-sm text-muted-foreground">{t.autoLocationDesc}</p>
                 </div>
                 <Switch
                   checked={settings.useAutoLocation}
-                  onCheckedChange={(checked) => 
-                    setSettings(prev => ({ ...prev, useAutoLocation: checked }))
-                  }
+                  onCheckedChange={(checked) => setSettings((prev) => ({ ...prev, useAutoLocation: checked }))}
                 />
               </div>
 
@@ -211,42 +207,36 @@ const PrayerSettings = () => {
                 <div className="space-y-4 pt-4 border-t">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="latitude">خط العرض (Latitude)</Label>
+                      <Label htmlFor="latitude">{t.latitude}</Label>
                       <Input
                         id="latitude"
                         type="number"
                         step="any"
-                        placeholder="مثال: 21.4225"
+                        placeholder={language === 'ur' ? 'مثال: 21.4225' : language === 'roman' ? 'Example: 21.4225' : 'Example: 21.4225'}
                         value={settings.manualLatitude}
-                        onChange={(e) => 
-                          setSettings(prev => ({ ...prev, manualLatitude: e.target.value }))
-                        }
+                        onChange={(e) => setSettings((prev) => ({ ...prev, manualLatitude: e.target.value }))}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="longitude">خط الطول (Longitude)</Label>
+                      <Label htmlFor="longitude">{t.longitude}</Label>
                       <Input
                         id="longitude"
                         type="number"
                         step="any"
-                        placeholder="مثال: 39.8262"
+                        placeholder={language === 'ur' ? 'مثال: 39.8262' : language === 'roman' ? 'Example: 39.8262' : 'Example: 39.8262'}
                         value={settings.manualLongitude}
-                        onChange={(e) => 
-                          setSettings(prev => ({ ...prev, manualLongitude: e.target.value }))
-                        }
+                        onChange={(e) => setSettings((prev) => ({ ...prev, manualLongitude: e.target.value }))}
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="cityName">اسم المدينة (اختياري)</Label>
+                    <Label htmlFor="cityName">{t.cityName}</Label>
                     <Input
                       id="cityName"
-                      placeholder="مثال: مكة المكرمة"
+                      placeholder={language === 'ur' ? 'مثال: کراچی' : language === 'roman' ? 'Example: Karachi' : 'Example: Karachi'}
                       value={settings.cityName}
-                      onChange={(e) => 
-                        setSettings(prev => ({ ...prev, cityName: e.target.value }))
-                      }
+                      onChange={(e) => setSettings((prev) => ({ ...prev, cityName: e.target.value }))}
                     />
                   </div>
 
@@ -255,9 +245,10 @@ const PrayerSettings = () => {
                     onClick={handleGetCurrentLocation}
                     disabled={loading}
                     className="w-full"
+                    dir={isRTL ? 'rtl' : 'ltr'}
                   >
-                    <MapPin className="h-4 w-4 mr-2" />
-                    {loading ? 'جاري تحديد الموقع...' : 'استخدام موقعي الحالي'}
+                    <MapPin className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+                    {loading ? t.gettingLocation : t.useCurrentLocation}
                   </Button>
                 </div>
               )}
@@ -267,31 +258,24 @@ const PrayerSettings = () => {
           {/* Calculation Method */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2" dir="rtl">
+              <CardTitle className="flex items-center gap-2" dir={isRTL ? 'rtl' : 'ltr'}>
                 <Calculator className="h-5 w-5 text-primary" />
-                طريقة الحساب
+                {t.calculationMethod}
               </CardTitle>
-              <CardDescription dir="rtl">
-                اختر طريقة حساب مواقيت الصلاة المناسبة لمنطقتك
-              </CardDescription>
+              <CardDescription dir={isRTL ? 'rtl' : 'ltr'}>{t.calculationMethodDesc}</CardDescription>
             </CardHeader>
             <CardContent>
               <Select
                 value={settings.calculationMethod}
-                onValueChange={(value) => 
-                  setSettings(prev => ({ ...prev, calculationMethod: value }))
-                }
+                onValueChange={(value) => setSettings((prev) => ({ ...prev, calculationMethod: value }))}
               >
-                <SelectTrigger dir="rtl">
-                  <SelectValue placeholder="اختر طريقة الحساب" />
+                <SelectTrigger dir={isRTL ? 'rtl' : 'ltr'}>
+                  <SelectValue placeholder={t.selectMethod} />
                 </SelectTrigger>
                 <SelectContent>
                   {CALCULATION_METHODS.map((method) => (
-                    <SelectItem key={method.id} value={method.id} dir="rtl">
-                      <div className="flex flex-col">
-                        <span>{method.name}</span>
-                        <span className="text-xs text-muted-foreground">{method.nameEn}</span>
-                      </div>
+                    <SelectItem key={method.id} value={method.id} dir={isRTL ? 'rtl' : 'ltr'}>
+                      {method.nameEn}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -304,13 +288,13 @@ const PrayerSettings = () => {
 
           {/* Action Buttons */}
           <div className="flex gap-3">
-            <Button onClick={handleSave} className="flex-1">
-              <Save className="h-4 w-4 mr-2" />
-              حفظ الإعدادات
+            <Button onClick={handleSave} className="flex-1" dir={isRTL ? 'rtl' : 'ltr'}>
+              <Save className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+              {t.saveSettings}
             </Button>
-            <Button variant="outline" onClick={handleReset}>
-              <RotateCcw className="h-4 w-4 mr-2" />
-              إعادة تعيين
+            <Button variant="outline" onClick={handleReset} dir={isRTL ? 'rtl' : 'ltr'}>
+              <RotateCcw className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+              {t.resetSettings}
             </Button>
           </div>
         </div>

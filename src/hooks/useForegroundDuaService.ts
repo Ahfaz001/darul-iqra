@@ -15,11 +15,23 @@ const DEFAULT_SETTINGS: ForegroundDuaSettings = {
   intervalHours: 1,
 };
 
+type PartialForegroundDuaSettings = Partial<ForegroundDuaSettings> & {
+  intervalHours?: number | string;
+  enabled?: boolean | string;
+};
+
 export const getForegroundDuaSettings = (): ForegroundDuaSettings => {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
-      return { ...DEFAULT_SETTINGS, ...JSON.parse(saved) };
+      const parsed = JSON.parse(saved) as PartialForegroundDuaSettings;
+      const intervalHoursRaw = parsed.intervalHours ?? DEFAULT_SETTINGS.intervalHours;
+      const intervalHours = Number(intervalHoursRaw);
+
+      return {
+        enabled: Boolean(parsed.enabled ?? DEFAULT_SETTINGS.enabled),
+        intervalHours: Number.isFinite(intervalHours) && intervalHours > 0 ? intervalHours : DEFAULT_SETTINGS.intervalHours,
+      };
     }
   } catch (e) {
     console.error('Error loading foreground dua settings:', e);
@@ -82,6 +94,7 @@ export const useForegroundDuaService = () => {
   const [settings, setSettings] = useState<ForegroundDuaSettings>(DEFAULT_SETTINGS);
   const [isRunning, setIsRunning] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [lastError, setLastError] = useState<string | null>(null);
 
   // Load settings on mount
   useEffect(() => {
@@ -96,15 +109,19 @@ export const useForegroundDuaService = () => {
     try {
       const result = await plugin.isRunning();
       setIsRunning(result.running);
+      setLastError(null);
     } catch (e) {
       console.error('Error checking service status:', e);
+      setLastError(e instanceof Error ? e.message : String(e));
     }
   }, []);
 
   const startService = useCallback(async () => {
     const plugin = getForegroundDuaPlugin();
     if (!plugin) {
-      console.log('Foreground service only works on native Android');
+      const msg = 'Foreground service only works on native Android (installed app).';
+      console.log(msg);
+      setLastError(msg);
       return false;
     }
 
@@ -112,7 +129,17 @@ export const useForegroundDuaService = () => {
     try {
       const hasPerm = await ensureAndroidNotificationPermission();
       if (!hasPerm) {
-        console.error('Notification permission denied (Android 13+).');
+        const msg = 'Notification permission denied. Please allow notifications for this app.';
+        console.error(msg);
+        setLastError(msg);
+        return false;
+      }
+
+      const intervalMs = Number(settings.intervalHours) * 60 * 60 * 1000;
+      if (!Number.isFinite(intervalMs) || intervalMs <= 0) {
+        const msg = 'Invalid interval. Please choose a valid time interval.';
+        console.error(msg, { intervalHours: settings.intervalHours });
+        setLastError(msg);
         return false;
       }
 
@@ -121,18 +148,21 @@ export const useForegroundDuaService = () => {
         arabic: dua.arabic,
         transliteration: dua.transliteration,
         translation: dua.translation,
-        intervalMs: settings.intervalHours * 60 * 60 * 1000 // Convert hours to ms
+        intervalMs,
       });
-      
+
       setIsRunning(true);
       const newSettings = { ...settings, enabled: true };
       setSettings(newSettings);
       saveForegroundDuaSettings(newSettings);
-      
+
+      setLastError(null);
       console.log('Foreground dua service started');
       return true;
     } catch (e) {
       console.error('Error starting foreground service:', e);
+      const msg = e instanceof Error ? e.message : String(e);
+      setLastError(msg);
       return false;
     } finally {
       setLoading(false);
@@ -141,21 +171,28 @@ export const useForegroundDuaService = () => {
 
   const stopService = useCallback(async () => {
     const plugin = getForegroundDuaPlugin();
-    if (!plugin) return false;
+    if (!plugin) {
+      const msg = 'Foreground service only works on native Android (installed app).';
+      setLastError(msg);
+      return false;
+    }
 
     setLoading(true);
     try {
       await plugin.stopService();
-      
+
       setIsRunning(false);
       const newSettings = { ...settings, enabled: false };
       setSettings(newSettings);
       saveForegroundDuaSettings(newSettings);
-      
+
+      setLastError(null);
       console.log('Foreground dua service stopped');
       return true;
     } catch (e) {
       console.error('Error stopping foreground service:', e);
+      const msg = e instanceof Error ? e.message : String(e);
+      setLastError(msg);
       return false;
     } finally {
       setLoading(false);
@@ -170,11 +207,14 @@ export const useForegroundDuaService = () => {
     }
   }, [isRunning, startService, stopService]);
 
-  const updateInterval = useCallback((hours: number) => {
-    const newSettings = { ...settings, intervalHours: hours };
-    setSettings(newSettings);
-    saveForegroundDuaSettings(newSettings);
-  }, [settings]);
+  const updateInterval = useCallback(
+    (hours: number) => {
+      const newSettings = { ...settings, intervalHours: hours };
+      setSettings(newSettings);
+      saveForegroundDuaSettings(newSettings);
+    },
+    [settings]
+  );
 
   const testNotification = useCallback(async () => {
     const plugin = getForegroundDuaPlugin();
@@ -188,10 +228,13 @@ export const useForegroundDuaService = () => {
         transliteration: dua.transliteration,
         translation: dua.translation,
       });
+      setLastError(null);
       console.log('Notification updated with new dua');
       return true;
     } catch (e) {
       console.error('Error updating notification:', e);
+      const msg = e instanceof Error ? e.message : String(e);
+      setLastError(msg);
       return false;
     } finally {
       setLoading(false);
@@ -212,6 +255,7 @@ export const useForegroundDuaService = () => {
     settings,
     isRunning,
     loading,
+    lastError,
     startService,
     stopService,
     toggleService,
