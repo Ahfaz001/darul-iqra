@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useLanguage, Language } from '@/contexts/LanguageContext';
 import StudentLayout from '@/components/StudentLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,9 +23,18 @@ import {
   UtensilsCrossed,
   Plane,
   Droplets,
-  Heart
+  Heart,
+  Settings
 } from 'lucide-react';
-import { allAzkaarCategories, Dhikr, AzkaarCategory } from '@/data/azkaar';
+import { 
+  allAzkaarCategories, 
+  Dhikr, 
+  AzkaarCategory, 
+  getDhikrTranslation, 
+  getDhikrVirtue,
+  getCategoryTitle,
+  getCategoryDescription
+} from '@/data/azkaar';
 
 const iconMap: Record<string, React.ReactNode> = {
   '🌅': <Sunrise className="h-6 w-6" />,
@@ -53,8 +62,11 @@ const colorMap: Record<string, { bg: string; text: string; border: string }> = {
   general: { bg: 'bg-rose-500/10', text: 'text-rose-600 dark:text-rose-400', border: 'border-rose-500/20' },
 };
 
-const DhikrCard: React.FC<{ dhikr: Dhikr; index: number }> = ({ dhikr, index }) => {
+const DhikrCard: React.FC<{ dhikr: Dhikr; index: number; language: Language }> = ({ dhikr, index, language }) => {
   const [expanded, setExpanded] = useState(false);
+  const translation = getDhikrTranslation(dhikr, language);
+  const virtue = getDhikrVirtue(dhikr, language);
+  const isUrdu = language === 'ur';
 
   return (
     <Card className="mb-4 border-border/50 hover:shadow-lg transition-all duration-300">
@@ -74,9 +86,9 @@ const DhikrCard: React.FC<{ dhikr: Dhikr; index: number }> = ({ dhikr, index }) 
         </div>
 
         {/* Translation */}
-        <div className="mb-4">
-          <p className="text-sm sm:text-base text-foreground/80">
-            {dhikr.translation}
+        <div className="mb-4" dir={isUrdu ? 'rtl' : 'ltr'}>
+          <p className={`text-sm sm:text-base text-foreground/80 ${isUrdu ? 'font-urdu' : ''}`}>
+            {translation}
           </p>
         </div>
 
@@ -95,15 +107,15 @@ const DhikrCard: React.FC<{ dhikr: Dhikr; index: number }> = ({ dhikr, index }) 
         </div>
 
         {/* Virtue */}
-        {dhikr.virtue && (
+        {virtue && (
           <div 
             className="mt-4 p-3 rounded-lg bg-primary/5 border border-primary/10 cursor-pointer"
             onClick={() => setExpanded(!expanded)}
           >
-            <div className="flex items-start gap-2">
+            <div className="flex items-start gap-2" dir={isUrdu ? 'rtl' : 'ltr'}>
               <Quote className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-              <p className={`text-sm text-primary/80 ${expanded ? '' : 'line-clamp-2'}`}>
-                {dhikr.virtue}
+              <p className={`text-sm text-primary/80 ${expanded ? '' : 'line-clamp-2'} ${isUrdu ? 'font-urdu' : ''}`}>
+                {virtue}
               </p>
             </div>
           </div>
@@ -113,8 +125,14 @@ const DhikrCard: React.FC<{ dhikr: Dhikr; index: number }> = ({ dhikr, index }) 
   );
 };
 
-const CategoryView: React.FC<{ category: AzkaarCategory }> = ({ category }) => {
+const CategoryView: React.FC<{ category: AzkaarCategory; language: Language }> = ({ category, language }) => {
   const colors = colorMap[category.id] || colorMap.general;
+  const title = getCategoryTitle(category, language);
+  const description = getCategoryDescription(category, language);
+  const isUrdu = language === 'ur';
+  
+  // UI labels based on language
+  const duasLabel = language === 'ur' ? 'دعائیں' : language === 'roman' ? 'Duain' : 'Duas';
 
   return (
     <div>
@@ -124,19 +142,23 @@ const CategoryView: React.FC<{ category: AzkaarCategory }> = ({ category }) => {
             {iconMap[category.icon]}
           </div>
           <div>
-            <h2 className={`text-xl font-semibold ${colors.text}`}>{category.title}</h2>
+            <h2 className={`text-xl font-semibold ${colors.text} ${isUrdu ? 'font-urdu' : ''}`} dir={isUrdu ? 'rtl' : 'ltr'}>
+              {title}
+            </h2>
             <p className="text-lg font-arabic text-muted-foreground" dir="rtl">{category.titleArabic}</p>
           </div>
         </div>
-        <p className="text-sm text-muted-foreground mt-2">{category.description}</p>
+        <p className={`text-sm text-muted-foreground mt-2 ${isUrdu ? 'font-urdu' : ''}`} dir={isUrdu ? 'rtl' : 'ltr'}>
+          {description}
+        </p>
         <Badge variant="secondary" className="mt-2">
-          {category.duas.length} Duas
+          {category.duas.length} {duasLabel}
         </Badge>
       </div>
 
       <ScrollArea className="h-[calc(100vh-400px)]">
         {category.duas.map((dhikr, index) => (
-          <DhikrCard key={dhikr.id} dhikr={dhikr} index={index} />
+          <DhikrCard key={dhikr.id} dhikr={dhikr} index={index} language={language} />
         ))}
       </ScrollArea>
     </div>
@@ -144,9 +166,18 @@ const CategoryView: React.FC<{ category: AzkaarCategory }> = ({ category }) => {
 };
 
 const StudentAzkaar: React.FC = () => {
-  const { isRTL } = useLanguage();
+  const { isRTL, language } = useLanguage();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('morning');
+
+  // UI translations
+  const pageTitle = language === 'ur' ? 'اذکار المسلم' : language === 'roman' ? 'Azkaar ul Muslim' : 'أذكار المسلم';
+  const pageSubtitle = language === 'ur' 
+    ? 'حصن المسلم سے مستند دعائیں' 
+    : language === 'roman' 
+    ? 'Hisnul Muslim se mustanad duain' 
+    : 'Authentic supplications from Hisnul Muslim (Fortress of the Muslim)';
+  const settingsLabel = language === 'ur' ? 'ترتیبات' : language === 'roman' ? 'Settings' : 'Settings';
 
   return (
     <StudentLayout>
@@ -165,11 +196,11 @@ const StudentAzkaar: React.FC = () => {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className={`text-3xl font-display font-bold text-foreground mb-2 ${isRTL ? 'font-urdu' : ''}`}>
-              أذكار المسلم
+            <h1 className={`text-3xl font-display font-bold text-foreground mb-2 ${isRTL ? 'font-urdu' : ''}`} dir={isRTL ? 'rtl' : 'ltr'}>
+              {pageTitle}
             </h1>
-            <p className="text-muted-foreground">
-              Authentic supplications from Hisnul Muslim (Fortress of the Muslim)
+            <p className={`text-muted-foreground ${isRTL ? 'font-urdu' : ''}`} dir={isRTL ? 'rtl' : 'ltr'}>
+              {pageSubtitle}
             </p>
           </div>
           <Button
@@ -178,8 +209,8 @@ const StudentAzkaar: React.FC = () => {
             onClick={() => navigate('/prayer-settings')}
             className="flex items-center gap-2"
           >
-            <Sunrise className="h-4 w-4" />
-            <span className="hidden sm:inline">إعدادات المواقيت</span>
+            <Settings className="h-4 w-4" />
+            <span className="hidden sm:inline">{settingsLabel}</span>
           </Button>
         </div>
 
@@ -189,6 +220,7 @@ const StudentAzkaar: React.FC = () => {
             <TabsList className="inline-flex w-max gap-1 p-1">
               {allAzkaarCategories.map((category) => {
                 const colors = colorMap[category.id] || colorMap.general;
+                const tabTitle = getCategoryTitle(category, language);
                 return (
                   <TabsTrigger 
                     key={category.id} 
@@ -198,7 +230,9 @@ const StudentAzkaar: React.FC = () => {
                     <div className={activeTab === category.id ? colors.text : 'text-muted-foreground'}>
                       {iconMap[category.icon]}
                     </div>
-                    <span className="text-xs whitespace-nowrap">{category.title.split(' ')[0]}</span>
+                    <span className={`text-xs whitespace-nowrap ${isRTL ? 'font-urdu' : ''}`}>
+                      {tabTitle.split(' ')[0]}
+                    </span>
                   </TabsTrigger>
                 );
               })}
@@ -207,7 +241,7 @@ const StudentAzkaar: React.FC = () => {
 
           {allAzkaarCategories.map((category) => (
             <TabsContent key={category.id} value={category.id}>
-              <CategoryView category={category} />
+              <CategoryView category={category} language={language} />
             </TabsContent>
           ))}
         </Tabs>

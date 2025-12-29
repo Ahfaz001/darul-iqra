@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import StudentLayout from '@/components/StudentLayout';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // Calculation methods from Aladhan API
 const CALCULATION_METHODS = [
@@ -69,8 +70,36 @@ export const savePrayerTimeSettings = (settings: PrayerTimeSettings): void => {
 
 const PrayerSettings = () => {
   const navigate = useNavigate();
+  const { language, isRTL } = useLanguage();
   const [settings, setSettings] = useState<PrayerTimeSettings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(false);
+
+  // UI translations
+  const t = {
+    pageTitle: language === 'ur' ? 'نماز اوقات کی ترتیبات' : language === 'roman' ? 'Namaz Auqat ki Settings' : 'Prayer Time Settings',
+    pageSubtitle: language === 'ur' ? 'نماز اوقات اور اذکار کی ترتیب' : language === 'roman' ? 'Namaz auqat aur azkaar ki tarteeb' : 'Customize prayer times and azkaar calculations',
+    location: language === 'ur' ? 'جغرافیائی مقام' : language === 'roman' ? 'Jughraafia Maqaam' : 'Geographic Location',
+    locationDesc: language === 'ur' ? 'نماز اوقات کے حساب کے لیے مقام' : language === 'roman' ? 'Namaz auqat ke hisaab ke liye maqaam' : 'Set your location for accurate prayer times',
+    autoLocation: language === 'ur' ? 'خودکار مقام' : language === 'roman' ? 'Khudkaar Maqaam' : 'Automatic Location',
+    autoLocationDesc: language === 'ur' ? 'GPS استعمال کریں' : language === 'roman' ? 'GPS istemaal karein' : 'Use GPS to get your location',
+    latitude: language === 'ur' ? 'عرض البلد' : language === 'roman' ? 'Latitude' : 'Latitude',
+    longitude: language === 'ur' ? 'طول البلد' : language === 'roman' ? 'Longitude' : 'Longitude',
+    cityName: language === 'ur' ? 'شہر کا نام (اختیاری)' : language === 'roman' ? 'Shehr ka naam (ikhtiari)' : 'City Name (optional)',
+    useCurrentLocation: language === 'ur' ? 'موجودہ مقام استعمال کریں' : language === 'roman' ? 'Maujuda maqaam istemaal karein' : 'Use Current Location',
+    gettingLocation: language === 'ur' ? 'مقام حاصل ہو رہا ہے...' : language === 'roman' ? 'Maqaam hasil ho raha hai...' : 'Getting location...',
+    calculationMethod: language === 'ur' ? 'حساب کا طریقہ' : language === 'roman' ? 'Hisaab ka Tareeqa' : 'Calculation Method',
+    calculationMethodDesc: language === 'ur' ? 'اپنے علاقے کے مطابق طریقہ منتخب کریں' : language === 'roman' ? 'Apne ilaaqe ke mutaabiq tareeqa muntakhab karein' : 'Select the calculation method suitable for your region',
+    selectMethod: language === 'ur' ? 'طریقہ منتخب کریں' : language === 'roman' ? 'Tareeqa muntakhab karein' : 'Select calculation method',
+    saveSettings: language === 'ur' ? 'ترتیبات محفوظ کریں' : language === 'roman' ? 'Settings mehfooz karein' : 'Save Settings',
+    resetSettings: language === 'ur' ? 'ری سیٹ' : language === 'roman' ? 'Reset' : 'Reset',
+    savedSuccess: language === 'ur' ? 'ترتیبات محفوظ ہو گئیں' : language === 'roman' ? 'Settings mehfooz ho gayin' : 'Settings saved successfully',
+    resetSuccess: language === 'ur' ? 'ترتیبات ری سیٹ ہو گئیں' : language === 'roman' ? 'Settings reset ho gayin' : 'Settings have been reset',
+    locationSuccess: language === 'ur' ? 'مقام حاصل ہو گیا' : language === 'roman' ? 'Maqaam hasil ho gaya' : 'Location obtained',
+    latError: language === 'ur' ? 'عرض البلد -90 اور 90 کے درمیان ہونا چاہیے' : language === 'roman' ? 'Latitude -90 aur 90 ke darmiyaan hona chahiye' : 'Latitude must be between -90 and 90',
+    lngError: language === 'ur' ? 'طول البلد -180 اور 180 کے درمیان ہونا چاہیے' : language === 'roman' ? 'Longitude -180 aur 180 ke darmiyaan hona chahiye' : 'Longitude must be between -180 and 180',
+    browserNoGeo: language === 'ur' ? 'براؤزر مقام کی سہولت نہیں دیتا' : language === 'roman' ? 'Browser maqaam ki sahoolat nahi deta' : 'Browser does not support geolocation',
+    locationError: language === 'ur' ? 'مقام حاصل کرنے میں ناکامی: ' : language === 'roman' ? 'Maqaam hasil karne mein nakami: ' : 'Failed to get location: ',
+  };
 
   useEffect(() => {
     setSettings(getPrayerTimeSettings());
@@ -83,30 +112,30 @@ const PrayerSettings = () => {
       const lng = parseFloat(settings.manualLongitude);
       
       if (isNaN(lat) || lat < -90 || lat > 90) {
-        toast.error('خط العرض يجب أن يكون بين -90 و 90');
+        toast.error(t.latError);
         return;
       }
       if (isNaN(lng) || lng < -180 || lng > 180) {
-        toast.error('خط الطول يجب أن يكون بين -180 و 180');
+        toast.error(t.lngError);
         return;
       }
     }
     
     savePrayerTimeSettings(settings);
-    toast.success('تم حفظ الإعدادات بنجاح');
+    toast.success(t.savedSuccess);
   };
 
   const handleReset = () => {
     setSettings(DEFAULT_SETTINGS);
     savePrayerTimeSettings(DEFAULT_SETTINGS);
-    toast.success('تم إعادة تعيين الإعدادات');
+    toast.success(t.resetSuccess);
   };
 
   const handleGetCurrentLocation = () => {
     setLoading(true);
     
     if (!navigator.geolocation) {
-      toast.error('المتصفح لا يدعم تحديد الموقع');
+      toast.error(t.browserNoGeo);
       setLoading(false);
       return;
     }
@@ -118,11 +147,11 @@ const PrayerSettings = () => {
           manualLatitude: position.coords.latitude.toFixed(6),
           manualLongitude: position.coords.longitude.toFixed(6)
         }));
-        toast.success('تم الحصول على الموقع الحالي');
+        toast.success(t.locationSuccess);
         setLoading(false);
       },
       (error) => {
-        toast.error('فشل في الحصول على الموقع: ' + error.message);
+        toast.error(t.locationError + error.message);
         setLoading(false);
       }
     );
@@ -141,8 +170,12 @@ const PrayerSettings = () => {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">إعدادات مواقيت الصلاة</h1>
-            <p className="text-muted-foreground text-sm">تخصيص حساب أوقات الصلاة والأذكار</p>
+            <h1 className={`text-2xl font-bold ${isRTL ? 'font-urdu' : ''}`} dir={isRTL ? 'rtl' : 'ltr'}>
+              {t.pageTitle}
+            </h1>
+            <p className={`text-muted-foreground text-sm ${isRTL ? 'font-urdu' : ''}`} dir={isRTL ? 'rtl' : 'ltr'}>
+              {t.pageSubtitle}
+            </p>
           </div>
         </div>
 
