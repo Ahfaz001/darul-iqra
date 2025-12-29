@@ -28,6 +28,7 @@ import {
   HeadphonesIcon,
   MessageCircle,
   Sparkles,
+  HandHeart,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -47,6 +48,7 @@ const StudentSidebar: React.FC = () => {
     { title: t('dailyHadith'), icon: BookMarked, href: '/hadith' },
     { title: t('booksLibrary'), icon: BookOpen, href: '/books' },
     { title: 'القرآن الكریم', icon: BookOpen, href: '/quran' },
+    { title: 'أذكار المسلم', icon: HandHeart, href: '/azkaar' },
     { title: t('myProfile'), icon: User, href: '/profile' },
   ];
 

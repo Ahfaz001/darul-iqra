@@ -45,6 +45,8 @@ import AdmissionForm from "./pages/AdmissionForm";
 import AdmissionManagement from "./pages/admin/AdmissionManagement";
 import Support from "./pages/Support";
 import Contact from "./pages/Contact";
+import StudentAzkaar from "./pages/StudentAzkaar";
+import { AzkaarNotificationProvider } from "@/components/AzkaarNotificationProvider";
 
 const queryClient = new QueryClient();
 
@@ -64,6 +66,7 @@ const App = () => {
                   <AuthProvider>
                     <SplashAppGate>
                       <PushNotificationProvider>
+                        <AzkaarNotificationProvider>
                         <AppProviders>
                           <AppErrorBoundary>
                           <Routes>
@@ -279,6 +282,7 @@ const App = () => {
                           </Routes>
                           </AppErrorBoundary>
                         </AppProviders>
+                        </AzkaarNotificationProvider>
                       </PushNotificationProvider>
                     </SplashAppGate>
                   </AuthProvider>
