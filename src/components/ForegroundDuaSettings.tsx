@@ -1,9 +1,10 @@
-import { Bell, Clock, Smartphone, AlertCircle } from 'lucide-react';
+import { Bell, Clock, Smartphone, AlertCircle, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import { useForegroundDuaService } from '@/hooks/useForegroundDuaService';
 import { toast } from 'sonner';
 
@@ -22,8 +23,18 @@ export const ForegroundDuaSettings = () => {
     loading,
     toggleService,
     updateInterval,
+    testNotification,
     isNativePlatform
   } = useForegroundDuaService();
+
+  const handleTestDua = async () => {
+    const success = await testNotification();
+    if (success) {
+      toast.success('تم تحديث الدعاء');
+    } else {
+      toast.error('فشل تحديث الدعاء - تأكد من تفعيل الخدمة');
+    }
+  };
 
   const handleToggle = async () => {
     const success = await toggleService();
@@ -125,6 +136,20 @@ export const ForegroundDuaSettings = () => {
               </SelectContent>
             </Select>
           </div>
+        )}
+
+        {/* Test Dua Button */}
+        {isNativePlatform && isRunning && (
+          <Button
+            onClick={handleTestDua}
+            disabled={loading}
+            variant="outline"
+            className="w-full gap-2"
+            dir="rtl"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            اختبار الدعاء الآن
+          </Button>
         )}
 
         {/* Status indicator */}
