@@ -18,7 +18,12 @@ import {
   ChevronRight,
   BookOpen,
   Repeat,
-  Quote
+  Quote,
+  Church,
+  UtensilsCrossed,
+  Plane,
+  Droplets,
+  Heart
 } from 'lucide-react';
 import { allAzkaarCategories, Dhikr, AzkaarCategory } from '@/data/azkaar';
 
@@ -28,6 +33,11 @@ const iconMap: Record<string, React.ReactNode> = {
   '😴': <BedDouble className="h-6 w-6" />,
   '⏰': <AlarmClock className="h-6 w-6" />,
   '🤲': <HandHeart className="h-6 w-6" />,
+  '🕌': <Church className="h-6 w-6" />,
+  '🍽️': <UtensilsCrossed className="h-6 w-6" />,
+  '✈️': <Plane className="h-6 w-6" />,
+  '🚿': <Droplets className="h-6 w-6" />,
+  '💚': <Heart className="h-6 w-6" />,
 };
 
 const colorMap: Record<string, { bg: string; text: string; border: string }> = {
@@ -35,6 +45,11 @@ const colorMap: Record<string, { bg: string; text: string; border: string }> = {
   evening: { bg: 'bg-indigo-500/10', text: 'text-indigo-600 dark:text-indigo-400', border: 'border-indigo-500/20' },
   sleeping: { bg: 'bg-purple-500/10', text: 'text-purple-600 dark:text-purple-400', border: 'border-purple-500/20' },
   waking: { bg: 'bg-emerald-500/10', text: 'text-emerald-600 dark:text-emerald-400', border: 'border-emerald-500/20' },
+  salah: { bg: 'bg-teal-500/10', text: 'text-teal-600 dark:text-teal-400', border: 'border-teal-500/20' },
+  eating: { bg: 'bg-orange-500/10', text: 'text-orange-600 dark:text-orange-400', border: 'border-orange-500/20' },
+  travel: { bg: 'bg-sky-500/10', text: 'text-sky-600 dark:text-sky-400', border: 'border-sky-500/20' },
+  toilet: { bg: 'bg-slate-500/10', text: 'text-slate-600 dark:text-slate-400', border: 'border-slate-500/20' },
+  'visiting-sick': { bg: 'bg-pink-500/10', text: 'text-pink-600 dark:text-pink-400', border: 'border-pink-500/20' },
   general: { bg: 'bg-rose-500/10', text: 'text-rose-600 dark:text-rose-400', border: 'border-rose-500/20' },
 };
 
@@ -159,23 +174,25 @@ const StudentAzkaar: React.FC = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-5 w-full mb-6 h-auto p-1">
-            {allAzkaarCategories.map((category) => {
-              const colors = colorMap[category.id] || colorMap.general;
-              return (
-                <TabsTrigger 
-                  key={category.id} 
-                  value={category.id}
-                  className={`flex flex-col items-center gap-1 py-3 px-2 data-[state=active]:${colors.bg}`}
-                >
-                  <div className={activeTab === category.id ? colors.text : 'text-muted-foreground'}>
-                    {iconMap[category.icon]}
-                  </div>
-                  <span className="text-xs hidden sm:block">{category.title.split(' ')[0]}</span>
-                </TabsTrigger>
-              );
-            })}
-          </TabsList>
+          <ScrollArea className="w-full whitespace-nowrap mb-6">
+            <TabsList className="inline-flex w-max gap-1 p-1">
+              {allAzkaarCategories.map((category) => {
+                const colors = colorMap[category.id] || colorMap.general;
+                return (
+                  <TabsTrigger 
+                    key={category.id} 
+                    value={category.id}
+                    className={`flex flex-col items-center gap-1 py-3 px-4 min-w-[70px] data-[state=active]:${colors.bg}`}
+                  >
+                    <div className={activeTab === category.id ? colors.text : 'text-muted-foreground'}>
+                      {iconMap[category.icon]}
+                    </div>
+                    <span className="text-xs whitespace-nowrap">{category.title.split(' ')[0]}</span>
+                  </TabsTrigger>
+                );
+              })}
+            </TabsList>
+          </ScrollArea>
 
           {allAzkaarCategories.map((category) => (
             <TabsContent key={category.id} value={category.id}>
