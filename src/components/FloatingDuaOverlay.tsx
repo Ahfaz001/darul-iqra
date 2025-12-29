@@ -1,45 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { morningAzkaar, eveningAzkaar, Dhikr } from '@/data/azkaar';
+import { X, ChevronLeft, ChevronRight, MapPin } from 'lucide-react';
+import { morningAzkaar, eveningAzkaar, sleepingDuas, Dhikr } from '@/data/azkaar';
+import { usePrayerTimes } from '@/hooks/usePrayerTimes';
 import { cn } from '@/lib/utils';
 
 interface FloatingDuaOverlayProps {
   autoHideSeconds?: number;
 }
-
-// Time periods (24-hour format)
-const FAJR_START = 5;    // 5 AM
-const MAGHRIB_START = 18; // 6 PM
-
-const getTimeInfo = () => {
-  const now = new Date();
-  const currentHour = now.getHours();
-  const currentMinutes = now.getMinutes();
-  
-  const isMorningPeriod = currentHour >= FAJR_START && currentHour < MAGHRIB_START;
-  
-  // Calculate minutes remaining in current period
-  let minutesRemaining: number;
-  if (isMorningPeriod) {
-    // Minutes until Maghrib (6 PM)
-    minutesRemaining = (MAGHRIB_START - currentHour) * 60 - currentMinutes;
-  } else {
-    // Minutes until Fajr (5 AM next day or same day)
-    if (currentHour >= MAGHRIB_START) {
-      // After Maghrib - until next Fajr
-      minutesRemaining = ((24 - currentHour) + FAJR_START) * 60 - currentMinutes;
-    } else {
-      // Before Fajr - until Fajr
-      minutesRemaining = (FAJR_START - currentHour) * 60 - currentMinutes;
-    }
-  }
-  
-  return {
-    isMorningPeriod,
-    minutesRemaining: Math.max(minutesRemaining, 1),
-    currentDuas: isMorningPeriod ? morningAzkaar : eveningAzkaar
-  };
-};
 
 export const FloatingDuaOverlay = ({ 
   autoHideSeconds = 20 
@@ -48,46 +15,70 @@ export const FloatingDuaOverlay = ({
   const [isVisible, setIsVisible] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [currentDuas, setCurrentDuas] = useState<Dhikr[]>([]);
-  const [intervalMs, setIntervalMs] = useState(20 * 60 * 1000); // Default 20 min
+  const [intervalMs, setIntervalMs] = useState(20 * 60 * 1000);
+  const [periodLabel, setPeriodLabel] = useState('');
+  
+  const { times, loading, getCurrentPeriod, getMinutesUntilNextPeriod } = usePrayerTimes();
   
   // Swipe handling
   const touchStartX = useRef<number>(0);
   const touchStartY = useRef<number>(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Calculate interval and set duas based on time period
+  // Update schedule based on prayer times
   const updateSchedule = useCallback(() => {
-    const { isMorningPeriod, minutesRemaining, currentDuas: duas } = getTimeInfo();
+    if (loading) return;
+    
+    const period = getCurrentPeriod();
+    const minutesRemaining = getMinutesUntilNextPeriod();
+    
+    let duas: Dhikr[];
+    let label: string;
+    
+    switch (period) {
+      case 'morning':
+        duas = morningAzkaar;
+        label = `أذكار الصباح (${times?.Fajr} - ${times?.Maghrib})`;
+        break;
+      case 'evening':
+        duas = eveningAzkaar;
+        label = `أذكار المساء (${times?.Maghrib} - ${times?.Isha})`;
+        break;
+      case 'night':
+        duas = sleepingDuas;
+        label = 'أذكار النوم';
+        break;
+      default:
+        duas = morningAzkaar;
+        label = 'أذكار';
+    }
     
     setCurrentDuas(duas);
+    setPeriodLabel(label);
     
-    // Calculate interval: spread all duas evenly across remaining time
+    // Calculate interval: spread duas evenly across remaining time
     const duaCount = duas.length;
-    const intervalMinutes = Math.max(Math.floor(minutesRemaining / duaCount), 5); // Min 5 minutes
+    const intervalMinutes = Math.max(Math.floor(minutesRemaining / duaCount), 3);
     setIntervalMs(intervalMinutes * 60 * 1000);
     
-    console.log(`${isMorningPeriod ? 'Morning' : 'Evening'} period: ${duaCount} duas, ${intervalMinutes} min interval`);
-  }, []);
+    console.log(`${period} period: ${duaCount} duas, ${intervalMinutes} min interval, ${minutesRemaining} min remaining`);
+  }, [loading, times, getCurrentPeriod, getMinutesUntilNextPeriod]);
 
-  // Initialize and update on time period change
+  // Initialize and update on prayer times load
   useEffect(() => {
-    updateSchedule();
-    
-    // Check every hour if period changed
-    const checkInterval = setInterval(() => {
+    if (!loading) {
       updateSchedule();
-    }, 60 * 60 * 1000);
-    
-    return () => clearInterval(checkInterval);
-  }, [updateSchedule]);
+      
+      // Check every 30 minutes if period changed
+      const checkInterval = setInterval(updateSchedule, 30 * 60 * 1000);
+      return () => clearInterval(checkInterval);
+    }
+  }, [loading, updateSchedule]);
 
   const showNextDua = useCallback(() => {
     if (currentDuas.length === 0) return;
     
-    setCurrentDuaIndex(prev => {
-      const next = (prev + 1) % currentDuas.length;
-      return next;
-    });
+    setCurrentDuaIndex(prev => (prev + 1) % currentDuas.length);
     setIsVisible(true);
     setIsExpanded(false);
   }, [currentDuas.length]);
@@ -99,7 +90,7 @@ export const FloatingDuaOverlay = ({
 
   // Show dua on interval
   useEffect(() => {
-    if (currentDuas.length === 0) return;
+    if (currentDuas.length === 0 || loading) return;
     
     // Show first dua after 3 seconds
     const initialTimeout = setTimeout(() => {
@@ -113,7 +104,7 @@ export const FloatingDuaOverlay = ({
       clearTimeout(initialTimeout);
       clearInterval(interval);
     };
-  }, [intervalMs, showNextDua, currentDuas.length]);
+  }, [intervalMs, showNextDua, currentDuas.length, loading]);
 
   // Auto-hide after autoHideSeconds (only if not expanded)
   useEffect(() => {
@@ -136,12 +127,10 @@ export const FloatingDuaOverlay = ({
     const deltaX = touchEndX - touchStartX.current;
     const deltaY = touchEndY - touchStartY.current;
     
-    // Check if horizontal swipe (more horizontal than vertical)
     if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
-      hideDua(); // Swipe left or right to dismiss
+      hideDua();
     }
     
-    // Swipe up to dismiss
     if (deltaY < -50 && Math.abs(deltaY) > Math.abs(deltaX)) {
       hideDua();
     }
@@ -149,7 +138,7 @@ export const FloatingDuaOverlay = ({
 
   const currentDua = currentDuas[currentDuaIndex];
   
-  if (!isVisible || !currentDua) return null;
+  if (!isVisible || !currentDua || loading) return null;
 
   return (
     <div className="fixed top-0 left-0 right-0 z-[9999] pointer-events-none">
@@ -179,6 +168,7 @@ export const FloatingDuaOverlay = ({
 
         {/* Progress indicator */}
         <div className="absolute top-2 left-2 flex items-center gap-1 text-xs opacity-60" style={{ color: '#4a4a4a' }}>
+          <MapPin className="w-3 h-3" />
           <span>{currentDuaIndex + 1}/{currentDuas.length}</span>
         </div>
 
@@ -191,6 +181,17 @@ export const FloatingDuaOverlay = ({
         </div>
 
         <div className="p-4 pt-6">
+          {/* Period label */}
+          {isExpanded && periodLabel && (
+            <p 
+              className="text-center text-xs mb-2 opacity-70"
+              style={{ color: '#4a4a4a' }}
+              dir="rtl"
+            >
+              🕌 {periodLabel}
+            </p>
+          )}
+
           {/* Arabic text */}
           <p 
             className={cn(
