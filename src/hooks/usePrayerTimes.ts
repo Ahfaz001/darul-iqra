@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { getPrayerTimeSettings, PrayerTimeSettings } from '@/pages/PrayerSettings';
 
 export interface PrayerTimes {
   Fajr: string;
@@ -42,15 +43,14 @@ export const usePrayerTimes = () => {
     location: null
   });
 
-  const fetchPrayerTimes = useCallback(async (lat: number, lng: number) => {
+  const fetchPrayerTimes = useCallback(async (lat: number, lng: number, method: string = '2') => {
     try {
       const today = new Date();
       const dateStr = `${today.getDate()}-${today.getMonth() + 1}-${today.getFullYear()}`;
       
       // Using Aladhan API - free, no API key needed
-      // Method 2 = Islamic Society of North America (ISNA), works well globally
       const response = await fetch(
-        `https://api.aladhan.com/v1/timings/${dateStr}?latitude=${lat}&longitude=${lng}&method=2`
+        `https://api.aladhan.com/v1/timings/${dateStr}?latitude=${lat}&longitude=${lng}&method=${method}`
       );
       
       if (!response.ok) {
@@ -70,6 +70,7 @@ export const usePrayerTimes = () => {
           Maghrib: timings.Maghrib,
           Isha: timings.Isha
         },
+        location: { lat, lng },
         loading: false,
         error: null
       }));
@@ -86,7 +87,22 @@ export const usePrayerTimes = () => {
     }
   }, []);
 
-  const getLocation = useCallback(() => {
+  const initializePrayerTimes = useCallback(() => {
+    const settings = getPrayerTimeSettings();
+    
+    // Check if using manual location
+    if (!settings.useAutoLocation && settings.manualLatitude && settings.manualLongitude) {
+      const lat = parseFloat(settings.manualLatitude);
+      const lng = parseFloat(settings.manualLongitude);
+      
+      if (!isNaN(lat) && !isNaN(lng)) {
+        console.log('Using manual location:', lat, lng);
+        fetchPrayerTimes(lat, lng, settings.calculationMethod);
+        return;
+      }
+    }
+
+    // Use auto location
     if (!navigator.geolocation) {
       console.log('Geolocation not supported, using defaults');
       setState(prev => ({
@@ -102,11 +118,7 @@ export const usePrayerTimes = () => {
       (position) => {
         const { latitude, longitude } = position.coords;
         console.log('Location obtained:', latitude, longitude);
-        setState(prev => ({
-          ...prev,
-          location: { lat: latitude, lng: longitude }
-        }));
-        fetchPrayerTimes(latitude, longitude);
+        fetchPrayerTimes(latitude, longitude, settings.calculationMethod);
       },
       (error) => {
         console.log('Geolocation error, using defaults:', error.message);
@@ -126,8 +138,8 @@ export const usePrayerTimes = () => {
   }, [fetchPrayerTimes]);
 
   useEffect(() => {
-    getLocation();
-  }, [getLocation]);
+    initializePrayerTimes();
+  }, [initializePrayerTimes]);
 
   // Helper to check current prayer period
   const getCurrentPeriod = useCallback((): 'morning' | 'evening' | 'night' => {
@@ -182,6 +194,6 @@ export const usePrayerTimes = () => {
     ...state,
     getCurrentPeriod,
     getMinutesUntilNextPeriod,
-    refresh: getLocation
+    refresh: initializePrayerTimes
   };
 };

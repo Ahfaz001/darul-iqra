@@ -46,6 +46,7 @@ import AdmissionManagement from "./pages/admin/AdmissionManagement";
 import Support from "./pages/Support";
 import Contact from "./pages/Contact";
 import StudentAzkaar from "./pages/StudentAzkaar";
+import PrayerSettings from "./pages/PrayerSettings";
 import { AzkaarNotificationProvider } from "@/components/AzkaarNotificationProvider";
 
 const queryClient = new QueryClient();
@@ -171,6 +172,14 @@ const App = () => {
                               element={
                                 <ProtectedRoute allowedRoles={["student"]}>
                                   <StudentAzkaar />
+                                </ProtectedRoute>
+                              }
+                            />
+                            <Route
+                              path="/prayer-settings"
+                              element={
+                                <ProtectedRoute allowedRoles={["student"]}>
+                                  <PrayerSettings />
                                 </ProtectedRoute>
                               }
                             />
