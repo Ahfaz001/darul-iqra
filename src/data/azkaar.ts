@@ -5,20 +5,54 @@ export interface Dhikr {
   id: string;
   arabic: string;
   transliteration: string;
-  translation: string;
+  translation: string; // English
+  translationUrdu?: string;
+  translationRoman?: string;
   reference: string;
   repetition?: number;
   virtue?: string;
+  virtueUrdu?: string;
+  virtueRoman?: string;
 }
+
+// Helper function to get translation based on language
+export const getDhikrTranslation = (dhikr: Dhikr, language: 'en' | 'ur' | 'roman'): string => {
+  if (language === 'ur' && dhikr.translationUrdu) return dhikr.translationUrdu;
+  if (language === 'roman' && dhikr.translationRoman) return dhikr.translationRoman;
+  return dhikr.translation; // fallback to English
+};
+
+export const getDhikrVirtue = (dhikr: Dhikr, language: 'en' | 'ur' | 'roman'): string | undefined => {
+  if (language === 'ur' && dhikr.virtueUrdu) return dhikr.virtueUrdu;
+  if (language === 'roman' && dhikr.virtueRoman) return dhikr.virtueRoman;
+  return dhikr.virtue; // fallback to English
+};
 
 export interface AzkaarCategory {
   id: string;
   title: string;
+  titleUrdu: string;
+  titleRoman: string;
   titleArabic: string;
   icon: string;
   description: string;
+  descriptionUrdu: string;
+  descriptionRoman: string;
   duas: Dhikr[];
 }
+
+// Helper to get category title based on language
+export const getCategoryTitle = (category: AzkaarCategory, language: 'en' | 'ur' | 'roman'): string => {
+  if (language === 'ur') return category.titleUrdu || category.title;
+  if (language === 'roman') return category.titleRoman || category.title;
+  return category.title;
+};
+
+export const getCategoryDescription = (category: AzkaarCategory, language: 'en' | 'ur' | 'roman'): string => {
+  if (language === 'ur') return category.descriptionUrdu || category.description;
+  if (language === 'roman') return category.descriptionRoman || category.description;
+  return category.description;
+};
 
 export const morningAzkaar: Dhikr[] = [
   {
@@ -668,81 +702,121 @@ export const allAzkaarCategories: AzkaarCategory[] = [
   {
     id: 'morning',
     title: 'Morning Azkaar',
+    titleUrdu: 'صبح کے اذکار',
+    titleRoman: 'Subah ke Azkaar',
     titleArabic: 'أذكار الصباح',
     icon: '🌅',
     description: 'Supplications to be recited after Fajr prayer until sunrise',
+    descriptionUrdu: 'نماز فجر کے بعد طلوع آفتاب تک پڑھی جانے والی دعائیں',
+    descriptionRoman: 'Namaz-e-Fajr ke baad tulu-e-aftab tak parhne wali duain',
     duas: morningAzkaar
   },
   {
     id: 'evening',
     title: 'Evening Azkaar',
+    titleUrdu: 'شام کے اذکار',
+    titleRoman: 'Shaam ke Azkaar',
     titleArabic: 'أذكار المساء',
     icon: '🌙',
     description: 'Supplications to be recited after Asr prayer until Maghrib',
+    descriptionUrdu: 'نماز عصر کے بعد مغرب تک پڑھی جانے والی دعائیں',
+    descriptionRoman: 'Namaz-e-Asr ke baad Maghrib tak parhne wali duain',
     duas: eveningAzkaar
   },
   {
     id: 'sleeping',
     title: 'Before Sleeping',
+    titleUrdu: 'سونے سے پہلے',
+    titleRoman: 'Sone se Pehle',
     titleArabic: 'أذكار النوم',
     icon: '😴',
     description: 'Supplications to be recited before going to sleep',
+    descriptionUrdu: 'سونے سے پہلے پڑھی جانے والی دعائیں',
+    descriptionRoman: 'Sone se pehle parhne wali duain',
     duas: sleepingDuas
   },
   {
     id: 'waking',
     title: 'Upon Waking Up',
+    titleUrdu: 'جاگنے پر',
+    titleRoman: 'Jaagne Par',
     titleArabic: 'أذكار الاستيقاظ',
     icon: '⏰',
     description: 'Supplications to be recited upon waking from sleep',
+    descriptionUrdu: 'نیند سے جاگنے پر پڑھی جانے والی دعائیں',
+    descriptionRoman: 'Neend se jaagne par parhne wali duain',
     duas: wakingDuas
   },
   {
     id: 'salah',
     title: 'Salah (Prayer)',
+    titleUrdu: 'نماز کی دعائیں',
+    titleRoman: 'Namaz ki Duain',
     titleArabic: 'أذكار الصلاة',
     icon: '🕌',
     description: 'Supplications for before, during, and after prayer',
+    descriptionUrdu: 'نماز سے پہلے، دوران اور بعد میں پڑھی جانے والی دعائیں',
+    descriptionRoman: 'Namaz se pehle, dauran aur baad mein parhne wali duain',
     duas: salahDuas
   },
   {
     id: 'eating',
     title: 'Eating & Drinking',
+    titleUrdu: 'کھانے پینے کی دعائیں',
+    titleRoman: 'Khane Peene ki Duain',
     titleArabic: 'أذكار الطعام والشراب',
     icon: '🍽️',
     description: 'Supplications for eating and drinking',
+    descriptionUrdu: 'کھانے اور پینے کی دعائیں',
+    descriptionRoman: 'Khane aur peene ki duain',
     duas: eatingDuas
   },
   {
     id: 'travel',
     title: 'Travel',
+    titleUrdu: 'سفر کی دعائیں',
+    titleRoman: 'Safar ki Duain',
     titleArabic: 'أذكار السفر',
     icon: '✈️',
     description: 'Supplications for traveling and journeys',
+    descriptionUrdu: 'سفر اور راستے کی دعائیں',
+    descriptionRoman: 'Safar aur raste ki duain',
     duas: travelDuas
   },
   {
     id: 'toilet',
     title: 'Restroom',
+    titleUrdu: 'بیت الخلاء کی دعائیں',
+    titleRoman: 'Bait-ul-Khala ki Duain',
     titleArabic: 'أذكار الخلاء',
     icon: '🚿',
     description: 'Supplications for entering and leaving the restroom',
+    descriptionUrdu: 'بیت الخلاء میں داخل ہونے اور نکلنے کی دعائیں',
+    descriptionRoman: 'Bait-ul-khala mein dakhil hone aur nikalne ki duain',
     duas: toiletDuas
   },
   {
     id: 'visiting-sick',
     title: 'Visiting the Sick',
+    titleUrdu: 'بیمار کی عیادت',
+    titleRoman: 'Beemar ki Iyadat',
     titleArabic: 'عيادة المريض',
     icon: '💚',
     description: 'Supplications for visiting and praying for the sick',
+    descriptionUrdu: 'بیمار کی عیادت اور دعا کے لیے',
+    descriptionRoman: 'Beemar ki iyadat aur dua ke liye',
     duas: visitingSickDuas
   },
   {
     id: 'general',
     title: 'General Duas',
+    titleUrdu: 'عام دعائیں',
+    titleRoman: 'Aam Duain',
     titleArabic: 'أدعية عامة',
     icon: '🤲',
     description: 'Daily supplications and remembrances',
+    descriptionUrdu: 'روزمرہ کی دعائیں اور اذکار',
+    descriptionRoman: 'Rozmarrah ki duain aur azkaar',
     duas: generalDuas
   }
 ];
