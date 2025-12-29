@@ -334,6 +334,336 @@ export const generalDuas: Dhikr[] = [
   }
 ];
 
+// Salah (Prayer) Duas - Before, During, and After Prayer
+export const salahDuas: Dhikr[] = [
+  {
+    id: 'salah-1',
+    arabic: 'اللَّهُمَّ بَاعِدْ بَيْنِي وَبَيْنَ خَطَايَايَ كَمَا بَاعَدْتَ بَيْنَ الْمَشْرِقِ وَالْمَغْرِبِ، اللَّهُمَّ نَقِّنِي مِنْ خَطَايَايَ كَمَا يُنَقَّى الثَّوْبُ الْأَبْيَضُ مِنَ الدَّنَسِ، اللَّهُمَّ اغْسِلْنِي مِنْ خَطَايَايَ بِالْمَاءِ وَالثَّلْجِ وَالْبَرَدِ',
+    transliteration: "Allahumma ba'id bayni wa bayna khatayaya kama ba'adta baynal mashriqi wal maghrib. Allahumma naqqini min khatayaya kama yunaqqath thawbul abyadu minad danas. Allahummaghsilni min khatayaya bil ma'i wath thalji wal barad",
+    translation: "O Allah, distance me from my sins as You have distanced the East from the West. O Allah, purify me from my sins as a white garment is purified from filth. O Allah, wash away my sins with water, snow and ice.",
+    reference: "Al-Bukhari 1:181, Muslim 1:419",
+    virtue: "Dua at the opening of prayer"
+  },
+  {
+    id: 'salah-2',
+    arabic: 'سُبْحَانَكَ اللَّهُمَّ وَبِحَمْدِكَ، وَتَبَارَكَ اسْمُكَ، وَتَعَالَىٰ جَدُّكَ، وَلَا إِلَـٰهَ غَيْرُكَ',
+    transliteration: "Subhanakallahumma wa bihamdika, wa tabarakasmuka, wa ta'ala jadduka, wa la ilaha ghayruk",
+    translation: "Glory is to You, O Allah, and praise. Blessed is Your Name and exalted is Your majesty. There is none worthy of worship but You.",
+    reference: "Abu Dawud 1:775, At-Tirmidhi 2:243",
+    virtue: "Opening supplication in prayer"
+  },
+  {
+    id: 'salah-3',
+    arabic: 'سُبْحَانَ رَبِّيَ الْعَظِيمِ',
+    transliteration: "Subhana rabbiyal 'azeem",
+    translation: "Glory is to my Lord, the Almighty.",
+    reference: "Muslim 1:772",
+    repetition: 3,
+    virtue: "Said during ruku (bowing)"
+  },
+  {
+    id: 'salah-4',
+    arabic: 'سَمِعَ اللهُ لِمَنْ حَمِدَهُ',
+    transliteration: "Sami'allahu liman hamidah",
+    translation: "Allah hears whoever praises Him.",
+    reference: "Al-Bukhari 1:689",
+    virtue: "Said when rising from ruku"
+  },
+  {
+    id: 'salah-5',
+    arabic: 'رَبَّنَا وَلَكَ الْحَمْدُ، حَمْدًا كَثِيرًا طَيِّبًا مُبَارَكًا فِيهِ',
+    transliteration: "Rabbana wa lakal hamd, hamdan katheeran tayyiban mubarakan feeh",
+    translation: "Our Lord, and to You is all praise, much good and blessed praise.",
+    reference: "Al-Bukhari 1:799",
+    virtue: "Said after rising from ruku"
+  },
+  {
+    id: 'salah-6',
+    arabic: 'سُبْحَانَ رَبِّيَ الْأَعْلَىٰ',
+    transliteration: "Subhana rabbiyal a'la",
+    translation: "Glory is to my Lord, the Most High.",
+    reference: "Muslim 1:772",
+    repetition: 3,
+    virtue: "Said during sujood (prostration)"
+  },
+  {
+    id: 'salah-7',
+    arabic: 'رَبِّ اغْفِرْ لِي، رَبِّ اغْفِرْ لِي',
+    transliteration: "Rabbighfir li, Rabbighfir li",
+    translation: "My Lord, forgive me. My Lord, forgive me.",
+    reference: "Abu Dawud 1:874",
+    virtue: "Said while sitting between the two prostrations"
+  },
+  {
+    id: 'salah-8',
+    arabic: 'التَّحِيَّاتُ لِلَّهِ وَالصَّلَوَاتُ وَالطَّيِّبَاتُ، السَّلَامُ عَلَيْكَ أَيُّهَا النَّبِيُّ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ، السَّلَامُ عَلَيْنَا وَعَلَىٰ عِبَادِ اللَّهِ الصَّالِحِينَ، أَشْهَدُ أَنْ لَا إِلَـٰهَ إِلَّا اللهُ، وَأَشْهَدُ أَنَّ مُحَمَّدًا عَبْدُهُ وَرَسُولُهُ',
+    transliteration: "Attahiyyatu lillahi wassalawatu wattayyibat, assalamu 'alayka ayyuhan nabiyyu wa rahmatullahi wa barakatuh, assalamu 'alayna wa 'ala 'ibadillahis saliheen, ashhadu an la ilaha illallah, wa ashhadu anna Muhammadan 'abduhu wa rasooluh",
+    translation: "All greetings, prayers and pure words are for Allah. Peace be upon you, O Prophet, and the mercy of Allah and His blessings. Peace be upon us and upon the righteous servants of Allah. I bear witness that there is none worthy of worship except Allah, and I bear witness that Muhammad is His servant and Messenger.",
+    reference: "Al-Bukhari 1:831, Muslim 1:402",
+    virtue: "At-Tashahhud - recited in sitting position"
+  },
+  {
+    id: 'salah-9',
+    arabic: 'اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ عَذَابِ جَهَنَّمَ، وَمِنْ عَذَابِ الْقَبْرِ، وَمِنْ فِتْنَةِ الْمَحْيَا وَالْمَمَاتِ، وَمِنْ شَرِّ فِتْنَةِ الْمَسِيحِ الدَّجَّالِ',
+    transliteration: "Allahumma inni a'udhu bika min 'adhabi jahannama, wa min 'adhabil qabri, wa min fitnatil mahya wal mamati, wa min sharri fitnatil maseehid dajjal",
+    translation: "O Allah, I seek refuge in You from the punishment of Hell, from the punishment of the grave, from the trials of life and death, and from the evil of the trial of the False Messiah.",
+    reference: "Al-Bukhari 2:102, Muslim 1:588",
+    virtue: "Recited before tasleem (ending the prayer)"
+  },
+  {
+    id: 'salah-10',
+    arabic: 'أَسْتَغْفِرُ اللَّهَ، أَسْتَغْفِرُ اللَّهَ، أَسْتَغْفِرُ اللَّهَ',
+    transliteration: "Astaghfirullah, Astaghfirullah, Astaghfirullah",
+    translation: "I seek Allah's forgiveness. I seek Allah's forgiveness. I seek Allah's forgiveness.",
+    reference: "Muslim 1:591",
+    repetition: 3,
+    virtue: "Said immediately after completing the prayer"
+  },
+  {
+    id: 'salah-11',
+    arabic: 'اللَّهُمَّ أَنْتَ السَّلَامُ وَمِنْكَ السَّلَامُ، تَبَارَكْتَ يَا ذَا الْجَلَالِ وَالْإِكْرَامِ',
+    transliteration: "Allahumma antas salam wa minkas salam, tabarakta ya dhal jalali wal ikram",
+    translation: "O Allah, You are Peace and from You is peace. Blessed are You, O Owner of majesty and honor.",
+    reference: "Muslim 1:592",
+    virtue: "Said after completing the prayer"
+  },
+  {
+    id: 'salah-12',
+    arabic: 'سُبْحَانَ اللَّهِ، وَالْحَمْدُ لِلَّهِ، وَاللهُ أَكْبَرُ',
+    transliteration: "Subhanallah, Alhamdulillah, Allahu Akbar",
+    translation: "Glory is to Allah. Praise is to Allah. Allah is the Greatest.",
+    reference: "Muslim 1:596",
+    repetition: 33,
+    virtue: "Said 33 times each after every obligatory prayer"
+  },
+  {
+    id: 'salah-13',
+    arabic: 'آيَةُ الْكُرْسِيِّ: اللهُ لَا إِلَـٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ، لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ، لَهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ، مَنْ ذَا الَّذِي يَشْفَعُ عِنْدَهُ إِلَّا بِإِذْنِهِ، يَعْلَمُ مَا بَيْنَ أَيْدِيهِمْ وَمَا خَلْفَهُمْ، وَلَا يُحِيطُونَ بِشَيْءٍ مِنْ عِلْمِهِ إِلَّا بِمَا شَاءَ، وَسِعَ كُرْسِيُّهُ السَّمَاوَاتِ وَالْأَرْضَ، وَلَا يَئُودُهُ حِفْظُهُمَا، وَهُوَ الْعَلِيُّ الْعَظِيمُ',
+    transliteration: "Ayatul Kursi: Allahu la ilaha illa huwal hayyul qayyum, la ta'khudhuhu sinatun wa la nawm, lahu ma fis samawati wa ma fil ard, man dhal ladhi yashfa'u 'indahu illa bi idhnih, ya'lamu ma bayna aydeehim wa ma khalfahum, wa la yuheetuna bi shay'im min 'ilmihi illa bima sha', wasi'a kursiyyuhus samawati wal ard, wa la ya'uduhu hifzuhuma, wa huwal 'aliyyul 'azeem",
+    translation: "Allah - there is no deity except Him, the Ever-Living, the Sustainer of [all] existence. Neither drowsiness overtakes Him nor sleep. To Him belongs whatever is in the heavens and whatever is on the earth. Who is it that can intercede with Him except by His permission? He knows what is [presently] before them and what will be after them, and they encompass not a thing of His knowledge except for what He wills. His Kursi extends over the heavens and the earth, and their preservation tires Him not. And He is the Most High, the Most Great.",
+    reference: "An-Nasa'i, Al-Hakim",
+    virtue: "Whoever recites this after every obligatory prayer, nothing prevents him from entering Paradise except death."
+  }
+];
+
+// Eating and Drinking Duas
+export const eatingDuas: Dhikr[] = [
+  {
+    id: 'eating-1',
+    arabic: 'بِسْمِ اللَّهِ',
+    transliteration: "Bismillah",
+    translation: "In the name of Allah.",
+    reference: "At-Tirmidhi 4:288, Abu Dawud 3:347",
+    virtue: "Said before eating"
+  },
+  {
+    id: 'eating-2',
+    arabic: 'بِسْمِ اللَّهِ فِي أَوَّلِهِ وَآخِرِهِ',
+    transliteration: "Bismillahi fi awwalihi wa akhirih",
+    translation: "In the name of Allah at its beginning and at its end.",
+    reference: "Abu Dawud 3:347, At-Tirmidhi 4:288",
+    virtue: "Said if you forgot to say Bismillah at the beginning"
+  },
+  {
+    id: 'eating-3',
+    arabic: 'الْحَمْدُ لِلَّهِ الَّذِي أَطْعَمَنِي هَـٰذَا وَرَزَقَنِيهِ مِنْ غَيْرِ حَوْلٍ مِنِّي وَلَا قُوَّةٍ',
+    transliteration: "Alhamdu lillahil ladhi at'amani hadha wa razaqaneehi min ghayri hawlin minni wa la quwwah",
+    translation: "Praise is to Allah Who has given me this food and sustained me with it though I was unable to do it and powerless.",
+    reference: "At-Tirmidhi 5:507, Abu Dawud 4:42",
+    virtue: "All previous sins are forgiven for the one who says this after eating"
+  },
+  {
+    id: 'eating-4',
+    arabic: 'الْحَمْدُ لِلَّهِ حَمْدًا كَثِيرًا طَيِّبًا مُبَارَكًا فِيهِ، غَيْرَ مَكْفِيٍّ وَلَا مُوَدَّعٍ، وَلَا مُسْتَغْنًى عَنْهُ رَبَّنَا',
+    transliteration: "Alhamdu lillahi hamdan katheeran tayyiban mubarakan feeh, ghayra makfiyyin wa la muwadda'in wa la mustaghnan 'anhu rabbana",
+    translation: "Praise is to Allah, much good and blessed praise, not [praise that is] insufficient, or unattainable, or that we can dispense with, O our Lord.",
+    reference: "Al-Bukhari 6:214",
+    virtue: "Said after eating"
+  },
+  {
+    id: 'eating-5',
+    arabic: 'اللَّهُمَّ بَارِكْ لَنَا فِيهِ وَأَطْعِمْنَا خَيْرًا مِنْهُ',
+    transliteration: "Allahumma barik lana feehi wa at'imna khayran minhu",
+    translation: "O Allah, bless us in it and feed us with something better than it.",
+    reference: "Abu Dawud 3:358, At-Tirmidhi 5:506",
+    virtue: "Said after drinking milk"
+  },
+  {
+    id: 'eating-6',
+    arabic: 'اللَّهُمَّ بَارِكْ لَنَا فِيهِ وَزِدْنَا مِنْهُ',
+    transliteration: "Allahumma barik lana feehi wa zidna minhu",
+    translation: "O Allah, bless us in it and give us more of it.",
+    reference: "At-Tirmidhi 5:506",
+    virtue: "Said after drinking milk (alternative dua)"
+  },
+  {
+    id: 'eating-7',
+    arabic: 'الْحَمْدُ لِلَّهِ الَّذِي أَطْعَمَنَا وَسَقَانَا وَجَعَلَنَا مُسْلِمِينَ',
+    transliteration: "Alhamdu lillahil ladhi at'amana wa saqana wa ja'alana muslimeen",
+    translation: "Praise is to Allah Who has fed us and given us drink and made us Muslims.",
+    reference: "Abu Dawud 3:385, At-Tirmidhi 5:516",
+    virtue: "General dua after eating and drinking"
+  },
+  {
+    id: 'eating-8',
+    arabic: 'اللَّهُمَّ أَطْعِمْ مَنْ أَطْعَمَنِي، وَاسْقِ مَنْ سَقَانِي',
+    transliteration: "Allahumma at'im man at'amani, wasqi man saqani",
+    translation: "O Allah, feed the one who has fed me and give drink to the one who has given me drink.",
+    reference: "Muslim 3:1626",
+    virtue: "Dua for the host"
+  }
+];
+
+// Travel Duas
+export const travelDuas: Dhikr[] = [
+  {
+    id: 'travel-1',
+    arabic: 'اللهُ أَكْبَرُ، اللهُ أَكْبَرُ، اللهُ أَكْبَرُ، سُبْحَانَ الَّذِي سَخَّرَ لَنَا هَـٰذَا وَمَا كُنَّا لَهُ مُقْرِنِينَ، وَإِنَّا إِلَىٰ رَبِّنَا لَمُنْقَلِبُونَ',
+    transliteration: "Allahu Akbar, Allahu Akbar, Allahu Akbar. Subhanal ladhi sakhkhara lana hadha wa ma kunna lahu muqrineen, wa inna ila rabbina lamunqaliboon",
+    translation: "Allah is the Greatest, Allah is the Greatest, Allah is the Greatest. Glory is to Him Who has subjected this to us, and we could never have it (by our efforts), and to our Lord we shall return.",
+    reference: "Muslim 2:978, At-Tirmidhi 5:501",
+    virtue: "Said when riding a vehicle or mount for travel"
+  },
+  {
+    id: 'travel-2',
+    arabic: 'اللَّهُمَّ إِنَّا نَسْأَلُكَ فِي سَفَرِنَا هَـٰذَا الْبِرَّ وَالتَّقْوَىٰ، وَمِنَ الْعَمَلِ مَا تَرْضَىٰ، اللَّهُمَّ هَوِّنْ عَلَيْنَا سَفَرَنَا هَـٰذَا، وَاطْوِ عَنَّا بُعْدَهُ، اللَّهُمَّ أَنْتَ الصَّاحِبُ فِي السَّفَرِ، وَالْخَلِيفَةُ فِي الْأَهْلِ',
+    transliteration: "Allahumma inna nas'aluka fi safarina hadhal birra wat taqwa, wa minal 'amali ma tarda. Allahumma hawwin 'alayna safarana hadha, watwi 'anna bu'dahu. Allahumma antas sahibu fis safar, wal khaleefatu fil ahl",
+    translation: "O Allah, we ask You on this our journey for goodness and piety, and for works that are pleasing to You. O Allah, lighten this journey for us and make its distance easy for us. O Allah, You are our Companion on the road and the One in Whose care we leave our family.",
+    reference: "Muslim 2:978",
+    virtue: "Complete travel supplication"
+  },
+  {
+    id: 'travel-3',
+    arabic: 'اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ وَعْثَاءِ السَّفَرِ، وَكَآبَةِ الْمَنْظَرِ، وَسُوءِ الْمُنْقَلَبِ فِي الْمَالِ وَالْأَهْلِ',
+    transliteration: "Allahumma inni a'udhu bika min wa'tha'is safar, wa ka'abatil manzar, wa su'il munqalabi fil mali wal ahl",
+    translation: "O Allah, I seek refuge in You from the difficulties of travel, from having a change of heart and being in a bad situation, and from a bad return in wealth and family.",
+    reference: "Muslim 2:978",
+    virtue: "Part of the travel supplication"
+  },
+  {
+    id: 'travel-4',
+    arabic: 'آيِبُونَ، تَائِبُونَ، عَابِدُونَ، لِرَبِّنَا حَامِدُونَ',
+    transliteration: "Ayibuna, ta'ibuna, 'abiduna, lirabbina hamidoon",
+    translation: "We return, repentant, worshipping and praising our Lord.",
+    reference: "Muslim 2:978",
+    virtue: "Said when returning from travel"
+  },
+  {
+    id: 'travel-5',
+    arabic: 'أَعُوذُ بِكَلِمَاتِ اللَّهِ التَّامَّاتِ مِنْ شَرِّ مَا خَلَقَ',
+    transliteration: "A'udhu bikalimatillahit tammati min sharri ma khalaq",
+    translation: "I seek refuge in Allah's perfect words from the evil of what He has created.",
+    reference: "Muslim 4:2081",
+    virtue: "Said when stopping at a place during travel for protection"
+  },
+  {
+    id: 'travel-6',
+    arabic: 'بِسْمِ اللَّهِ، تَوَكَّلْتُ عَلَى اللَّهِ، وَلَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ',
+    transliteration: "Bismillah, tawakkaltu 'alallah, wa la hawla wa la quwwata illa billah",
+    translation: "In the name of Allah, I place my trust in Allah, and there is no might nor power except with Allah.",
+    reference: "Abu Dawud 4:325, At-Tirmidhi 5:490",
+    virtue: "Said when leaving the house for any travel or trip"
+  },
+  {
+    id: 'travel-7',
+    arabic: 'اللَّهُمَّ إِنِّي أَسْتَوْدِعُكَ أَهْلِي وَمَالِي وَدِينِي وَخَوَاتِيمَ عَمَلِي',
+    transliteration: "Allahumma inni astawdi'uka ahli wa mali wa deeni wa khawatima 'amali",
+    translation: "O Allah, I entrust to You my family, my wealth, my religion and the outcome of my deeds.",
+    reference: "Ibn Majah 2:943",
+    virtue: "Said when leaving family behind for travel"
+  },
+  {
+    id: 'travel-8',
+    arabic: 'أَسْتَوْدِعُكَ اللَّهَ الَّذِي لَا تَضِيعُ وَدَائِعُهُ',
+    transliteration: "Astawdi'ukallaha alladhi la tadee'u wada'i'uh",
+    translation: "I entrust you to Allah, with Whom no trust is ever lost.",
+    reference: "Ibn Majah 2:943",
+    virtue: "Said to someone you're leaving behind"
+  }
+];
+
+// Toilet/Restroom Duas
+export const toiletDuas: Dhikr[] = [
+  {
+    id: 'toilet-1',
+    arabic: 'بِسْمِ اللَّهِ، اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الْخُبُثِ وَالْخَبَائِثِ',
+    transliteration: "Bismillah. Allahumma inni a'udhu bika minal khubuthi wal khaba'ith",
+    translation: "In the name of Allah. O Allah, I seek refuge in You from the male and female evil beings (devils).",
+    reference: "Al-Bukhari 1:142, Muslim 1:375",
+    virtue: "Said before entering the toilet"
+  },
+  {
+    id: 'toilet-2',
+    arabic: 'غُفْرَانَكَ',
+    transliteration: "Ghufranaka",
+    translation: "(I seek) Your forgiveness.",
+    reference: "Abu Dawud 1:30, At-Tirmidhi 1:7",
+    virtue: "Said after leaving the toilet"
+  },
+  {
+    id: 'toilet-3',
+    arabic: 'الْحَمْدُ لِلَّهِ الَّذِي أَذْهَبَ عَنِّي الْأَذَىٰ وَعَافَانِي',
+    transliteration: "Alhamdu lillahil ladhi adhhaba 'annil adha wa 'afani",
+    translation: "Praise is to Allah Who removed the harm from me and gave me health.",
+    reference: "Ibn Majah 1:301",
+    virtue: "Said after leaving the toilet (alternative)"
+  }
+];
+
+// Visiting the Sick Duas
+export const visitingSickDuas: Dhikr[] = [
+  {
+    id: 'sick-1',
+    arabic: 'لَا بَأْسَ، طَهُورٌ إِنْ شَاءَ اللَّهُ',
+    transliteration: "La ba'sa, tahoorun in sha Allah",
+    translation: "No worry, it is a purification, if Allah wills.",
+    reference: "Al-Bukhari 7:375",
+    virtue: "Said when visiting a sick person"
+  },
+  {
+    id: 'sick-2',
+    arabic: 'أَسْأَلُ اللَّهَ الْعَظِيمَ، رَبَّ الْعَرْشِ الْعَظِيمِ، أَنْ يَشْفِيَكَ',
+    transliteration: "As'alullaha al-'azeema rabbal 'arshil 'azeemi an yashfiyak",
+    translation: "I ask Allah the Almighty, the Lord of the Magnificent Throne, to cure you.",
+    reference: "At-Tirmidhi 2:410, Abu Dawud 3:187",
+    repetition: 7,
+    virtue: "If said 7 times, Allah will cure the sick person unless death is decreed for him"
+  },
+  {
+    id: 'sick-3',
+    arabic: 'اللَّهُمَّ اشْفِ عَبْدَكَ يَنْكَأُ لَكَ عَدُوًّا، أَوْ يَمْشِي لَكَ إِلَىٰ صَلَاةٍ',
+    transliteration: "Allahumma ishfi 'abdaka yanka'u laka 'aduwwan, aw yamshi laka ila salah",
+    translation: "O Allah, cure Your servant who may then fight for Your sake or walk to prayer for Your sake.",
+    reference: "Abu Dawud 3:187",
+    virtue: "Dua for healing"
+  },
+  {
+    id: 'sick-4',
+    arabic: 'بِسْمِ اللَّهِ أَرْقِيكَ، مِنْ كُلِّ شَيْءٍ يُؤْذِيكَ، مِنْ شَرِّ كُلِّ نَفْسٍ أَوْ عَيْنِ حَاسِدٍ، اللهُ يَشْفِيكَ، بِسْمِ اللهِ أَرْقِيكَ',
+    transliteration: "Bismillahi arqeeka, min kulli shay'in yu'theeka, min sharri kulli nafsin aw 'ayni hasidin, Allahu yashfeeka, bismillahi arqeeka",
+    translation: "In the name of Allah I perform ruqyah on you, from everything that harms you, from the evil of every soul or envious eye, may Allah cure you, in the name of Allah I perform ruqyah on you.",
+    reference: "Muslim 4:1718",
+    virtue: "The Prophet's ruqyah for the sick"
+  },
+  {
+    id: 'sick-5',
+    arabic: 'اللَّهُمَّ رَبَّ النَّاسِ، أَذْهِبِ الْبَأْسَ، وَاشْفِ أَنْتَ الشَّافِي، لَا شِفَاءَ إِلَّا شِفَاؤُكَ، شِفَاءً لَا يُغَادِرُ سَقَمًا',
+    transliteration: "Allahumma rabban nas, adh-hibil ba's, washfi antas shafee, la shifa'a illa shifa'uk, shifa'an la yughadiru saqama",
+    translation: "O Allah, Lord of mankind, remove the harm. Cure, for You are the Healer. There is no cure except Your cure, a cure that leaves no illness behind.",
+    reference: "Al-Bukhari 7:579, Muslim 4:1721",
+    virtue: "The Prophet's dua for healing"
+  },
+  {
+    id: 'sick-6',
+    arabic: 'أَعُوذُ بِعِزَّةِ اللَّهِ وَقُدْرَتِهِ مِنْ شَرِّ مَا أَجِدُ وَأُحَاذِرُ',
+    transliteration: "A'udhu bi'izzatillahi wa qudratihi min sharri ma ajidu wa uhadhir",
+    translation: "I seek refuge in the glory and power of Allah from the evil of what I feel and fear.",
+    reference: "Muslim 4:1728",
+    repetition: 7,
+    virtue: "To be said by the sick person while placing hand on the area of pain"
+  }
+];
+
 export const allAzkaarCategories: AzkaarCategory[] = [
   {
     id: 'morning',
@@ -368,6 +698,46 @@ export const allAzkaarCategories: AzkaarCategory[] = [
     duas: wakingDuas
   },
   {
+    id: 'salah',
+    title: 'Salah (Prayer)',
+    titleArabic: 'أذكار الصلاة',
+    icon: '🕌',
+    description: 'Supplications for before, during, and after prayer',
+    duas: salahDuas
+  },
+  {
+    id: 'eating',
+    title: 'Eating & Drinking',
+    titleArabic: 'أذكار الطعام والشراب',
+    icon: '🍽️',
+    description: 'Supplications for eating and drinking',
+    duas: eatingDuas
+  },
+  {
+    id: 'travel',
+    title: 'Travel',
+    titleArabic: 'أذكار السفر',
+    icon: '✈️',
+    description: 'Supplications for traveling and journeys',
+    duas: travelDuas
+  },
+  {
+    id: 'toilet',
+    title: 'Restroom',
+    titleArabic: 'أذكار الخلاء',
+    icon: '🚿',
+    description: 'Supplications for entering and leaving the restroom',
+    duas: toiletDuas
+  },
+  {
+    id: 'visiting-sick',
+    title: 'Visiting the Sick',
+    titleArabic: 'عيادة المريض',
+    icon: '💚',
+    description: 'Supplications for visiting and praying for the sick',
+    duas: visitingSickDuas
+  },
+  {
     id: 'general',
     title: 'General Duas',
     titleArabic: 'أدعية عامة',
@@ -384,6 +754,11 @@ export const getAllDuas = (): Dhikr[] => {
     ...eveningAzkaar,
     ...sleepingDuas,
     ...wakingDuas,
+    ...salahDuas,
+    ...eatingDuas,
+    ...travelDuas,
+    ...toiletDuas,
+    ...visitingSickDuas,
     ...generalDuas
   ];
 };
