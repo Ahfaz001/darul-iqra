@@ -291,25 +291,22 @@ const Dashboard: React.FC = () => {
         </Card>
 
         {/* Menu Grid */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-6">
           <h3 className={`text-xl font-semibold text-foreground ${isRTL ? 'font-urdu' : ''}`}>{t('quickAccess')}</h3>
-          <Button variant="ghost" size="sm" className="text-muted-foreground">
-            {t('viewAll')} <ChevronRight className={`w-4 h-4 ${isRTL ? 'mr-1 rotate-180' : 'ml-1'}`} />
-          </Button>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
           {menuItems.map((item, index) => (
             <Card 
               key={index} 
-              className={`group relative overflow-hidden bg-gradient-to-br ${item.gradient} border-border/50 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer`}
+              className={`group relative overflow-hidden bg-gradient-to-br ${item.gradient} border-border/50 hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 cursor-pointer`}
               onClick={() => navigate(item.href)}
             >
-              <CardContent className="p-6">
-                <div className={`w-12 h-12 rounded-xl ${item.iconBg} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                  <item.icon className="h-6 w-6" />
+              <CardContent className="p-4 sm:p-5 flex flex-col items-center text-center">
+                <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl ${item.iconBg} flex items-center justify-center mb-3 group-hover:scale-105 transition-transform shadow-sm`}>
+                  <item.icon className="h-5 w-5 sm:h-6 sm:w-6" />
                 </div>
-                <CardTitle className="text-base mb-1 group-hover:text-primary transition-colors">{item.title}</CardTitle>
-                <CardDescription className="text-sm">{item.description}</CardDescription>
+                <CardTitle className="text-sm sm:text-base font-medium leading-tight group-hover:text-primary transition-colors line-clamp-2">{item.title}</CardTitle>
+                <CardDescription className="text-xs mt-1 hidden sm:block line-clamp-1">{item.description}</CardDescription>
               </CardContent>
             </Card>
           ))}
