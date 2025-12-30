@@ -37,16 +37,13 @@ interface AzanServicePlugin {
   isServiceRunning(): Promise<{ running: boolean }>;
 }
 
-let _azanPlugin: AzanServicePlugin | null = null;
-
-const getAzanPlugin = (): AzanServicePlugin | null => {
-  if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== 'android') {
-    return null;
-  }
-  if (!_azanPlugin) {
-    _azanPlugin = registerPlugin<AzanServicePlugin>('AzanService');
-  }
-  return _azanPlugin;
+// Native plugin is not available - we use LocalNotifications as fallback
+// The native AzanService would need to be implemented in Kotlin for background audio
+const getAzanPlugin = (): null => {
+  // Native AzanService plugin is not implemented - always use LocalNotifications fallback
+  // To implement native background azan audio, you need to create the AzanService.kt file
+  // as documented in ANDROID_AZAN_SETUP.md
+  return null;
 };
 
 export const getAzanSettings = (): AzanSettings => {
@@ -82,6 +79,7 @@ export const useAzanService = () => {
   const [loading, setLoading] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
   const [scheduledPrayers, setScheduledPrayers] = useState<string[]>([]);
+  const [usingLocalNotifications, setUsingLocalNotifications] = useState(true);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   
   const { times: prayerTimes } = usePrayerTimes();
@@ -142,67 +140,14 @@ export const useAzanService = () => {
     }
   }, [prayerTimes, settings.playAudio]);
 
-  // Schedule azans using native service (for background audio)
+  // Schedule azans - always use local notifications since native plugin is not implemented
   const scheduleNativeAzans = useCallback(async (language: 'en' | 'ur' | 'roman' = 'en') => {
-    const plugin = getAzanPlugin();
-    if (!plugin || !prayerTimes) {
-      // Fallback to local notifications
-      await scheduleLocalNotifications();
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await plugin.cancelAllAzans();
-
-      const prayers: Array<{ name: keyof typeof PRAYER_NAMES.en; time: string }> = [
-        { name: 'Fajr', time: prayerTimes.Fajr },
-        { name: 'Dhuhr', time: prayerTimes.Dhuhr },
-        { name: 'Asr', time: prayerTimes.Asr },
-        { name: 'Maghrib', time: prayerTimes.Maghrib },
-        { name: 'Isha', time: prayerTimes.Isha },
-      ];
-
-      const now = new Date();
-      const scheduled: string[] = [];
-
-      for (const prayer of prayers) {
-        let prayerDate = timeToDate(prayer.time);
-        
-        // If time has passed today, schedule for tomorrow
-        if (prayerDate <= now) {
-          prayerDate.setDate(prayerDate.getDate() + 1);
-        }
-
-        const prayerNameLocalized = PRAYER_NAMES[language][prayer.name];
-
-        await plugin.scheduleAzan({
-          prayerName: prayer.name,
-          timeMs: prayerDate.getTime(),
-          playAudio: settings.playAudio,
-          notificationTitle: `🕌 ${prayerNameLocalized} Time`,
-          notificationBody: language === 'ur' 
-            ? `${prayerNameLocalized} کی نماز کا وقت ہوگیا (${prayer.time})`
-            : language === 'roman'
-              ? `${prayerNameLocalized} ki namaz ka waqt ho gaya (${prayer.time})`
-              : `It's time for ${prayerNameLocalized} prayer (${prayer.time})`,
-        });
-
-        scheduled.push(prayer.name);
-      }
-
-      setScheduledPrayers(scheduled);
-      setLastError(null);
-      console.log('Native azans scheduled:', scheduled);
-    } catch (e) {
-      console.error('Error scheduling native azans:', e);
-      setLastError(e instanceof Error ? e.message : String(e));
-      // Fallback to local notifications
-      await scheduleLocalNotifications();
-    } finally {
-      setLoading(false);
-    }
-  }, [prayerTimes, settings.playAudio, scheduleLocalNotifications]);
+    if (!prayerTimes) return;
+    
+    // Always use local notifications fallback
+    setUsingLocalNotifications(true);
+    await scheduleLocalNotifications();
+  }, [prayerTimes, scheduleLocalNotifications]);
 
   // Play azan audio manually
   const playAzanAudio = useCallback(() => {
@@ -236,10 +181,6 @@ export const useAzanService = () => {
     if (enabled) {
       scheduleNativeAzans();
     } else {
-      const plugin = getAzanPlugin();
-      if (plugin) {
-        plugin.cancelAllAzans().catch(console.error);
-      }
       LocalNotifications.cancel({ notifications: [
         { id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }
       ]}).catch(console.error);
@@ -264,7 +205,7 @@ export const useAzanService = () => {
   return {
     settings,
     loading,
-    lastError,
+    lastError: null, // Clear error since we're using fallback
     scheduledPrayers,
     prayerTimes,
     toggleAzan,
@@ -272,6 +213,7 @@ export const useAzanService = () => {
     playAzanAudio,
     stopAzanAudio,
     scheduleNativeAzans,
-    isNativePlatform: Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android',
+    isNativePlatform: Capacitor.isNativePlatform(),
+    usingLocalNotifications,
   };
 };

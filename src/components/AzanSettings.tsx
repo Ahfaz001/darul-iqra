@@ -1,4 +1,4 @@
-import { Bell, Volume2, VolumeX, Clock, MapPin, AlertCircle, Play, Square } from 'lucide-react';
+import { Bell, Volume2, VolumeX, Clock, MapPin, Play, Square } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -54,7 +54,6 @@ export const AzanSettings = () => {
   const {
     settings,
     loading,
-    lastError,
     scheduledPrayers,
     prayerTimes,
     toggleAzan,
@@ -81,12 +80,6 @@ export const AzanSettings = () => {
         <CardDescription dir={dir}>{ui.subtitle}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {lastError && (
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription dir={dir}>{lastError}</AlertDescription>
-          </Alert>
-        )}
 
         {/* Prayer Times Display */}
         {prayerTimes && (
