@@ -152,18 +152,48 @@ const QuranAudioManagement: React.FC = () => {
       return;
     }
 
+    // Check file size (50MB limit for Supabase storage)
+    const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+    if (audioFile.size > MAX_FILE_SIZE) {
+      toast.error('Audio file is too large. Maximum size is 50MB.');
+      return;
+    }
+
     setUploading(true);
     try {
       // Get audio duration
       const duration = await getAudioDuration(audioFile);
 
-      // Upload audio file
-      const audioFileName = `${Date.now()}_${audioFile.name.replace(/\s+/g, '_')}`;
-      const { error: audioError } = await supabase.storage
-        .from('quran-audio')
-        .upload(audioFileName, audioFile);
+      // Clean filename - remove special characters
+      const cleanFileName = audioFile.name
+        .replace(/[^a-zA-Z0-9.-]/g, '_')
+        .replace(/_+/g, '_');
+      const audioFileName = `${Date.now()}_${cleanFileName}`;
+      
+      console.log('Uploading audio file:', audioFileName, 'Size:', audioFile.size);
 
-      if (audioError) throw audioError;
+      // Upload audio file with explicit content type
+      const { data: uploadData, error: audioError } = await supabase.storage
+        .from('quran-audio')
+        .upload(audioFileName, audioFile, {
+          cacheControl: '3600',
+          upsert: false,
+          contentType: audioFile.type || 'audio/mpeg',
+        });
+
+      if (audioError) {
+        console.error('Storage upload error:', audioError);
+        if (audioError.message?.includes('row-level security')) {
+          toast.error('Permission denied. Make sure you are logged in as admin.');
+        } else if (audioError.message?.includes('duplicate')) {
+          toast.error('A file with this name already exists.');
+        } else {
+          toast.error(`Upload failed: ${audioError.message}`);
+        }
+        return;
+      }
+
+      console.log('Audio uploaded successfully:', uploadData);
 
       const { data: audioUrlData } = supabase.storage
         .from('quran-audio')
@@ -172,16 +202,26 @@ const QuranAudioManagement: React.FC = () => {
       // Upload cover image if provided
       let coverUrl = null;
       if (coverFile) {
-        const coverFileName = `covers/${Date.now()}_${coverFile.name.replace(/\s+/g, '_')}`;
+        const cleanCoverName = coverFile.name
+          .replace(/[^a-zA-Z0-9.-]/g, '_')
+          .replace(/_+/g, '_');
+        const coverFileName = `covers/${Date.now()}_${cleanCoverName}`;
+        
         const { error: coverError } = await supabase.storage
           .from('quran-audio')
-          .upload(coverFileName, coverFile);
+          .upload(coverFileName, coverFile, {
+            cacheControl: '3600',
+            upsert: false,
+            contentType: coverFile.type || 'image/jpeg',
+          });
 
         if (!coverError) {
           const { data: coverUrlData } = supabase.storage
             .from('quran-audio')
             .getPublicUrl(coverFileName);
           coverUrl = coverUrlData.publicUrl;
+        } else {
+          console.warn('Cover upload failed:', coverError);
         }
       }
 
@@ -202,15 +242,21 @@ const QuranAudioManagement: React.FC = () => {
           uploaded_by: user.id,
         });
 
-      if (dbError) throw dbError;
+      if (dbError) {
+        console.error('Database insert error:', dbError);
+        // Try to clean up uploaded file
+        await supabase.storage.from('quran-audio').remove([audioFileName]);
+        toast.error(`Database error: ${dbError.message}`);
+        return;
+      }
 
       toast.success('Audio uploaded successfully');
       resetForm();
       setDialogOpen(false);
       fetchAudioList();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Upload error:', error);
-      toast.error('Failed to upload audio');
+      toast.error(error?.message || 'Failed to upload audio. Please try again.');
     } finally {
       setUploading(false);
     }
