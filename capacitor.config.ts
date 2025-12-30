@@ -1,11 +1,5 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
-// For a FINAL APK build, you usually want to load the built web files from `dist`
-// (so we should NOT hardcode `server.url`).
-// If you still want live-reload during development, set an env var before building:
-//   CAP_SERVER_URL="https://..." npx cap sync android
-const SERVER_URL = process.env.CAP_SERVER_URL || process.env.CAPACITOR_SERVER_URL;
-
 const config: CapacitorConfig = {
   appId: 'com.idarah.tarjumatulquran',
   appName: 'Idarah Tarjumat-ul-Quran',
@@ -14,22 +8,16 @@ const config: CapacitorConfig = {
     allowMixedContent: true,
     captureInput: true,
     webContentsDebuggingEnabled: false,
-    // Note: true autoplay without user gesture is ultimately controlled by the WebView,
-    // but we still try to optimize it on the web side.
     overrideUserAgent:
       'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36',
   },
-  server: SERVER_URL
-    ? {
-        url: SERVER_URL,
-        cleartext: true,
-        androidScheme: 'https',
-      }
-    : undefined,
+  server: {
+    url: 'https://fbbd0977-53d6-49a0-b314-53502bf2dd53.lovableproject.com?forceHideBadge=true',
+    cleartext: true,
+    androidScheme: 'https',
+  },
   plugins: {
     App: {
-      // Keep this ENABLED so the JS `backButton` event can be intercepted.
-      // (Disabling it causes Android to close the app by default.)
       disableBackButtonHandler: false,
     },
     SplashScreen: {
