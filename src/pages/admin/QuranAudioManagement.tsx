@@ -67,6 +67,7 @@ interface QuranAudio {
 const LANGUAGES = [
   { value: 'arabic', label: 'Arabic', labelNative: 'العربية' },
   { value: 'urdu', label: 'Urdu', labelNative: 'اردو' },
+  { value: 'arabic-urdu', label: 'Arabic/Urdu Both', labelNative: 'عربی/اردو دونوں' },
   { value: 'english', label: 'English', labelNative: 'English' },
   { value: 'hindi', label: 'Hindi', labelNative: 'हिंदी' },
 ];
@@ -323,6 +324,7 @@ const QuranAudioManagement: React.FC = () => {
     switch (lang) {
       case 'arabic': return 'bg-emerald-500/10 text-emerald-600 border-emerald-200';
       case 'urdu': return 'bg-blue-500/10 text-blue-600 border-blue-200';
+      case 'arabic-urdu': return 'bg-teal-500/10 text-teal-600 border-teal-200';
       case 'english': return 'bg-purple-500/10 text-purple-600 border-purple-200';
       case 'hindi': return 'bg-orange-500/10 text-orange-600 border-orange-200';
       default: return 'bg-gray-500/10 text-gray-600 border-gray-200';

@@ -181,24 +181,24 @@ const Dashboard: React.FC = () => {
       iconBg: 'bg-indigo-500/20 text-indigo-600 dark:text-indigo-400'
     },
     { 
-      title: 'القرآن الكریم', 
-      description: 'Read Holy Quran', 
+      title: t('holyQuran'), 
+      description: t('readHolyQuran'), 
       icon: BookOpen,
       href: '/quran',
       gradient: 'from-emerald-500/20 to-emerald-500/5',
       iconBg: 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
     },
     { 
-      title: 'Quran With Translation', 
-      description: 'Listen to Quran Audio', 
+      title: t('quranWithTranslation'), 
+      description: t('listenQuranAudio'), 
       icon: HeadphonesIcon,
       href: '/quran-audio',
       gradient: 'from-purple-500/20 to-purple-500/5',
       iconBg: 'bg-purple-500/20 text-purple-600 dark:text-purple-400'
     },
     { 
-      title: 'أذكار المسلم', 
-      description: 'Daily Azkaar & Duas', 
+      title: t('dailyAzkaar'), 
+      description: t('dailyAzkaarDesc'), 
       icon: HandHeart,
       href: '/azkaar',
       gradient: 'from-teal-500/20 to-teal-500/5',

@@ -100,6 +100,14 @@ export const translations: Translations = {
   myProfile: { en: 'My Profile', ur: 'میری پروفائل', roman: 'Meri Profile' },
   manageAccount: { en: 'Manage your account settings', ur: 'اپنی اکاؤنٹ سیٹنگز دیکھیں', roman: 'Apni account settings dekhein' },
   student: { en: 'Student', ur: 'طالب علم', roman: 'Talib-e-Ilm' },
+  
+  // Quran Audio
+  quranWithTranslation: { en: 'Quran With Translation', ur: 'قرآن مع ترجمہ', roman: 'Quran Maa Tarjuma' },
+  listenQuranAudio: { en: 'Listen to Quran Audio', ur: 'قرآن کی تلاوت سنیں', roman: 'Quran ki tilawat sunein' },
+  holyQuran: { en: 'القرآن الكریم', ur: 'القرآن الكریم', roman: 'Al-Quran Al-Kareem' },
+  readHolyQuran: { en: 'Read Holy Quran', ur: 'قرآن پاک پڑھیں', roman: 'Quran Pak Parhein' },
+  dailyAzkaar: { en: 'أذكار المسلم', ur: 'أذكار المسلم', roman: 'Azkaar-e-Muslim' },
+  dailyAzkaarDesc: { en: 'Daily Azkaar & Duas', ur: 'روزانہ اذکار اور دعائیں', roman: 'Rozana Azkaar aur Duaein' },
 };
 
 interface LanguageContextType {
