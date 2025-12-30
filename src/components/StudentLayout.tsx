@@ -5,8 +5,9 @@ import StudentSidebar from './StudentSidebar';
 import ThemeToggle from './ThemeToggle';
 import LanguageSelector from './LanguageSelector';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Bell, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import NotificationBell from './NotificationBell';
 
 interface StudentLayoutProps {
   children: React.ReactNode;
@@ -60,14 +61,7 @@ const StudentLayout: React.FC<StudentLayoutProps> = ({ children, pendingCount = 
               </div>
 
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" className="relative" aria-label="Notifications">
-                  <Bell className="h-5 w-5" />
-                  {pendingCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-destructive-foreground text-[10px] rounded-full flex items-center justify-center">
-                      {pendingCount}
-                    </span>
-                  )}
-                </Button>
+                <NotificationBell variant="student" />
                 <LanguageSelector />
                 <ThemeToggle />
               </div>
