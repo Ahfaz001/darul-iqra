@@ -225,21 +225,19 @@ const AttendanceManagement: React.FC = () => {
 
       if (error) throw error;
 
-      // Send push notifications ONLY for non-present statuses (absent, late, excused)
-      const notificationPromises = records
-        .filter(record => record.status !== 'present')
-        .map(record => {
-          const student = students.find(s => s.user_id === record.student_id);
-          if (student) {
-            return notifyAttendance(
-              record.student_id,
-              student.full_name,
-              record.status as 'present' | 'absent' | 'late' | 'excused',
-              displayDate
-            );
-          }
-          return Promise.resolve();
-        });
+      // Send push notifications for ALL attendance statuses including present
+      const notificationPromises = records.map(record => {
+        const student = students.find(s => s.user_id === record.student_id);
+        if (student) {
+          return notifyAttendance(
+            record.student_id,
+            student.full_name,
+            record.status as 'present' | 'absent' | 'late' | 'excused',
+            displayDate
+          );
+        }
+        return Promise.resolve();
+      });
 
       await Promise.allSettled(notificationPromises);
 
