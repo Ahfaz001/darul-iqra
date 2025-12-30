@@ -24,7 +24,8 @@ import {
   ChevronRight,
   Sparkles,
   Shield,
-  Activity
+  Activity,
+  Music
 } from 'lucide-react';
 
 interface AdminStats {
@@ -270,6 +271,15 @@ const AdminPanel: React.FC = () => {
       href: '/admin/quran',
       gradient: 'from-emerald-500/20 to-emerald-500/5',
       iconBg: 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400',
+      adminOnly: true
+    },
+    { 
+      title: 'Quran Audio', 
+      description: 'Upload Quran with translation audio', 
+      icon: Music,
+      href: '/admin/quran-audio',
+      gradient: 'from-teal-500/20 to-teal-500/5',
+      iconBg: 'bg-teal-500/20 text-teal-600 dark:text-teal-400',
       adminOnly: true
     },
     { 

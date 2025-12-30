@@ -48,6 +48,7 @@ const StudentSidebar: React.FC = () => {
     { title: t('dailyHadith'), icon: BookMarked, href: '/hadith' },
     { title: t('booksLibrary'), icon: BookOpen, href: '/books' },
     { title: 'القرآن الكریم', icon: BookOpen, href: '/quran' },
+    { title: 'Quran With Translation', icon: HeadphonesIcon, href: '/quran-audio' },
     { title: 'أذكار المسلم', icon: HandHeart, href: '/azkaar' },
     { title: t('myProfile'), icon: User, href: '/profile' },
   ];

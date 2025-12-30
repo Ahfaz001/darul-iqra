@@ -34,10 +34,12 @@ import UserManagement from "./pages/admin/UserManagement";
 import HadithManagement from "./pages/admin/HadithManagement";
 import BookManagement from "./pages/admin/BookManagement";
 import QuranManagement from "./pages/admin/QuranManagement";
+import QuranAudioManagement from "./pages/admin/QuranAudioManagement";
 import ContentManagement from "./pages/admin/ContentManagement";
 import Reports from "./pages/admin/Reports";
 import StudentExams from "./pages/StudentExams";
 import StudentQuran from "./pages/StudentQuran";
+import StudentQuranAudio from "./pages/StudentQuranAudio";
 import TakeExam from "./pages/TakeExam";
 import NotFound from "./pages/NotFound";
 import SplashPage from "./pages/SplashPage";
@@ -117,6 +119,14 @@ const App = () => {
                               element={
                                 <ProtectedRoute allowedRoles={["student"]}>
                                   <StudentQuran />
+                                </ProtectedRoute>
+                              }
+                            />
+                            <Route
+                              path="/quran-audio"
+                              element={
+                                <ProtectedRoute allowedRoles={["student"]}>
+                                  <StudentQuranAudio />
                                 </ProtectedRoute>
                               }
                             />
@@ -269,6 +279,14 @@ const App = () => {
                               element={
                                 <ProtectedRoute allowedRoles={["admin"]}>
                                   <QuranManagement />
+                                </ProtectedRoute>
+                              }
+                            />
+                            <Route
+                              path="/admin/quran-audio"
+                              element={
+                                <ProtectedRoute allowedRoles={["admin"]}>
+                                  <QuranAudioManagement />
                                 </ProtectedRoute>
                               }
                             />

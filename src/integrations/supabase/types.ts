@@ -496,6 +496,57 @@ export type Database = {
         }
         Relationships: []
       }
+      quran_audio: {
+        Row: {
+          cover_url: string | null
+          created_at: string
+          description: string | null
+          duration_seconds: number | null
+          file_path: string
+          file_size: number | null
+          file_url: string
+          id: string
+          language: string
+          reciter: string | null
+          surah_number: number | null
+          title: string
+          updated_at: string
+          uploaded_by: string
+        }
+        Insert: {
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          duration_seconds?: number | null
+          file_path: string
+          file_size?: number | null
+          file_url: string
+          id?: string
+          language?: string
+          reciter?: string | null
+          surah_number?: number | null
+          title: string
+          updated_at?: string
+          uploaded_by: string
+        }
+        Update: {
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          duration_seconds?: number | null
+          file_path?: string
+          file_size?: number | null
+          file_url?: string
+          id?: string
+          language?: string
+          reciter?: string | null
+          surah_number?: number | null
+          title?: string
+          updated_at?: string
+          uploaded_by?: string
+        }
+        Relationships: []
+      }
       quran_pages: {
         Row: {
           ayat_range: string | null
