@@ -109,16 +109,7 @@ const AttendanceManagement: React.FC = () => {
         });
       });
       
-      // Initialize unmarked students as present by default
-      students.forEach(student => {
-        if (!attendanceMap.has(student.user_id)) {
-          attendanceMap.set(student.user_id, {
-            student_id: student.user_id,
-            status: 'present'
-          });
-        }
-      });
-      
+      // Don't set default status - leave unmarked students without any status
       setAttendance(attendanceMap);
     } catch (error: any) {
       console.error('Error fetching attendance:', error);
@@ -203,7 +194,21 @@ const AttendanceManagement: React.FC = () => {
     try {
       const dateStr = format(selectedDate, 'yyyy-MM-dd');
       const displayDate = format(selectedDate, 'dd MMM yyyy');
-      const records = Array.from(attendance.values()).map(record => ({
+      
+      // Only save records that have been explicitly set (exist in the attendance map)
+      const recordsToSave = Array.from(attendance.values());
+      
+      if (recordsToSave.length === 0) {
+        toast({
+          title: "No Attendance Marked",
+          description: "Please mark attendance for at least one student",
+          variant: "destructive"
+        });
+        setSaving(false);
+        return;
+      }
+      
+      const records = recordsToSave.map(record => ({
         student_id: record.student_id,
         date: dateStr,
         status: record.status,
@@ -220,7 +225,7 @@ const AttendanceManagement: React.FC = () => {
 
       if (error) throw error;
 
-      // Send push notifications to students for non-present statuses
+      // Send push notifications ONLY for non-present statuses (absent, late, excused)
       const notificationPromises = records
         .filter(record => record.status !== 'present')
         .map(record => {
@@ -240,7 +245,7 @@ const AttendanceManagement: React.FC = () => {
 
       toast({
         title: "Success",
-        description: "Attendance saved and notifications sent"
+        description: "Attendance saved successfully"
       });
       
       fetchAttendance();
@@ -452,7 +457,8 @@ const AttendanceManagement: React.FC = () => {
                     <TableBody>
                       {students.map((student, index) => {
                         const record = attendance.get(student.user_id);
-                        const status = record?.status || 'present';
+                        const status = record?.status; // undefined if not marked
+                        const hasStatus = status !== undefined;
                         
                         return (
                           <TableRow key={student.user_id}>
@@ -462,13 +468,13 @@ const AttendanceManagement: React.FC = () => {
                             <TableCell>
                               <div className="flex justify-center">
                                 <Select
-                                  value={status}
+                                  value={status || ''}
                                   onValueChange={(value) => updateAttendance(student.user_id, value as AttendanceStatus)}
                                 >
-                                  <SelectTrigger className={cn("w-[110px] sm:w-[130px] text-xs sm:text-sm h-8 sm:h-9", getStatusColor(status))}>
+                                  <SelectTrigger className={cn("w-[110px] sm:w-[130px] text-xs sm:text-sm h-8 sm:h-9", hasStatus ? getStatusColor(status!) : 'bg-muted text-muted-foreground border-dashed')}>
                                     <div className="flex items-center gap-1.5 sm:gap-2">
-                                      {getStatusIcon(status)}
-                                      <SelectValue />
+                                      {hasStatus ? getStatusIcon(status!) : null}
+                                      <SelectValue placeholder="Select" />
                                     </div>
                                   </SelectTrigger>
                                   <SelectContent>
