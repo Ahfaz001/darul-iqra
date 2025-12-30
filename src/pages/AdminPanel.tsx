@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import ThemeToggle from '@/components/ThemeToggle';
 import AdminMobileNav from '@/components/admin/AdminMobileNav';
+import NotificationBell from '@/components/NotificationBell';
 import madrasaLogo from '@/assets/madrasa-logo.jpg';
 import { 
   Users, 
@@ -20,7 +21,6 @@ import {
   UserPlus,
   ClipboardList,
   TrendingUp,
-  Bell,
   ChevronRight,
   Sparkles,
   Shield,
@@ -368,14 +368,7 @@ const AdminPanel: React.FC = () => {
               </div>
               
               <div className="flex items-center gap-1 sm:gap-3">
-                <Button variant="ghost" size="icon" className="relative h-8 w-8 sm:h-9 sm:w-9">
-                  <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
-                  {stats.activeExams > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 w-3.5 h-3.5 sm:w-4 sm:h-4 bg-destructive text-destructive-foreground text-[8px] sm:text-[10px] rounded-full flex items-center justify-center">
-                      {stats.activeExams}
-                    </span>
-                  )}
-                </Button>
+                <NotificationBell variant="admin" />
                 <ThemeToggle />
                 <div className="hidden md:block text-right px-2 sm:px-3 py-1 rounded-lg bg-muted/50">
                   <p className="text-xs sm:text-sm font-medium text-foreground">{user?.email?.split('@')[0]}</p>
