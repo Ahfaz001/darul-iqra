@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { sendPushNotification } from '@/hooks/useSendNotification';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -330,7 +331,7 @@ const CreateExamWithTranslation: React.FC = () => {
 
       // 4. Send email notifications (fire and forget)
       try {
-        console.log('Sending exam notification to students:', selectedStudents);
+        console.log('Sending exam email notification to students:', selectedStudents);
         const { data: notifyData, error: notifyError } = await supabase.functions.invoke('send-exam-notification', {
           body: {
             student_ids: selectedStudents,
@@ -342,18 +343,41 @@ const CreateExamWithTranslation: React.FC = () => {
         });
         
         if (notifyError) {
-          console.error('Notification function error:', notifyError);
+          console.error('Email notification function error:', notifyError);
         } else {
           console.log('Email notifications response:', notifyData);
         }
       } catch (notifyError) {
-        console.error('Failed to send notifications:', notifyError);
-        // Don't fail the whole operation if notifications fail
+        console.error('Failed to send email notifications:', notifyError);
+      }
+
+      // 5. Send push notifications to assigned students
+      try {
+        console.log('Sending exam push notification to students:', selectedStudents);
+        const pushResult = await sendPushNotification({
+          title: '📝 New Exam Assigned!',
+          body: `${translationResult.exam_title_ur || subject} - ${subject.trim()} on ${format(examDate, 'PPP')}`,
+          type: 'exam',
+          data: {
+            examTitle: translationResult.exam_title_ur || subject,
+            subject: subject.trim(),
+            examDate: format(examDate, 'PPP')
+          },
+          targetUserIds: selectedStudents
+        });
+        
+        if (pushResult.success) {
+          console.log('Push notifications sent:', pushResult.sent);
+        } else {
+          console.error('Push notification error:', pushResult.error);
+        }
+      } catch (pushError) {
+        console.error('Failed to send push notifications:', pushError);
       }
 
       toast({
         title: "Success!",
-        description: `Exam created and assigned to ${selectedStudents.length} student(s). Email notifications sent.`
+        description: `Exam created and assigned to ${selectedStudents.length} student(s). Notifications sent.`
       });
 
       navigate('/admin/exams');
@@ -448,13 +472,13 @@ const CreateExamWithTranslation: React.FC = () => {
           {/* Step 1: Input Content */}
           {step === 'input' && (
             <div className="max-w-4xl mx-auto space-y-6">
-              <Card className="bg-white border-border/30">
+              <Card className="bg-card border-border/30">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-foreground">
                     <Languages className="h-5 w-5 text-primary" />
                     Paste Exam Content (Urdu)
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-muted-foreground">
                     Paste your exam paper in Urdu. AI will translate it to English and Roman Urdu.
                   </CardDescription>
                 </CardHeader>
@@ -598,33 +622,33 @@ const CreateExamWithTranslation: React.FC = () => {
           {/* Step 2: Review Translation */}
           {step === 'translate' && translationResult && (
             <div className="max-w-6xl mx-auto space-y-6">
-              <Card className="bg-white border-border/30">
+              <Card className="bg-card border-border/30">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-foreground">
                     <CheckCircle className="h-5 w-5 text-green-600" />
                     Translation Complete
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-muted-foreground">
                     Review the translated questions below. {translationResult.questions.length} questions found.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="mb-4 p-4 bg-muted/50 rounded-lg">
+                  <div className="mb-4 p-4 bg-muted rounded-lg">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                       <div>
-                        <span className="font-medium">Urdu:</span>
-                        <p className="text-muted-foreground font-urdu" dir="rtl">{translationResult.exam_title_ur}</p>
+                        <span className="font-medium text-foreground">Urdu:</span>
+                        <p className="text-primary font-urdu" dir="rtl">{translationResult.exam_title_ur}</p>
                       </div>
                       <div>
-                        <span className="font-medium">English:</span>
-                        <p className="text-muted-foreground">{translationResult.exam_title_en}</p>
+                        <span className="font-medium text-foreground">English:</span>
+                        <p className="text-primary">{translationResult.exam_title_en}</p>
                       </div>
                       <div>
-                        <span className="font-medium">Roman Urdu:</span>
-                        <p className="text-muted-foreground">{translationResult.exam_title_roman}</p>
+                        <span className="font-medium text-foreground">Roman Urdu:</span>
+                        <p className="text-primary">{translationResult.exam_title_roman}</p>
                       </div>
                     </div>
-                    <p className="text-sm mt-2">
+                    <p className="text-sm mt-2 text-foreground">
                       <span className="font-medium">Total Marks:</span> {translationResult.total_marks}
                     </p>
                   </div>
@@ -632,7 +656,7 @@ const CreateExamWithTranslation: React.FC = () => {
                   <ScrollArea className="h-[500px] pr-4">
                     <div className="space-y-4">
                       {translationResult.questions.map((q, idx) => (
-                        <Card key={idx} className="border-border/50">
+                        <Card key={idx} className="border-border/50 bg-card">
                           <CardContent className="p-4">
                             <div className="flex items-start justify-between mb-2">
                               <span className="px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded">
@@ -641,17 +665,17 @@ const CreateExamWithTranslation: React.FC = () => {
                               <span className="text-xs text-muted-foreground capitalize">{q.type}</span>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
-                              <div className="p-3 bg-muted/30 rounded-lg">
-                                <p className="text-xs font-medium text-muted-foreground mb-1">اردو</p>
-                                <p className="text-sm font-urdu" dir="rtl">{q.text_ur}</p>
+                              <div className="p-3 bg-muted rounded-lg">
+                                <p className="text-xs font-medium text-primary mb-1">اردو</p>
+                                <p className="text-sm font-urdu text-foreground" dir="rtl">{q.text_ur}</p>
                               </div>
-                              <div className="p-3 bg-muted/30 rounded-lg">
-                                <p className="text-xs font-medium text-muted-foreground mb-1">English</p>
-                                <p className="text-sm">{q.text_en}</p>
+                              <div className="p-3 bg-muted rounded-lg">
+                                <p className="text-xs font-medium text-primary mb-1">English</p>
+                                <p className="text-sm text-foreground">{q.text_en}</p>
                               </div>
-                              <div className="p-3 bg-muted/30 rounded-lg">
-                                <p className="text-xs font-medium text-muted-foreground mb-1">Roman Urdu</p>
-                                <p className="text-sm">{q.text_roman}</p>
+                              <div className="p-3 bg-muted rounded-lg">
+                                <p className="text-xs font-medium text-primary mb-1">Roman Urdu</p>
+                                <p className="text-sm text-foreground">{q.text_roman}</p>
                               </div>
                             </div>
                           </CardContent>
@@ -678,13 +702,13 @@ const CreateExamWithTranslation: React.FC = () => {
           {/* Step 3: Assign Students */}
           {step === 'assign' && (
             <div className="max-w-4xl mx-auto space-y-6">
-              <Card className="bg-white border-border/30">
+              <Card className="bg-card border-border/30">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-foreground">
                     <Users className="h-5 w-5 text-primary" />
                     Assign to Students
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-muted-foreground">
                     Select which students should receive this exam
                   </CardDescription>
                 </CardHeader>
@@ -700,18 +724,18 @@ const CreateExamWithTranslation: React.FC = () => {
                     </div>
                   ) : (
                     <>
-                      <div className="flex items-center justify-between mb-4 p-3 bg-muted/50 rounded-lg">
+                      <div className="flex items-center justify-between mb-4 p-3 bg-muted rounded-lg">
                         <div className="flex items-center gap-3">
                           <Checkbox
                             id="selectAll"
                             checked={selectedStudents.length === students.length}
                             onCheckedChange={handleSelectAllStudents}
                           />
-                          <Label htmlFor="selectAll" className="font-medium cursor-pointer">
+                          <Label htmlFor="selectAll" className="font-medium cursor-pointer text-foreground">
                             Select All ({students.length} students)
                           </Label>
                         </div>
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-sm text-primary">
                           {selectedStudents.length} selected
                         </span>
                       </div>
