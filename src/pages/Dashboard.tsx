@@ -19,7 +19,8 @@ import {
   Award,
   ChevronRight,
   Sparkles,
-  HandHeart
+  HandHeart,
+  HeadphonesIcon
 } from 'lucide-react';
 
 interface DashboardStats {
@@ -186,6 +187,14 @@ const Dashboard: React.FC = () => {
       href: '/quran',
       gradient: 'from-emerald-500/20 to-emerald-500/5',
       iconBg: 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+    },
+    { 
+      title: 'Quran With Translation', 
+      description: 'Listen to Quran Audio', 
+      icon: HeadphonesIcon,
+      href: '/quran-audio',
+      gradient: 'from-purple-500/20 to-purple-500/5',
+      iconBg: 'bg-purple-500/20 text-purple-600 dark:text-purple-400'
     },
     { 
       title: 'أذكار المسلم', 
