@@ -225,7 +225,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
         </div>
 
         {/* Main Controls */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <Button
             variant="ghost"
             size="icon"
@@ -235,13 +235,14 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
             <RotateCcw className="h-5 w-5" />
           </Button>
           
+          {/* 10 sec backward */}
           <Button
             variant="ghost"
-            size="icon"
             onClick={skipBackward}
-            className="h-14 w-14"
+            className="h-14 w-14 flex flex-col items-center justify-center gap-0"
           >
-            <SkipBack className="h-7 w-7" />
+            <SkipBack className="h-5 w-5" />
+            <span className="text-xs">10s</span>
           </Button>
           
           <Button
@@ -259,13 +260,14 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
             )}
           </Button>
           
+          {/* 10 sec forward */}
           <Button
             variant="ghost"
-            size="icon"
             onClick={skipForward}
-            className="h-14 w-14"
+            className="h-14 w-14 flex flex-col items-center justify-center gap-0"
           >
-            <SkipForward className="h-7 w-7" />
+            <SkipForward className="h-5 w-5" />
+            <span className="text-xs">10s</span>
           </Button>
           
           <Button
