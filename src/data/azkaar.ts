@@ -794,7 +794,204 @@ export const visitingSickDuas: Dhikr[] = [
   }
 ];
 
+// Tasbeeh - Daily Dhikr Counts
+export const tasbeehDuas: Dhikr[] = [
+  {
+    id: 'tasbeeh-1',
+    arabic: 'سُبْحَانَ اللَّهِ',
+    transliteration: "Subhanallah",
+    translation: "Glory be to Allah.",
+    translationUrdu: "اللہ پاک ہے۔",
+    translationRoman: "Allah paak hai.",
+    reference: "Muslim",
+    repetition: 100,
+    virtue: "Whoever says it, a thousand good deeds are recorded for him or a thousand sins are erased.",
+    virtueUrdu: "جو کہے اس کے لیے ہزار نیکیاں لکھی جائیں گی یا ہزار گناہ مٹا دیے جائیں گے۔",
+    virtueRoman: "Jo kahe uske liye hazaar nekiyan likhi jayengi ya hazaar gunah mita diye jayenge."
+  },
+  {
+    id: 'tasbeeh-2',
+    arabic: 'سُبْحَانَ اللَّهِ وَبِحَمْدِهِ',
+    transliteration: "Subhanallahi wa bihamdihi",
+    translation: "Glory be to Allah and praise be to Him.",
+    translationUrdu: "اللہ پاک ہے اور اس کی تعریف کے ساتھ۔",
+    translationRoman: "Allah paak hai aur uski tareef ke saath.",
+    reference: "Muslim 4:2071",
+    repetition: 100,
+    virtue: "His sins will be forgiven even if they were like the foam of the sea.",
+    virtueUrdu: "اس کے گناہ معاف ہو جائیں گے چاہے سمندر کی جھاگ جتنے ہوں۔",
+    virtueRoman: "Uske gunah maaf ho jayenge chahe samundar ki jhaag jitne hon."
+  },
+  {
+    id: 'tasbeeh-3',
+    arabic: 'سُبْحَانَ اللهِ وَالْحَمْدُ لِلَّهِ',
+    transliteration: "Subhanallahi walhamdulillah",
+    translation: "Glory be to Allah and praise be to Allah.",
+    translationUrdu: "اللہ پاک ہے اور تعریف اللہ کے لیے ہے۔",
+    translationRoman: "Allah paak hai aur tareef Allah ke liye hai.",
+    reference: "Muslim",
+    repetition: 100,
+    virtue: "They fill what is between the heavens and the earth."
+  },
+  {
+    id: 'tasbeeh-4',
+    arabic: 'سُبْحَانَ اللهِ العَظِيمِ وَبِحَمْدِهِ',
+    transliteration: "Subhanallahil 'azeemi wa bihamdihi",
+    translation: "Glory be to Allah the Almighty and praise be to Him.",
+    translationUrdu: "اللہ عظیم پاک ہے اور اس کی تعریف کے ساتھ۔",
+    translationRoman: "Allah Azeem paak hai aur uski tareef ke saath.",
+    reference: "At-Tirmidhi",
+    repetition: 100,
+    virtue: "A palm tree is planted in Paradise for the one who says it."
+  },
+  {
+    id: 'tasbeeh-5',
+    arabic: 'سُبْحَانَ اللَّهِ وَبِحَمْدِهِ ، سُبْحَانَ اللَّهِ الْعَظِيمِ',
+    transliteration: "Subhanallahi wa bihamdihi, Subhanallahil 'azeem",
+    translation: "Glory be to Allah and praise be to Him, Glory be to Allah the Almighty.",
+    translationUrdu: "اللہ پاک ہے اور اس کی تعریف کے ساتھ، اللہ عظیم پاک ہے۔",
+    translationRoman: "Allah paak hai aur uski tareef ke saath, Allah Azeem paak hai.",
+    reference: "Al-Bukhari, Muslim",
+    repetition: 100,
+    virtue: "Two phrases that are light on the tongue, heavy on the scale, beloved to the Most Merciful.",
+    virtueUrdu: "دو کلمے جو زبان پر ہلکے، ترازو میں بھاری، رحمٰن کو پیارے ہیں۔",
+    virtueRoman: "Do kalme jo zabaan par halke, tarazu mein bhaari, Rehman ko pyare hain."
+  },
+  {
+    id: 'tasbeeh-6',
+    arabic: 'لَا إلَه إلّا اللهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءِ قَدِيرِ',
+    transliteration: "La ilaha illallahu wahdahu la sharika lah, lahul mulku wa lahul hamd, wa huwa 'ala kulli shay'in qadeer",
+    translation: "There is no god but Allah alone, with no partner. His is the dominion and His is the praise, and He is able to do all things.",
+    translationUrdu: "اللہ کے سوا کوئی معبود نہیں، وہ اکیلا ہے، اس کا کوئی شریک نہیں، اسی کی بادشاہی ہے اور اسی کے لیے تعریف ہے اور وہ ہر چیز پر قادر ہے۔",
+    translationRoman: "Allah ke siwa koi mabood nahi, woh akela hai, uska koi shareek nahi, usi ki badshahi hai aur usi ke liye tareef hai aur woh har cheez par qaadir hai.",
+    reference: "Al-Bukhari, Muslim",
+    repetition: 100,
+    virtue: "Equal to freeing ten slaves, one hundred good deeds are recorded, one hundred sins are erased, and it is a protection from Shaytan.",
+    virtueUrdu: "دس غلام آزاد کرنے کے برابر، سو نیکیاں لکھی جائیں گی، سو گناہ مٹائے جائیں گے، اور شیطان سے حفاظت ہے۔",
+    virtueRoman: "Das ghulam azaad karne ke barabar, sau nekiyan likhi jayengi, sau gunah mitaye jayenge, aur shaitaan se hifazat hai."
+  },
+  {
+    id: 'tasbeeh-7',
+    arabic: 'لا حَوْلَ وَلا قُوَّةَ إِلا بِاللَّهِ',
+    transliteration: "La hawla wa la quwwata illa billah",
+    translation: "There is no power and no strength except with Allah.",
+    translationUrdu: "اللہ کے سوا کوئی طاقت اور قوت نہیں۔",
+    translationRoman: "Allah ke siwa koi taaqat aur quwwat nahi.",
+    reference: "Al-Bukhari, Muslim",
+    repetition: 100,
+    virtue: "A treasure from the treasures of Paradise.",
+    virtueUrdu: "جنت کے خزانوں میں سے ایک خزانہ ہے۔",
+    virtueRoman: "Jannat ke khazanon mein se aik khazana hai."
+  },
+  {
+    id: 'tasbeeh-8',
+    arabic: 'الْحَمْدُ للّهِ رَبِّ الْعَالَمِينَ',
+    transliteration: "Alhamdulillahi rabbil 'alameen",
+    translation: "All praise is due to Allah, Lord of the worlds.",
+    translationUrdu: "تمام تعریف اللہ کے لیے ہے جو تمام جہانوں کا رب ہے۔",
+    translationRoman: "Tamam tareef Allah ke liye hai jo tamam jahanon ka Rab hai.",
+    reference: "Al-Fatiha",
+    repetition: 100,
+    virtue: "Fills the scale of good deeds."
+  },
+  {
+    id: 'tasbeeh-9',
+    arabic: 'الْلَّهُم صَلِّ وَسَلِم وَبَارِك عَلَى سَيِّدِنَا مُحَمَّد',
+    transliteration: "Allahumma salli wa sallim wa barik 'ala sayyidina Muhammad",
+    translation: "O Allah, send blessings, peace and blessings upon our master Muhammad.",
+    translationUrdu: "اے اللہ! ہمارے سردار محمد ﷺ پر درود، سلام اور برکت نازل فرما۔",
+    translationRoman: "Aye Allah! Hamare sardar Muhammad ﷺ par durood, salam aur barkat nazil farma.",
+    reference: "Muslim",
+    repetition: 100,
+    virtue: "Whoever sends blessings upon me in the morning and evening, my intercession will reach him on the Day of Resurrection.",
+    virtueUrdu: "جو صبح و شام مجھ پر درود بھیجے، قیامت کے دن اس تک میری شفاعت پہنچے گی۔",
+    virtueRoman: "Jo subah o shaam mujh par durood bheje, qayamat ke din us tak meri shifa'at pohonchegi."
+  },
+  {
+    id: 'tasbeeh-10',
+    arabic: 'أستغفر الله',
+    transliteration: "Astaghfirullah",
+    translation: "I seek forgiveness from Allah.",
+    translationUrdu: "میں اللہ سے مغفرت چاہتا ہوں۔",
+    translationRoman: "Mein Allah se maghfirat chahta hoon.",
+    reference: "Muslim",
+    repetition: 100,
+    virtue: "The Prophet ﷺ used to seek forgiveness 100 times a day."
+  },
+  {
+    id: 'tasbeeh-11',
+    arabic: 'سُبْحَانَ الْلَّهِ، وَالْحَمْدُ لِلَّهِ، وَلَا إِلَهَ إِلَّا الْلَّهُ، وَالْلَّهُ أَكْبَرُ',
+    transliteration: "Subhanallah, Walhamdulillah, Wa la ilaha illallah, Wallahu Akbar",
+    translation: "Glory be to Allah, Praise be to Allah, There is no god but Allah, Allah is the Greatest.",
+    translationUrdu: "سبحان اللہ، الحمد للہ، اللہ کے سوا کوئی معبود نہیں، اللہ اکبر۔",
+    translationRoman: "Subhanallah, Alhamdulillah, Allah ke siwa koi mabood nahi, Allah Akbar.",
+    reference: "Muslim",
+    repetition: 100,
+    virtue: "These are the most beloved words to Allah, they are forgiveness for sins, the planting of Paradise, and a protection for the one who says them from the Fire.",
+    virtueUrdu: "یہ اللہ کو سب سے پسندیدہ کلمات ہیں، گناہوں کی معافی، جنت کا پودا، اور کہنے والے کے لیے آگ سے حفاظت ہے۔",
+    virtueRoman: "Yeh Allah ko sab se pasandida kalimaat hain, gunahon ki maafi, jannat ka powda, aur kahne wale ke liye aag se hifazat hai."
+  },
+  {
+    id: 'tasbeeh-12',
+    arabic: 'لَا إِلَهَ إِلَّا اللَّهُ',
+    transliteration: "La ilaha illallah",
+    translation: "There is no god but Allah.",
+    translationUrdu: "اللہ کے سوا کوئی معبود نہیں۔",
+    translationRoman: "Allah ke siwa koi mabood nahi.",
+    reference: "At-Tirmidhi",
+    repetition: 100,
+    virtue: "The best dhikr is La ilaha illallah.",
+    virtueUrdu: "سب سے بہترین ذکر لا الہ الا اللہ ہے۔",
+    virtueRoman: "Sab se behtareen zikr La ilaha illallah hai."
+  },
+  {
+    id: 'tasbeeh-13',
+    arabic: 'الْلَّهُ أَكْبَرُ',
+    transliteration: "Allahu Akbar",
+    translation: "Allah is the Greatest.",
+    translationUrdu: "اللہ سب سے بڑا ہے۔",
+    translationRoman: "Allah sab se bara hai.",
+    reference: "Muslim",
+    repetition: 100,
+    virtue: "Whoever says Allahu Akbar, twenty good deeds are recorded for him and twenty sins are erased."
+  },
+  {
+    id: 'tasbeeh-14',
+    arabic: 'اللَّهُ أَكْبَرُ كَبِيرًا ، وَالْحَمْدُ لِلَّهِ كَثِيرًا ، وَسُبْحَانَ اللَّهِ بُكْرَةً وَأَصِيلاً',
+    transliteration: "Allahu akbaru kabeera, walhamdulillahi katheera, wa subhanallahi bukratan wa aseela",
+    translation: "Allah is the Greatest, much praise is for Allah, and glory be to Allah in the morning and evening.",
+    translationUrdu: "اللہ سب سے بڑا ہے بہت بڑا، اللہ کی بہت تعریف ہے، اور صبح و شام اللہ کی پاکی ہے۔",
+    translationRoman: "Allah sab se bara hai bohat bara, Allah ki bohat tareef hai, aur subah o shaam Allah ki paaki hai.",
+    reference: "Muslim",
+    repetition: 100,
+    virtue: "The Prophet ﷺ said: 'I was amazed at it, the gates of heaven were opened for it.'"
+  },
+  {
+    id: 'tasbeeh-15',
+    arabic: 'اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا صَلَّيْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ إِنَّكَ حَمِيدٌ مَجِيدٌ، اللَّهُمَّ بَارِكْ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا بَارَكْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ إِنَّكَ حَمِيدٌ مَجِيدٌ',
+    transliteration: "Allahumma salli 'ala Muhammad wa 'ala aali Muhammad kama sallayta 'ala Ibrahim wa 'ala aali Ibrahim innaka hameedun majeed. Allahumma barik 'ala Muhammad wa 'ala aali Muhammad kama barakta 'ala Ibrahim wa 'ala aali Ibrahim innaka hameedun majeed",
+    translation: "O Allah, send blessings upon Muhammad and the family of Muhammad as You sent blessings upon Ibrahim and the family of Ibrahim. You are Praiseworthy, Glorious. O Allah, bless Muhammad and the family of Muhammad as You blessed Ibrahim and the family of Ibrahim. You are Praiseworthy, Glorious.",
+    translationUrdu: "اے اللہ! محمد ﷺ پر اور آل محمد پر رحمت نازل فرما جیسے تو نے ابراہیم اور آل ابراہیم پر رحمت نازل فرمائی، بیشک تو تعریف والا بزرگی والا ہے۔ اے اللہ! محمد ﷺ پر اور آل محمد پر برکت نازل فرما جیسے تو نے ابراہیم اور آل ابراہیم پر برکت نازل فرمائی، بیشک تو تعریف والا بزرگی والا ہے۔",
+    translationRoman: "Aye Allah! Muhammad ﷺ par aur aal-e-Muhammad par rehmat nazil farma jaise tu ne Ibrahim aur aal-e-Ibrahim par rehmat nazil farmai, beshak tu tareef wala buzurgi wala hai. Aye Allah! Muhammad ﷺ par aur aal-e-Muhammad par barkat nazil farma jaise tu ne Ibrahim aur aal-e-Ibrahim par barkat nazil farmai, beshak tu tareef wala buzurgi wala hai.",
+    reference: "Al-Bukhari",
+    repetition: 100,
+    virtue: "Each time blessings are sent upon the Prophet, Allah sends ten blessings upon the person, ten sins are erased, and ten ranks are raised."
+  }
+];
+
 export const allAzkaarCategories: AzkaarCategory[] = [
+  {
+    id: 'tasbeeh',
+    title: 'Tasbeeh Counter',
+    titleUrdu: 'تسبیح کاؤنٹر',
+    titleRoman: 'Tasbeeh Counter',
+    titleArabic: 'تسابيح',
+    icon: '📿',
+    description: 'Daily dhikr with counting - tap to count, swipe when complete',
+    descriptionUrdu: 'روزانہ ذکر گنتی کے ساتھ - گننے کے لیے ٹیپ کریں، مکمل ہونے پر سوائپ کریں',
+    descriptionRoman: 'Rozana zikr ginti ke saath - ginnay ke liye tap karein, mukammal hone par swipe karein',
+    duas: tasbeehDuas
+  },
   {
     id: 'morning',
     title: 'Morning Azkaar',
