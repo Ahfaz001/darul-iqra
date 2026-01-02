@@ -1,21 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage, Language } from '@/contexts/LanguageContext';
 import StudentLayout from '@/components/StudentLayout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { 
   Sunrise, 
   Moon, 
   BedDouble, 
   AlarmClock, 
   HandHeart,
-  ChevronLeft,
-  ChevronRight,
   BookOpen,
   Repeat,
   Quote,
@@ -24,7 +24,8 @@ import {
   Plane,
   Droplets,
   Heart,
-  Settings
+  Settings,
+  CircleDot
 } from 'lucide-react';
 import { 
   allAzkaarCategories, 
@@ -35,6 +36,8 @@ import {
   getCategoryTitle,
   getCategoryDescription
 } from '@/data/azkaar';
+import DhikrCounterCard from '@/components/DhikrCounterCard';
+import { cn } from '@/lib/utils';
 
 const iconMap: Record<string, React.ReactNode> = {
   '🌅': <Sunrise className="h-6 w-6" />,
@@ -47,9 +50,11 @@ const iconMap: Record<string, React.ReactNode> = {
   '✈️': <Plane className="h-6 w-6" />,
   '🚿': <Droplets className="h-6 w-6" />,
   '💚': <Heart className="h-6 w-6" />,
+  '📿': <CircleDot className="h-6 w-6" />,
 };
 
 const colorMap: Record<string, { bg: string; text: string; border: string }> = {
+  tasbeeh: { bg: 'bg-emerald-500/10', text: 'text-emerald-600 dark:text-emerald-400', border: 'border-emerald-500/20' },
   morning: { bg: 'bg-amber-500/10', text: 'text-amber-600 dark:text-amber-400', border: 'border-amber-500/20' },
   evening: { bg: 'bg-indigo-500/10', text: 'text-indigo-600 dark:text-indigo-400', border: 'border-indigo-500/20' },
   sleeping: { bg: 'bg-purple-500/10', text: 'text-purple-600 dark:text-purple-400', border: 'border-purple-500/20' },
@@ -62,11 +67,30 @@ const colorMap: Record<string, { bg: string; text: string; border: string }> = {
   general: { bg: 'bg-rose-500/10', text: 'text-rose-600 dark:text-rose-400', border: 'border-rose-500/20' },
 };
 
-const DhikrCard: React.FC<{ dhikr: Dhikr; index: number; language: Language }> = ({ dhikr, index, language }) => {
+interface DhikrCardProps {
+  dhikr: Dhikr;
+  index: number;
+  language: Language;
+  showCounter?: boolean;
+  onComplete?: () => void;
+}
+
+const DhikrCard: React.FC<DhikrCardProps> = ({ dhikr, index, language, showCounter = false, onComplete }) => {
   const [expanded, setExpanded] = useState(false);
   const translation = getDhikrTranslation(dhikr, language);
   const virtue = getDhikrVirtue(dhikr, language);
   const isUrdu = language === 'ur';
+
+  if (showCounter) {
+    return (
+      <DhikrCounterCard 
+        dhikr={dhikr} 
+        language={language} 
+        onComplete={onComplete}
+        showCounter={true}
+      />
+    );
+  }
 
   return (
     <Card className="mb-4 border-border/50 hover:shadow-lg transition-all duration-300">
@@ -87,7 +111,10 @@ const DhikrCard: React.FC<{ dhikr: Dhikr; index: number; language: Language }> =
 
         {/* Translation */}
         <div className="mb-4" dir={isUrdu ? 'rtl' : 'ltr'}>
-          <p className={`text-sm sm:text-base text-foreground/80 ${isUrdu ? 'font-urdu' : ''}`}>
+          <p className={cn(
+            "text-sm sm:text-base text-foreground/80",
+            isUrdu && "font-urdu"
+          )}>
             {translation}
           </p>
         </div>
@@ -114,7 +141,11 @@ const DhikrCard: React.FC<{ dhikr: Dhikr; index: number; language: Language }> =
           >
             <div className="flex items-start gap-2" dir={isUrdu ? 'rtl' : 'ltr'}>
               <Quote className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-              <p className={`text-sm text-primary/80 ${expanded ? '' : 'line-clamp-2'} ${isUrdu ? 'font-urdu' : ''}`}>
+              <p className={cn(
+                "text-sm text-primary/80",
+                !expanded && "line-clamp-2",
+                isUrdu && "font-urdu"
+              )}>
                 {virtue}
               </p>
             </div>
@@ -125,42 +156,114 @@ const DhikrCard: React.FC<{ dhikr: Dhikr; index: number; language: Language }> =
   );
 };
 
-const CategoryView: React.FC<{ category: AzkaarCategory; language: Language }> = ({ category, language }) => {
+interface CategoryViewProps {
+  category: AzkaarCategory;
+  language: Language;
+  counterMode: boolean;
+}
+
+const CategoryView: React.FC<CategoryViewProps> = ({ category, language, counterMode }) => {
   const colors = colorMap[category.id] || colorMap.general;
   const title = getCategoryTitle(category, language);
   const description = getCategoryDescription(category, language);
   const isUrdu = language === 'ur';
   
+  // Track completed duas
+  const [completedDuas, setCompletedDuas] = useState<Set<string>>(new Set());
+  
   // UI labels based on language
   const duasLabel = language === 'ur' ? 'دعائیں' : language === 'roman' ? 'Duain' : 'Duas';
+  const completedLabel = language === 'ur' ? 'مکمل' : language === 'roman' ? 'Mukammal' : 'Completed';
+
+  const handleDuaComplete = useCallback((duaId: string) => {
+    setCompletedDuas(prev => {
+      const newSet = new Set(prev);
+      newSet.add(duaId);
+      return newSet;
+    });
+  }, []);
+
+  // Filter out completed duas in counter mode
+  const visibleDuas = counterMode 
+    ? category.duas.filter(d => !completedDuas.has(d.id))
+    : category.duas;
+
+  const allCompleted = counterMode && visibleDuas.length === 0;
 
   return (
     <div>
-      <div className={`p-4 rounded-xl ${colors.bg} ${colors.border} border mb-6`}>
+      <div className={cn(
+        "p-4 rounded-xl border mb-6",
+        colors.bg,
+        colors.border
+      )}>
         <div className="flex items-center gap-3 mb-2">
-          <div className={`p-2 rounded-lg ${colors.bg} ${colors.text}`}>
+          <div className={cn("p-2 rounded-lg", colors.bg, colors.text)}>
             {iconMap[category.icon]}
           </div>
           <div>
-            <h2 className={`text-xl font-semibold ${colors.text} ${isUrdu ? 'font-urdu' : ''}`} dir={isUrdu ? 'rtl' : 'ltr'}>
+            <h2 className={cn(
+              "text-xl font-semibold",
+              colors.text,
+              isUrdu && "font-urdu"
+            )} dir={isUrdu ? 'rtl' : 'ltr'}>
               {title}
             </h2>
             <p className="text-lg font-arabic text-muted-foreground" dir="rtl">{category.titleArabic}</p>
           </div>
         </div>
-        <p className={`text-sm text-muted-foreground mt-2 ${isUrdu ? 'font-urdu' : ''}`} dir={isUrdu ? 'rtl' : 'ltr'}>
+        <p className={cn(
+          "text-sm text-muted-foreground mt-2",
+          isUrdu && "font-urdu"
+        )} dir={isUrdu ? 'rtl' : 'ltr'}>
           {description}
         </p>
-        <Badge variant="secondary" className="mt-2">
-          {category.duas.length} {duasLabel}
-        </Badge>
+        <div className="flex items-center gap-2 mt-2">
+          <Badge variant="secondary">
+            {category.duas.length} {duasLabel}
+          </Badge>
+          {counterMode && completedDuas.size > 0 && (
+            <Badge variant="outline" className="text-emerald-600">
+              {completedDuas.size} {completedLabel}
+            </Badge>
+          )}
+        </div>
       </div>
 
-      <ScrollArea className="h-[calc(100vh-400px)]">
-        {category.duas.map((dhikr, index) => (
-          <DhikrCard key={dhikr.id} dhikr={dhikr} index={index} language={language} />
-        ))}
-      </ScrollArea>
+      {allCompleted ? (
+        <Card className="p-8 text-center border-emerald-500/50 bg-emerald-50/50 dark:bg-emerald-950/20">
+          <div className="text-6xl mb-4">🎉</div>
+          <h3 className={cn(
+            "text-xl font-bold text-emerald-600 dark:text-emerald-400 mb-2",
+            isUrdu && "font-urdu"
+          )}>
+            {language === 'ur' ? 'ماشاء اللہ! سب مکمل ہو گئے' : language === 'roman' ? 'MashaAllah! Sab mukammal ho gaye' : 'MashaAllah! All completed!'}
+          </h3>
+          <p className="text-muted-foreground">
+            {language === 'ur' ? 'اللہ آپ کے اذکار قبول فرمائے' : language === 'roman' ? 'Allah aap ke azkaar qabool farmaye' : 'May Allah accept your dhikr'}
+          </p>
+          <Button 
+            variant="outline" 
+            className="mt-4"
+            onClick={() => setCompletedDuas(new Set())}
+          >
+            {language === 'ur' ? 'دوبارہ شروع کریں' : language === 'roman' ? 'Dobara shuru karein' : 'Start Again'}
+          </Button>
+        </Card>
+      ) : (
+        <ScrollArea className="h-[calc(100vh-400px)]">
+          {visibleDuas.map((dhikr, index) => (
+            <DhikrCard 
+              key={dhikr.id} 
+              dhikr={dhikr} 
+              index={index} 
+              language={language}
+              showCounter={counterMode && (dhikr.repetition ? dhikr.repetition > 1 : false)}
+              onComplete={() => handleDuaComplete(dhikr.id)}
+            />
+          ))}
+        </ScrollArea>
+      )}
     </div>
   );
 };
@@ -168,7 +271,8 @@ const CategoryView: React.FC<{ category: AzkaarCategory; language: Language }> =
 const StudentAzkaar: React.FC = () => {
   const { isRTL, language } = useLanguage();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('morning');
+  const [activeTab, setActiveTab] = useState('tasbeeh');
+  const [counterMode, setCounterMode] = useState(true);
 
   // UI translations
   const pageTitle = language === 'ur' ? 'اذکار المسلم' : language === 'roman' ? 'Azkaar ul Muslim' : 'أذكار المسلم';
@@ -178,12 +282,13 @@ const StudentAzkaar: React.FC = () => {
     ? 'Hisnul Muslim se mustanad duain' 
     : 'Authentic supplications from Hisnul Muslim (Fortress of the Muslim)';
   const settingsLabel = language === 'ur' ? 'ترتیبات' : language === 'roman' ? 'Settings' : 'Settings';
+  const counterModeLabel = language === 'ur' ? 'گنتی موڈ' : language === 'roman' ? 'Counter Mode' : 'Counter Mode';
 
   return (
     <StudentLayout>
       <Helmet>
         <title>Azkaar | Daily Supplications from Hisnul Muslim</title>
-        <meta name="description" content="Complete collection of authentic Islamic supplications from Hisnul Muslim - Morning, Evening, Sleeping, and General Duas." />
+        <meta name="description" content="Complete collection of authentic Islamic supplications from Hisnul Muslim - Morning, Evening, Sleeping, and General Duas with interactive counter." />
       </Helmet>
 
       {/* Decorative Background */}
@@ -196,10 +301,16 @@ const StudentAzkaar: React.FC = () => {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className={`text-3xl font-display font-bold text-foreground mb-2 ${isRTL ? 'font-urdu' : ''}`} dir={isRTL ? 'rtl' : 'ltr'}>
+            <h1 className={cn(
+              "text-3xl font-display font-bold text-foreground mb-2",
+              isRTL && "font-urdu"
+            )} dir={isRTL ? 'rtl' : 'ltr'}>
               {pageTitle}
             </h1>
-            <p className={`text-muted-foreground ${isRTL ? 'font-urdu' : ''}`} dir={isRTL ? 'rtl' : 'ltr'}>
+            <p className={cn(
+              "text-muted-foreground",
+              isRTL && "font-urdu"
+            )} dir={isRTL ? 'rtl' : 'ltr'}>
               {pageSubtitle}
             </p>
           </div>
@@ -214,6 +325,21 @@ const StudentAzkaar: React.FC = () => {
           </Button>
         </div>
 
+        {/* Counter Mode Toggle */}
+        <div className="flex items-center justify-end gap-2 mb-4 p-3 rounded-lg bg-muted/50">
+          <Label htmlFor="counter-mode" className={cn(
+            "text-sm",
+            isRTL && "font-urdu"
+          )}>
+            {counterModeLabel}
+          </Label>
+          <Switch
+            id="counter-mode"
+            checked={counterMode}
+            onCheckedChange={setCounterMode}
+          />
+        </div>
+
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <ScrollArea className="w-full whitespace-nowrap mb-6">
@@ -225,12 +351,18 @@ const StudentAzkaar: React.FC = () => {
                   <TabsTrigger 
                     key={category.id} 
                     value={category.id}
-                    className={`flex flex-col items-center gap-1 py-3 px-4 min-w-[70px] data-[state=active]:${colors.bg}`}
+                    className={cn(
+                      "flex flex-col items-center gap-1 py-3 px-4 min-w-[70px]",
+                      activeTab === category.id && colors.bg
+                    )}
                   >
                     <div className={activeTab === category.id ? colors.text : 'text-muted-foreground'}>
                       {iconMap[category.icon]}
                     </div>
-                    <span className={`text-xs whitespace-nowrap ${isRTL ? 'font-urdu' : ''}`}>
+                    <span className={cn(
+                      "text-xs whitespace-nowrap",
+                      isRTL && "font-urdu"
+                    )}>
                       {tabTitle.split(' ')[0]}
                     </span>
                   </TabsTrigger>
@@ -241,7 +373,11 @@ const StudentAzkaar: React.FC = () => {
 
           {allAzkaarCategories.map((category) => (
             <TabsContent key={category.id} value={category.id}>
-              <CategoryView category={category} language={language} />
+              <CategoryView 
+                category={category} 
+                language={language} 
+                counterMode={counterMode}
+              />
             </TabsContent>
           ))}
         </Tabs>
