@@ -9,11 +9,14 @@ import {
   Check,
   RotateCcw,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
 import { Dhikr, getDhikrTranslation, getDhikrVirtue } from '@/data/azkaar';
 import { Language } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
+import { useArabicSpeech } from '@/hooks/useArabicSpeech';
 
 interface DhikrCounterCardProps {
   dhikr: Dhikr;
@@ -33,6 +36,10 @@ export const DhikrCounterCard: React.FC<DhikrCounterCardProps> = ({
   const [isCompleted, setIsCompleted] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   
+  // Audio speech
+  const { speak, isPlaying, currentDuaId } = useArabicSpeech();
+  const isCurrentlyPlaying = isPlaying && currentDuaId === dhikr.id;
+  
   // Swipe handling
   const touchStartX = useRef<number>(0);
   const touchCurrentX = useRef<number>(0);
@@ -44,6 +51,11 @@ export const DhikrCounterCard: React.FC<DhikrCounterCardProps> = ({
   const isUrdu = language === 'ur';
   const targetCount = dhikr.repetition || 1;
   const progress = Math.min((count / targetCount) * 100, 100);
+  
+  const handlePlayAudio = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    speak(dhikr.arabic, dhikr.id);
+  };
 
   const handleCountClick = () => {
     if (isCompleted) return;
@@ -207,11 +219,30 @@ export const DhikrCounterCard: React.FC<DhikrCounterCardProps> = ({
             </div>
           )}
 
-          {/* Arabic Text */}
-          <div className="text-right mb-4">
-            <p className="text-xl sm:text-2xl leading-loose font-arabic text-foreground" dir="rtl">
-              {dhikr.arabic}
-            </p>
+          {/* Arabic Text with Audio Button */}
+          <div className="text-right mb-4 relative">
+            <div className="flex items-start justify-between gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handlePlayAudio}
+                className={cn(
+                  "h-10 w-10 rounded-full flex-shrink-0 transition-all",
+                  isCurrentlyPlaying 
+                    ? "bg-primary text-primary-foreground animate-pulse" 
+                    : "bg-primary/10 text-primary hover:bg-primary/20"
+                )}
+              >
+                {isCurrentlyPlaying ? (
+                  <VolumeX className="h-5 w-5" />
+                ) : (
+                  <Volume2 className="h-5 w-5" />
+                )}
+              </Button>
+              <p className="text-xl sm:text-2xl leading-loose font-arabic text-foreground flex-1" dir="rtl">
+                {dhikr.arabic}
+              </p>
+            </div>
           </div>
 
           {/* Transliteration */}
