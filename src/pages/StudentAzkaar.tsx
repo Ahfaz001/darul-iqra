@@ -25,9 +25,7 @@ import {
   Droplets,
   Heart,
   Settings,
-  CircleDot,
-  Volume2,
-  VolumeX
+  CircleDot
 } from 'lucide-react';
 import { 
   allAzkaarCategories, 
@@ -39,7 +37,6 @@ import {
   getCategoryDescription
 } from '@/data/azkaar';
 import DhikrCounterCard from '@/components/DhikrCounterCard';
-import { useArabicSpeech } from '@/hooks/useArabicSpeech';
 import { cn } from '@/lib/utils';
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -83,15 +80,6 @@ const DhikrCard: React.FC<DhikrCardProps> = ({ dhikr, index, language, showCount
   const translation = getDhikrTranslation(dhikr, language);
   const virtue = getDhikrVirtue(dhikr, language);
   const isUrdu = language === 'ur';
-  
-  // Audio speech
-  const { speak, isPlaying, currentDuaId } = useArabicSpeech();
-  const isCurrentlyPlaying = isPlaying && currentDuaId === dhikr.id;
-  
-  const handlePlayAudio = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    speak(dhikr.arabic, dhikr.id);
-  };
 
   if (showCounter) {
     return (
@@ -107,30 +95,11 @@ const DhikrCard: React.FC<DhikrCardProps> = ({ dhikr, index, language, showCount
   return (
     <Card className="mb-4 border-border/50 hover:shadow-lg transition-all duration-300">
       <CardContent className="p-4 sm:p-6">
-        {/* Arabic Text with Audio Button */}
+        {/* Arabic Text */}
         <div className="text-right mb-4">
-          <div className="flex items-start justify-between gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handlePlayAudio}
-              className={cn(
-                "h-10 w-10 rounded-full flex-shrink-0 transition-all",
-                isCurrentlyPlaying 
-                  ? "bg-primary text-primary-foreground animate-pulse" 
-                  : "bg-primary/10 text-primary hover:bg-primary/20"
-              )}
-            >
-              {isCurrentlyPlaying ? (
-                <VolumeX className="h-5 w-5" />
-              ) : (
-                <Volume2 className="h-5 w-5" />
-              )}
-            </Button>
-            <p className="text-xl sm:text-2xl leading-loose font-arabic text-foreground flex-1" dir="rtl">
-              {dhikr.arabic}
-            </p>
-          </div>
+          <p className="text-xl sm:text-2xl leading-loose font-arabic text-foreground" dir="rtl">
+            {dhikr.arabic}
+          </p>
         </div>
 
         {/* Transliteration */}
